@@ -29,8 +29,20 @@ function Login() {
       // Store token in localStorage
       localStorage.setItem("token", data.token);
       
-      // Redirect to owner overview
-      navigate("/owner/overview");
+      // Decode token to get role (JWT format: header.payload.signature)
+      const payload = JSON.parse(atob(data.token.split('.')[1]));
+      const role = payload.role.toLowerCase();
+
+      // Redirect based on role
+      if (role === "owner") {
+        navigate("/owner/overview");
+      } else if (role === "treasurer") {
+        navigate("/treasurer/overview");
+      } else if (role === "tenant") {
+        navigate("/tenant/overview");
+      } else {
+        setError("Unknown user role");
+      }
     } catch (err) {
       setError(err.message || "Login failed");
       console.error("Login error:", err);
