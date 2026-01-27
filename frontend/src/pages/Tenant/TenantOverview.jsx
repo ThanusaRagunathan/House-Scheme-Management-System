@@ -1,4 +1,4 @@
-import Background from "../assets/bgimg.jpg";
+import Background from "../../assets/bgimg.jpg";
 import { useNavigate } from "react-router-dom";
 
 function TenantOverview() {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { login as loginAPI } from "../services/api.js";
 import Background from "../assets/bgimg.jpg";
 
 const inputStyle = {
@@ -23,20 +24,7 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || "Login failed");
-        return;
-      }
+      const data = await loginAPI(username, password);
 
       // Store token in localStorage
       localStorage.setItem("token", data.token);
@@ -44,7 +32,7 @@ function Login() {
       // Redirect to owner overview
       navigate("/owner/overview");
     } catch (err) {
-      setError("Connection error. Please try again.");
+      setError(err.message || "Login failed");
       console.error("Login error:", err);
     } finally {
       setLoading(false);
