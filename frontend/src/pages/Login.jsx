@@ -136,8 +136,13 @@ function Login() {
       </div>
 
       {/* Footer */}
-      <footer style={{ padding: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+      <footer
+        style={{
+          height: "30px",
+          backgroundColor: "#0b3d02",
+        }}
+      />
+      </div>
   );
 }
 
