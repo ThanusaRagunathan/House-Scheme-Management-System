@@ -87,7 +87,7 @@ function OwnerOverview() {
         <div
           style={{
             width: "230px",
-            backgroundColor: "#b3b0b0",
+            backgroundColor: "#d6d6d6",
             minHeight: "100%",
             display: "flex",
             flexDirection: "column",
@@ -247,7 +247,7 @@ function OwnerOverview() {
       {/* Footer */}
       <footer
         style={{
-          padding: "30px",
+          height: "30px",
           backgroundColor: "#0b3d02",
         }}
       />

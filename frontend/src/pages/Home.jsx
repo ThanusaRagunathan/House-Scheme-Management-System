@@ -24,7 +24,7 @@ function Home() {
 
   return (
     <div>
-      <header style={{padding:"70px", backgroundColor:"#0b3d02"}}>
+      <header style={{padding:"50px", backgroundColor:"#0b3d02"}}>
         <div style={{display:"flex", justifyContent:"flex-end", gap:"50px", color:"white", fontSize:"20px"}}>
         <nav><a href="#home" style={navLinkStyle}>Home</a></nav>
         <nav><a href="#about" style={navLinkStyle}>About Us</a></nav>
