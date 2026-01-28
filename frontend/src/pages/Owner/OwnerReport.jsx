@@ -66,7 +66,7 @@ function OwnerReport() {
   const payments = [
     {
       invoice: "INV-2025-001",
-      name: "Tom John",
+      name: "Karthik",
       house: "H001",
       date: "2025-09-01",
       amount: "Rs. 10,000",

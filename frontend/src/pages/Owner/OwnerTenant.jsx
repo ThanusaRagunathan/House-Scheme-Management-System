@@ -5,8 +5,8 @@ function OwnerTenant() {
     const navigate = useNavigate();
   const tenants = [
     {
-      name: "Tom John",
-      email: "tomjohn@gmail.com",
+      name: "Karthik",
+      email: "karthik@gmail.com",
       phone: "077 123 4567",
       house: "H001",
     },

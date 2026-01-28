@@ -126,8 +126,8 @@ function TreasurerTenants() {
 
             <tbody>
               <tr style={{ backgroundColor: "#ddd" }}>
-                <td>Tom John</td>
-                <td>tomjohn@gmail.com</td>
+                <td>Karthik</td>
+                <td>karthik@gmail.com</td>
                 <td>077 123 4567</td>
                 <td>H001</td>
                 <td>

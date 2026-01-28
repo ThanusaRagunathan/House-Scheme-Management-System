@@ -186,7 +186,7 @@ function TreasurerReports() {
             </thead>
             <tbody>
               {[
-                ["INV-2025-001", "Tom John", "H001", "2025-09-01", "Rs. 10,000", "paid", "Online"],
+                ["INV-2025-001", "Karthik", "H001", "2025-09-01", "Rs. 10,000", "paid", "Online"],
                 ["INV-2025-002", "Jack Brown", "H002", "-", "Rs. 17,000", "pending", "-"],
                 ["INV-2025-003", "Patrick Tompson", "H004", "2025-09-25", "Rs. 13,000", "paid", "Offline"],
               ].map((row, i) => (

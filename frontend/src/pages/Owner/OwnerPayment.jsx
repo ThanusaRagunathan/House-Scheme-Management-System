@@ -30,7 +30,7 @@ function OwnerPayment() {
   const allPayments = [
     {
       invoice: "INV-2025-001",
-      name: "Tom John",
+      name: "Karthik",
       house: "H001",
       paidDate: "2025-09-01",
       amount: "Rs. 10,000",

@@ -181,7 +181,7 @@ function PaymentsTable() {
       <tbody>
         <tr>
           <td>INV-2025-001</td>
-          <td>Tom John</td>
+          <td>Karthik</td>
           <td>H001</td>
           <td>2025-09-01</td>
           <td>Rs. 10,000</td>

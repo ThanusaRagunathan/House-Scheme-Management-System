@@ -232,11 +232,11 @@ function TenantOverview() {
                   border: "1px solid #6aa84f",
                 }}
               >
-                <strong>Tom John (Tenant)</strong>
+                <strong>Karthik (Tenant)</strong>
                 <div>Software engineer</div>
                 <div>200165894231</div>
                 <div>2001-02-28</div>
-                <div>tomjohn@gmail.com</div>
+                <div>karthik@gmail.com</div>
                 <div>077 123 4567</div>
 
                 <hr />

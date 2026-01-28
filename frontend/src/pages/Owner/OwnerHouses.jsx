@@ -107,7 +107,7 @@ function OwnerHouses() {
       address: "123, Oak Street",
       rooms: 2,
       rent: "Rs. 10,000/mo",
-      tenants: ["Tom John (Tenant)", "Sarah John (Spouse)"],
+      tenants: ["karthik (Tenant)", "Sarah John (Spouse)"],
     },
     {
       code: "H002",

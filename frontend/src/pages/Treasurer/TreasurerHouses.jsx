@@ -19,7 +19,7 @@ function TreasurerHouses() {
       address: "123, Oak Street",
       rooms: 2,
       rent: "Rs. 10,000/mo",
-      tenants: ["Tom John (Tenant)", "Sarah John (Spouse)"],
+      tenants: ["Karthik (Tenant)", "Sarah John (Spouse)"],
     },
     {
       id: "H002",

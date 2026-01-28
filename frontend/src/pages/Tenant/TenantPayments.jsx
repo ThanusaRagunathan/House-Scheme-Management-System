@@ -195,7 +195,7 @@ function TenantPayments() {
             <tbody>
               <tr style={{ backgroundColor: "#e0e0e0" }}>
                 <td style={td}>INV-2025-001</td>
-                <td style={td}>Tom John</td>
+                <td style={td}>Karthik</td>
                 <td style={td}>H001</td>
                 <td style={td}>2025-09-01</td>
                 <td style={td}>Rs. 10,000</td>
