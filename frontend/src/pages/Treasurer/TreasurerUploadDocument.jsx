@@ -1,6 +1,48 @@
 import Background from "../../assets/bgimg.jpg";
 import { useNavigate } from "react-router-dom";
 
+/* styles */
+const label = {
+  display: "block",
+  fontWeight: 600,
+  marginBottom: "6px",
+  marginTop: "14px",
+};
+
+const input = {
+  width: "200px",
+  padding: "6px",
+  border: "1px solid #000",
+  backgroundColor: "#e0e0e0",
+  display: "block",
+};
+
+const fileBtn = {
+  marginTop: "16px",
+  padding: "6px 14px",
+  borderRadius: "6px",
+  border: "1px solid #000",
+  backgroundColor: "#e0e0e0",
+  cursor: "pointer",
+};
+
+const cancelBtn = {
+  padding: "6px 16px",
+  borderRadius: "6px",
+  border: "1px solid #000",
+  backgroundColor: "white",
+  cursor: "pointer",
+};
+
+const saveBtn = {
+  padding: "6px 18px",
+  borderRadius: "6px",
+  border: "none",
+  backgroundColor: "#0b3d02",
+  color: "white",
+  cursor: "pointer",
+};
+
 function TreasurerUploadDocuments() {
   const navigate = useNavigate();
 
@@ -93,22 +135,6 @@ function TreasurerUploadDocuments() {
             <div style={menuItem}>Notification</div>
             <div style={menuItem}>Report</div>
           </div>
-
-          {/* User */}
-          <div style={{ marginTop: "40px", display: "flex", gap: "10px" }}>
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                backgroundColor: "#ccc",
-              }}
-            />
-            <div>
-              <div style={{ fontWeight: 600 }}>Mike Devis</div>
-              <div style={{ fontSize: "12px" }}>Treasurer</div>
-            </div>
-          </div>
         </div>
 
         {/* Main content */}
@@ -158,48 +184,5 @@ function TreasurerUploadDocuments() {
     </div>
   );
 }
-
-/* styles */
-
-const label = {
-  display: "block",
-  fontWeight: 600,
-  marginBottom: "6px",
-  marginTop: "14px",
-};
-
-const input = {
-  width: "200px",
-  padding: "6px",
-  border: "1px solid #000",
-  backgroundColor: "#e0e0e0",
-  display: "block",
-};
-
-const fileBtn = {
-  marginTop: "16px",
-  padding: "6px 14px",
-  borderRadius: "6px",
-  border: "1px solid #000",
-  backgroundColor: "#e0e0e0",
-  cursor: "pointer",
-};
-
-const cancelBtn = {
-  padding: "6px 16px",
-  borderRadius: "6px",
-  border: "1px solid #000",
-  backgroundColor: "white",
-  cursor: "pointer",
-};
-
-const saveBtn = {
-  padding: "6px 18px",
-  borderRadius: "6px",
-  border: "none",
-  backgroundColor: "#0b3d02",
-  color: "white",
-  cursor: "pointer",
-};
 
 export default TreasurerUploadDocuments;

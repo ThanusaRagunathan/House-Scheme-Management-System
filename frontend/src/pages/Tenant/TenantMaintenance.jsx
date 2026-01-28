@@ -1,7 +1,7 @@
 import Background from "../../assets/bgimg.jpg";
 import { useNavigate } from "react-router-dom";
 
-function Maintenance() {
+function TenantMaintenance() {
   const navigate = useNavigate();
 
   const menuItemStyle = {
@@ -229,4 +229,4 @@ function StatCard({ title, value, subtitle }) {
   );
 }
 
-export default Maintenance;
+export default TenantMaintenance;

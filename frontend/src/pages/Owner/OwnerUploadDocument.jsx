@@ -1,7 +1,7 @@
 import Background from "../../assets/bgimg.jpg";
 import { useNavigate } from "react-router-dom";
 
-function OwnerCreateTask() {
+function OwnerUploadDocument() {
   const navigate = useNavigate();
 
   const menuItemStyle = {
@@ -238,4 +238,4 @@ const saveBtn = {
   cursor: "pointer",
 };
 
-export default OwnerCreateTask;
+export default OwnerUploadDocument;

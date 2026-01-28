@@ -237,7 +237,7 @@ function OwnerReport() {
                 cursor: "pointer",
               }}
             >
-              <i className="bi bi-download"></i> Export as PDF
+               Export as PDF
             </button>
           </div>
 

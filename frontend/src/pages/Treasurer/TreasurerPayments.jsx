@@ -106,21 +106,7 @@ function TreasurerPayments() {
             </div>
           </div>
 
-          {/* User */}
-          <div style={{ marginTop: "40px", display: "flex", gap: "10px" }}>
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                backgroundColor: "#ccc",
-              }}
-            />
-            <div>
-              <div style={{ fontWeight: 600 }}>Mike Devis</div>
-              <div style={{ fontSize: "12px" }}>Treasurer</div>
-            </div>
-          </div>
+          
         </div>
 
         {/* Main */}

@@ -75,7 +75,7 @@ function App() {
       <Route path="/treasurer/houses" element={<TreasurerHouses />} />
       <Route path="/treasurer/reports" element={<TreasurerReports />} />
       <Route path="/treasurer/tenants" element={<TreasurerTenants />} />
-      <Route path="/treasurer/uploaddocuments" element={<TreasurerUploadDocuments />} />
+      <Route path="/treasurer/uploaddocument" element={<TreasurerUploadDocuments />} />
       </Routes>
     </BrowserRouter>
   );

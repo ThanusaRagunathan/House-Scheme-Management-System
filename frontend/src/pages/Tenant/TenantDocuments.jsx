@@ -1,7 +1,7 @@
 import Background from "../../assets/bgimg.jpg";
 import { useNavigate } from "react-router-dom";
 
-function Document() {
+function TenantDocuments() {
   const navigate = useNavigate();
 
   const menuItemStyle = {
@@ -216,4 +216,4 @@ const tagStyle = {
   fontSize: "12px",
 };
 
-export default Document;
+export default TenantDocuments;
