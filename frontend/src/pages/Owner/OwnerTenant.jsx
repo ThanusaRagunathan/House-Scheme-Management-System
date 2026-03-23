@@ -1,244 +1,120 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getTenants, deleteTenant } from "../../services/api";
 
 function OwnerTenant() {
-    const navigate = useNavigate();
-  const tenants = [
-    {
-      name: "Karthik",
-      email: "karthik@gmail.com",
-      phone: "077 123 4567",
-      house: "H001",
-    },
-    {
-      name: "Jack Brown",
-      email: "jack123@gmail.com",
-      phone: "077 548 5503",
-      house: "H002",
-    },
-    {
-      name: "Patrick Tompson",
-      email: "pato@gmail.com",
-      phone: "075 472 3652",
-      house: "H004",
-    },
-  ];
+  const navigate = useNavigate();
+  const [tenants, setTenants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
+  useEffect(() => {
+    fetchTenants();
+  }, []);
+
+  const fetchTenants = async () => {
+    setLoading(true);
+    try {
+      const data = await getTenants();
+      setTenants(data);
+    } catch (error) {
+      console.error("Failed to fetch tenants:", error);
+      // Fallback for demo
+      setTenants([
+        { id: 1, username: "Karthik", email: "karthik@gmail.com", phone: "077 123 4567", houseAddress: "H001" },
+        { id: 2, username: "Jack Brown", email: "jack123@gmail.com", phone: "077 548 5503", houseAddress: "H002" },
+        { id: 3, username: "Patrick Tompson", email: "pato@gmail.com", phone: "075 472 3652", houseAddress: "H004" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteTenant = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this tenant?")) return;
+    
+    setActionLoading(true);
+    try {
+        await deleteTenant(id);
+        setTenants(tenants.filter(t => t.id !== id));
+        alert("Tenant deleted successfully");
+    } catch (error) {
+        console.error("Failed to delete tenant:", error);
+        alert("Failed to delete tenant: " + error.message);
+    } finally {
+        setActionLoading(false);
+    }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="owner"
+      title="Tenant Directory"
+      userName="Suresh Kumar"
+      userInitials="SK"
+      userRoleLabel="Property Owner"
     >
-      {/* Top Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Tenants
-      </header>
-
-      {/* Body */}
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          {/* Sidebar Header */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-buildings"></i>
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 600 }}>Property Manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Owner Portal
-              </div>
-            </div>
-          </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/overview")}>
-              <i className="bi bi-map"></i>
-              Overview
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/houses")}>
-              <i className="bi bi-house"></i>
-              Houses
-            </div>
-
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 500,
-              }}
-            >
-              <i className="bi bi-people"></i>
-              Tenants
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/payments")}>
-              <i className="bi bi-currency-dollar"></i>
-              Payments
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/maintenance")}>
-              <i className="bi bi-wrench-adjustable"></i>
-              Maintenance
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/complaints")}>
-              <i className="bi bi-journal-text"></i>
-              Complaints
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/documents")}>
-              <i className="bi bi-file-earmark-text"></i>
-              Document
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/notification")}>
-              <i className="bi bi-bell"></i>
-              Notification
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/report")}>
-              <i className="bi bi-bar-chart"></i>
-              Report
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div style={{ flex: 1, padding: "40px" }}>
-          {/* Add tenants button */}
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button
-              style={{
-                backgroundColor: "#0b3d02",
-                color: "white",
-                border: "none",
-                borderRadius: "12px",
-                padding: "10px 18px",
-                fontSize: "16px",
-                cursor: "pointer",
-              }}
-              onClick={()=>navigate("/owner/addtenant")}
-            >
-              + Add tenants
-            </button>
-          </div>
-
-          {/* Table */}
-          <table
-            style={{
-              width: "100%",
-              marginTop: "30px",
-              borderCollapse: "separate",
-              borderSpacing: "0 10px",
-            }}
-          >
-            <thead>
-              <tr style={{ textAlign: "left" }}>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>House</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {tenants.map((t, index) => (
-                <tr key={index} style={{ backgroundColor: "#e0e0e0" }}>
-                  <td style={{ padding: "10px" }}>{t.name}</td>
-                  <td style={{ padding: "10px" }}>{t.email}</td>
-                  <td style={{ padding: "10px" }}>{t.phone}</td>
-                  <td style={{ padding: "10px" }}>{t.house}</td>
-                  <td style={{ padding: "10px" }}>
-                    <button
-                      style={{
-                        backgroundColor: "#ccc",
-                        border: "none",
-                        borderRadius: "20px",
-                        padding: "6px 14px",
-                        marginRight: "8px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      View
-                    </button>
-
-                    <i
-                      className="bi bi-pencil-square"
-                      style={{ marginRight: "10px", cursor: "pointer" }}
-                    ></i>
-
-                    <i
-                      className="bi bi-trash"
-                      style={{ color: "red", cursor: "pointer" }}
-                    ></i>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
+        <Button variant="primary" onClick={() => navigate("/owner/addtenant")} disabled={actionLoading}>
+          <i className="bi bi-person-plus"></i> Add New Tenant
+        </Button>
       </div>
 
-      {/* Footer */}
-      <footer
-        style={{
-          height: "30px",
-          backgroundColor: "#0b3d02",
-        }}
-      />
-    </div>
+      <Card title="Active Residents" subtitle="A complete list of all tenants across all housing units.">
+        {loading ? (
+          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading tenants...</p>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Name</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Email</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Phone</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Unit</th>
+                  <th style={{ padding: "12px", textAlign: "right" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tenants.map((t, index) => (
+                  <tr key={index} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>{t.username}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{t.email}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{t.phone}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{t.houseAddress || 'Unallocated'}</td>
+                    <td style={{ padding: "12px", textAlign: "right" }}>
+                      <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                        <Button variant="secondary" onClick={() => navigate(`/owner/tenants/${t.id}`)}>
+                           View
+                        </Button>
+                        <button 
+                          onClick={() => navigate(`/owner/tenants/edit/${t.id}`)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                        >
+                          <i className="bi bi-pencil-square"></i>
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteTenant(t.id)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
+                          disabled={actionLoading}
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {tenants.length === 0 && (
+                  <tr><td colSpan="5" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>No tenants registered yet.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </DashboardLayout>
   );
 }
 

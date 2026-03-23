@@ -1,281 +1,161 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { getTenantProfile, getComplaints } from "../../services/api";
+
+function StatCard({ title, subtitle, value, icon, color }) {
+  return (
+    <div className="glass-card" style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "white" }}>
+      <div>
+        <div style={{ color: "var(--text-muted)", fontSize: "14px", fontWeight: "500", marginBottom: "5px" }}>{title}</div>
+        <div style={{ fontSize: "24px", fontWeight: "700", color: color || "var(--primary)" }}>{value}</div>
+        {subtitle && <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "3px" }}>{subtitle}</div>}
+      </div>
+      <div style={{ padding: "12px", backgroundColor: color ? `${color}1A` : "rgba(26, 77, 46, 0.1)", borderRadius: "10px", color: color || "var(--primary)", fontSize: "20px" }}>
+        <i className={`bi ${icon}`}></i>
+      </div>
+    </div>
+  );
+}
 
 function TenantOverview() {
   const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const [profileData, complaintsData] = await Promise.all([
+                getTenantProfile(),
+                getComplaints()
+            ]);
+            setProfile(profileData);
+            setComplaints(complaintsData.slice(0, 3)); // Show only recent 3
+        } catch (error) {
+            console.error("Failed to load resident data:", error);
+            // Fallback for demonstration
+            setProfile({ username: "Karthik S.", occupation: "Software Engineer", email: "karthik.s@gmail.com", phone: "+94 77 900 1122", date_of_birth: "1995-02-28", houseAddress: "Unit #H001" });
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchData();
+  }, []);
+
+  const openComplaintsCount = complaints.filter(c => c.status !== 'Resolved').length;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="tenant"
+      title="Resident Dashboard"
+      userName={loading ? "..." : (profile?.username || "Resident")}
+      userInitials={profile?.username ? profile.username.charAt(0) : "R"}
+      userRoleLabel={loading ? "..." : `${profile?.houseAddress || "Unallocated"} - Tenant`}
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Overview
-      </header>
+      {/* Important Notice */}
+      <div style={{ 
+        backgroundColor: "#fff8e1", 
+        border: "1px solid #ffe082", 
+        borderRadius: "12px", 
+        padding: "15px 25px", 
+        marginBottom: "30px", 
+        display: "flex", 
+        alignItems: "center", 
+        gap: "15px" 
+      }}>
+        <i className="bi bi-megaphone-fill" style={{ color: "#f57c00", fontSize: "20px" }}></i>
+        <span style={{ fontSize: "14px", color: "#5d4037", fontWeight: "500" }}>
+          Community Notice: The swimming pool will be closed for quarterly maintenance from Oct 22nd to 24th. 
+        </span>
+      </div>
 
-      {/* Body */}
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          {/* Sidebar header */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-person"></i>
-            </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "25px", marginBottom: "40px" }}>
+        <StatCard title="Monthly Rent" value="Rs. 10,000" subtitle={profile?.houseAddress || "Unit Details"} icon="bi-house-heart" color="#1a4d2e" />
+        <StatCard title="Next Due Date" value="Oct 01, 2026" subtitle="Scheduled" icon="bi-calendar-check" color="#e67e22" />
+        <StatCard title="Open Complaints" value={loading ? "..." : `${openComplaintsCount} Pending`} subtitle="Active Tickets" icon="bi-chat-left-text" color="#3498db" />
+      </div>
 
-            <div>
-              <div style={{ fontWeight: 600 }}>H001</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Tenant Portal
-              </div>
-            </div>
-          </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 600,
-              }}
-            >
-              <i className="bi bi-map"></i> Overview
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/tenant/payments")}>
-              <i className="bi bi-currency-dollar"></i> Payments
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/maintenance")}
-            >
-              <i className="bi bi-wrench-adjustable"></i> Maintenance
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/complaints")}
-            >
-              <i className="bi bi-journal-text"></i> Complaints
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/documents")}
-            >
-              <i className="bi bi-file-earmark-text"></i> Document
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/notification")}
-            >
-              <i className="bi bi-bell"></i> Notification
-            </div>
-          </div>
+      <div style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: "25px" }}>
+        {/* Recent Complaints Table */}
+        <div className="glass-card" style={{ padding: "30px", backgroundColor: "white" }}>
+           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+             <h3 style={{ fontSize: "18px" }}>Recent Complaints</h3>
+             <button 
+               onClick={() => navigate('/tenant/addcomplaint')}
+               style={{ backgroundColor: "var(--primary)", color: "white", padding: "8px 15px", borderRadius: "8px", fontSize: "13px", fontWeight: "600", border: "none", cursor: "pointer" }}
+             >
+               New Complaint
+             </button>
+           </div>
+           {loading ? (
+               <p style={{ textAlign: "center", color: "var(--text-muted)" }}>Loading records...</p>
+           ) : complaints.length > 0 ? (
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                    <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
+                        <th style={{ padding: "12px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Title</th>
+                        <th style={{ padding: "12px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
+                        <th style={{ padding: "12px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {complaints.map((c, i) => (
+                        <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                            <td style={{ padding: "12px 10px", fontSize: "14px", fontWeight: "500" }}>{c.title}</td>
+                            <td style={{ padding: "12px 10px", fontSize: "14px" }}>{new Date(c.created_at).toLocaleDateString()}</td>
+                            <td style={{ padding: "12px 10px" }}>
+                                <span style={{ 
+                                    backgroundColor: c.status === 'Resolved' ? "#e2f2e5" : "#fff5f5", 
+                                    color: c.status === 'Resolved' ? "#1a4d2e" : "#e53e3e", 
+                                    padding: "4px 10px", 
+                                    borderRadius: "20px", 
+                                    fontSize: "10px", 
+                                    fontWeight: "700",
+                                    textTransform: "uppercase"
+                                }}>{c.status}</span>
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+           ) : (
+                <div style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>
+                    <i className="bi bi-journal-check" style={{ fontSize: "40px", display: "block", marginBottom: "10px" }}></i>
+                    No complaints registered.
+                </div>
+           )}
         </div>
 
-        {/* Main content */}
-        <div style={{ flex: 1, padding: "30px" }}>
-          {/* Top cards */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "24px",
-            }}
-          >
-            <StatCard title="Rent" value="Rs. 10,000/mo" />
-
-            <StatCard
-              title="Next payment"
-              value="Rs. 10,000"
-              sub="Due: 2025-10-01"
-            />
-
-            <StatCard
-              title="Payment made"
-              value="1 successfully paid"
-            />
-          </div>
-
-          {/* Notice */}
-          <div
-            style={{
-              marginTop: "30px",
-              backgroundColor: "#ccffcc",
-              padding: "18px",
-              borderRadius: "14px",
-              display: "flex",
-              alignItems: "center",
-              gap: "14px",
-              border: "1px solid #6aa84f",
-            }}
-          >
-            <i className="bi bi-exclamation-circle"></i>
-            <strong>
-              The swimming pool will be closed for maintenance from Oct 22–24.
-            </strong>
-          </div>
-
-          {/* Content grid */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "2fr 1fr",
-              gap: "24px",
-              marginTop: "30px",
-            }}
-          >
-            {/* Complaints */}
-            <div>
-              <h3 style={{ marginBottom: "12px" }}>All complaints</h3>
-
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "separate",
-                  borderSpacing: "0 8px",
-                }}
-              >
-                <thead>
-                  <tr style={{ textAlign: "left" }}>
-                    <th>Complaint No.</th>
-                    <th>Title</th>
-                    <th>Submitted date</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <tr style={{ backgroundColor: "#e0e0e0" }}>
-                    <td style={td}>C003</td>
-                    <td style={td}>Roof broken</td>
-                    <td style={td}>2025-09-21</td>
-                    <td style={td}>
-                      <span
-                        style={{
-                          backgroundColor: "red",
-                          color: "white",
-                          padding: "4px 8px",
-                          borderRadius: "6px",
-                          fontSize: "12px",
-                        }}
-                      >
-                        resolved
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            {/* Family members */}
-            <div>
-              <h3 style={{ marginBottom: "12px" }}>Your Family Members</h3>
-
-              <div
-                style={{
-                  backgroundColor: "#ccffcc",
-                  padding: "16px",
-                  borderRadius: "14px",
-                  border: "1px solid #6aa84f",
-                }}
-              >
-                <strong>Karthik (Tenant)</strong>
-                <div>Software engineer</div>
-                <div>200165894231</div>
-                <div>2001-02-28</div>
-                <div>karthik@gmail.com</div>
-                <div>077 123 4567</div>
-
-                <hr />
-
-                <strong>Sarah John (Spouse)</strong>
-                <div>Doctor</div>
-                <div>200354326811</div>
-                <div>2003-06-17</div>
-              </div>
+        {/* Resident Info Card */}
+        <div className="glass-card" style={{ padding: "30px", backgroundColor: "white" }}>
+          <h3 style={{ fontSize: "18px", marginBottom: "20px" }}>Resident Details</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+            <InfoRow label="Occupation" value={loading ? "..." : (profile?.occupation || "N/A")} />
+            <InfoRow label="Email" value={loading ? "..." : (profile?.email || "N/A")} />
+            <InfoRow label="Phone" value={loading ? "..." : (profile?.phone || "N/A")} />
+            <InfoRow label="DOB" value={loading ? "..." : (profile?.date_of_birth ? new Date(profile.date_of_birth).toLocaleDateString() : "N/A")} />
+            <hr style={{ border: "0", borderTop: "1px solid #f0f0f0", margin: "5px 0" }} />
+            <h4 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-muted)" }}>Quick Support</h4>
+            <div style={{ backgroundColor: "#f8f9fa", padding: "12px", borderRadius: "8px", fontSize: "13px" }}>
+                Contact Security: <strong style={{ color: "var(--primary)" }}>+94 11 222 3344</strong>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+    </DashboardLayout>
   );
 }
 
-/* ---------- components ---------- */
-
-function StatCard({ title, value, sub }) {
+function InfoRow({ label, value }) {
   return (
-    <div
-      style={{
-        backgroundColor: "#0b3d02",
-        color: "white",
-        padding: "18px",
-        borderRadius: "16px",
-      }}
-    >
-      <h3>{title}</h3>
-      {sub && <div style={{ fontSize: "14px" }}>{sub}</div>}
-      <div style={{ marginTop: "8px", fontWeight: 600 }}>{value}</div>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>{label}</span>
+      <span style={{ fontSize: "14px", fontWeight: "500" }}>{value}</span>
     </div>
   );
 }
-
-const td = { padding: "10px" };
 
 export default TenantOverview;
+

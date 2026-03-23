@@ -1,259 +1,131 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getPayments, getTenantProfile } from "../../services/api";
+
+function SummaryCard({ title, value, subtitle, icon, color }) {
+  return (
+    <div className="glass-card" style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "white" }}>
+      <div>
+        <div style={{ color: "var(--text-muted)", fontSize: "13px", fontWeight: "500", marginBottom: "5px" }}>{title}</div>
+        <div style={{ fontSize: "22px", fontWeight: "700", color: "var(--text-dark)" }}>{value}</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>{subtitle}</div>
+      </div>
+      <div style={{ width: "45px", height: "45px", backgroundColor: `${color}1A`, color: color, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>
+        <i className={`bi ${icon}`}></i>
+      </div>
+    </div>
+  );
+}
 
 function TenantPayments() {
   const navigate = useNavigate();
+  const [payments, setPayments] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [paymentsData, profileData] = await Promise.all([
+          getPayments(),
+          getTenantProfile()
+        ]);
+        setPayments(paymentsData);
+        setProfile(profileData);
+      } catch (error) {
+        console.error("Failed to fetch payments:", error);
+        // Fallback for demo
+        setPayments([
+          { invoice_no: "INV-2026-001", paid_date: "2026-09-01", amount: 10000, status: "Paid", payment_method: "Online" },
+          { invoice_no: "INV-2026-002", paid_date: null, amount: 10000, status: "Pending", payment_method: "-" },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const totalPaid = payments.filter(p => p.status === 'Paid').reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  const totalPending = payments.filter(p => p.status === 'Pending').reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  const transactionCount = payments.length;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="tenant"
+      title="My Payments & Invoices"
+      userName={profile?.username || "Resident"}
+      userInitials={profile?.username?.charAt(0) || "R"}
+      userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Payments
-      </header>
-
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-person"></i>
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 600 }}>H001</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Tenant Portal
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/tenant/overview")}>
-              <i className="bi bi-map"></i> Overview
-            </div>
-
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 600,
-              }}
-            >
-              <i className="bi bi-currency-dollar"></i> Payments
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/maintenance")}
-            >
-              <i className="bi bi-wrench-adjustable"></i> Maintenance
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/complaints")}
-            >
-              <i className="bi bi-journal-text"></i> Complaints
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/documents")}
-            >
-              <i className="bi bi-file-earmark-text"></i> Document
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/notification")}
-            >
-              <i className="bi bi-bell"></i> Notification
-            </div>
-          </div>
-        </div>
-
-        {/* Main */}
-        <div style={{ flex: 1, padding: "30px" }}>
-          {/* Add payment */}
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button
-              style={{
-                backgroundColor: "#0b3d02",
-                color: "white",
-                border: "none",
-                borderRadius: "12px",
-                padding: "10px 18px",
-                fontSize: "16px",
-                cursor: "pointer",
-              }}
-              onClick={()=>navigate("/tenant/addpayment")}
-            >
-              + Add payment
-            </button>
-          </div>
-
-          {/* Stats */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "24px",
-              marginTop: "20px",
-            }}
-          >
-            <StatCard
-              title="Total paid"
-              value="Rs. 10,000"
-              sub="1 payments"
-            />
-            <StatCard
-              title="Pending payments"
-              value="-"
-              sub="0 payments"
-            />
-            <StatCard
-              title="Payment history"
-              value="1"
-              sub="1 payments"
-            />
-          </div>
-
-          {/* Table */}
-          <h3 style={{ marginTop: "30px" }}>All payments</h3>
-
-          <table
-            style={{
-              width: "100%",
-              marginTop: "10px",
-              borderCollapse: "separate",
-              borderSpacing: "0 8px",
-            }}
-          >
-            <thead>
-              <tr style={{ textAlign: "left" }}>
-                <th>Invoice No.</th>
-                <th>Name</th>
-                <th>House</th>
-                <th>Paid date</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Method</th>
-                <th></th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr style={{ backgroundColor: "#e0e0e0" }}>
-                <td style={td}>INV-2025-001</td>
-                <td style={td}>Karthik</td>
-                <td style={td}>H001</td>
-                <td style={td}>2025-09-01</td>
-                <td style={td}>Rs. 10,000</td>
-                <td style={td}>
-                  <span
-                    style={{
-                      backgroundColor: "black",
-                      color: "white",
-                      padding: "4px 10px",
-                      borderRadius: "6px",
-                      fontSize: "12px",
-                    }}
-                  >
-                    paid
-                  </span>
-                </td>
-                <td style={td}>Online</td>
-                <td style={td}>
-                  <button
-                    style={{
-                      backgroundColor: "#ccc",
-                      border: "none",
-                      borderRadius: "20px",
-                      padding: "6px 14px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    View
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
+        <Button variant="primary" onClick={() => navigate("/tenant/addpayment")}>
+          <i className="bi bi-plus-lg"></i> Make New Payment
+        </Button>
       </div>
 
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "35px" }}>
+        <SummaryCard title="Total Paid" value={`Rs. ${totalPaid.toLocaleString()}`} subtitle="All time" icon="bi-check-all" color="#1a4d2e" />
+        <SummaryCard title="Outstanding" value={`Rs. ${totalPending.toLocaleString()}`} subtitle="Due now" icon="bi-clock-history" color="#e67e22" />
+        <SummaryCard title="History" value={transactionCount} subtitle="Total invoices" icon="bi-receipt" color="#3498db" />
+      </div>
+
+      <Card title="Detailed Payment History" subtitle="A complete record of your rent and facility payments.">
+        {loading ? (
+          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading records...</p>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Invoice No.</th>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Amount</th>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Status</th>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Method</th>
+                  <th style={{ padding: "15px 10px" }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((p, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    <td style={{ padding: "15px 10px", fontSize: "14px", fontWeight: "600" }}>{p.invoice_no}</td>
+                    <td style={{ padding: "15px 10px", fontSize: "14px" }}>{p.paid_date ? new Date(p.paid_date).toLocaleDateString() : 'Awaiting Payment'}</td>
+                    <td style={{ padding: "15px 10px", fontSize: "14px", fontWeight: "600" }}>Rs. {parseFloat(p.amount).toLocaleString()}</td>
+                    <td style={{ padding: "15px 10px" }}>
+                      <span style={{ 
+                        padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
+                        backgroundColor: p.status === 'Paid' ? "#e2f2e5" : "#fff5f5",
+                        color: p.status === 'Paid' ? "#1a4d2e" : "#e03131",
+                        textTransform: "uppercase"
+                      }}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: "15px 10px", fontSize: "14px", color: "#555" }}>{p.payment_method || '-'}</td>
+                    <td style={{ padding: "15px 10px", textAlign: "right" }}>
+                      <Button variant="secondary" onClick={() => alert("Downloading receipt for " + p.invoice_no)}>
+                        <i className="bi bi-download"></i> Receipt
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+                {payments.length === 0 && (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)" }}>
+                      No payment history found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </DashboardLayout>
   );
 }
-
-function StatCard({ title, value, sub }) {
-  return (
-    <div
-      style={{
-        backgroundColor: "#ccffcc",
-        padding: "18px",
-        borderRadius: "16px",
-        border: "1px solid #6aa84f",
-      }}
-    >
-      <strong>{title}</strong>
-      <div style={{ fontSize: "18px", marginTop: "6px" }}>{value}</div>
-      <div style={{ fontSize: "13px", color: "#333" }}>{sub}</div>
-    </div>
-  );
-}
-
-const td = { padding: "10px" };
 
 export default TenantPayments;

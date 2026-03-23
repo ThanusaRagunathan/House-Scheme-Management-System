@@ -1,282 +1,214 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Input, Button, Card } from "../../components/FormElements";
+import { register, createTenant } from "../../services/api";
 
 function OwnerAddTenant() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    fullName: "",
+    occupation: "",
+    nic: "",
+    phone: "",
+    houseAllocated: "",
+    dob: "",
+    email: "",
+    username: "",
+    password: ""
+  });
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
+  const [familyMembers, setFamilyMembers] = useState([]);
+
+  const addFamilyMember = () => {
+    setFamilyMembers([...familyMembers, { name: "", occupation: "", nic: "", dob: "" }]);
   };
 
-  const inputStyle = {
-    width: "100%",
-    padding: "8px",
-    border: "1px solid #000",
-    backgroundColor: "#e0e0e0",
+  const handleFamilyChange = (index, field, value) => {
+    const updated = [...familyMembers];
+    updated[index][field] = value;
+    setFamilyMembers(updated);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      // 1. Register the user
+      const userRes = await register({
+          username: formData.username,
+          password: formData.password,
+          role: 'tenant'
+      });
+
+      // 2. Create the tenant record
+      const tenantData = {
+          userId: userRes.userId,
+          occupation: formData.occupation,
+          dateOfBirth: formData.dob,
+          houseCode: formData.houseAllocated, // Assuming the backend can handle HouseCode or ID
+          // add other fields if backend supported
+      };
+
+      await createTenant(tenantData);
+      
+      navigate("/owner/tenants");
+    } catch (err) {
+      setError(err.message || "Failed to register tenant. Please check all fields.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="owner"
+      title="Register New Tenant"
+      userName="Suresh Kumar"
+      userInitials="SK"
+      userRoleLabel="Property Owner"
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Add tenants
-      </header>
+      <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+        {error && (
+            <div style={{ backgroundColor: "#fff5f5", color: "#e03131", padding: "15px", borderRadius: "10px", marginBottom: "20px", border: "1px solid #ffc9c9" }}>
+                {error}
+            </div>
+        )}
 
-      {/* Body */}
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
+        <Card 
+          title="Tenant Information" 
+          subtitle="Register a new resident and their family details."
+          footer={
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+              <Button variant="secondary" onClick={() => navigate("/owner/tenants")} disabled={loading}>Cancel</Button>
+              <Button variant="primary" onClick={handleSubmit} loading={loading}>Save Resident</Button>
+            </div>
+          }
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-buildings"></i>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "20px" }}>
+                <Input 
+                  label="Full Name" 
+                  placeholder="e.g. John Doe" 
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                  required
+                />
+                <Input 
+                  label="Phone Number" 
+                  placeholder="+94 XX XXX XXXX" 
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  required
+                />
             </div>
-            <div>
-              <div style={{ fontWeight: 600 }}>Property Manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Owner Portal
+
+            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: "20px" }}>
+              <Input 
+                label="Email Address" 
+                type="email"
+                placeholder="john@example.com" 
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                required
+              />
+              <Input 
+                label="Occupation" 
+                placeholder="Software Engineer" 
+                value={formData.occupation}
+                onChange={(e) => setFormData({...formData, occupation: e.target.value})}
+              />
+              <Input 
+                label="NIC Number" 
+                placeholder="199XXXXXXXXX" 
+                value={formData.nic}
+                onChange={(e) => setFormData({...formData, nic: e.target.value})}
+                required
+              />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+              <Input 
+                label="House Allocated" 
+                placeholder="e.g. H005" 
+                value={formData.houseAllocated}
+                onChange={(e) => setFormData({...formData, houseAllocated: e.target.value})}
+                required
+              />
+              <Input 
+                label="Date of Birth" 
+                type="date"
+                value={formData.dob}
+                onChange={(e) => setFormData({...formData, dob: e.target.value})}
+                required
+              />
+            </div>
+
+            <div style={{ marginTop: "20px", padding: "20px", backgroundColor: "#f8f9fa", borderRadius: "10px", border: "1px dashed #ced4da" }}>
+                <h4 style={{ margin: "0 0 15px 0", fontSize: "16px", color: "var(--primary)" }}>System Credentials</h4>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                    <Input 
+                        label="Username" 
+                        placeholder="john.doe" 
+                        value={formData.username}
+                        onChange={(e) => setFormData({...formData, username: e.target.value})}
+                        required
+                    />
+                    <Input 
+                        label="Initial Password" 
+                        type="password"
+                        placeholder="••••••••" 
+                        value={formData.password}
+                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                        required
+                    />
+                </div>
+            </div>
+
+            <div style={{ marginTop: "30px", marginBottom: "15px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                <h4 style={{ margin: 0, color: "var(--primary)" }}>Family Members</h4>
+                <Button variant="secondary" onClick={addFamilyMember} type="button">
+                   <i className="bi bi-plus-lg"></i> Add Member
+                </Button>
               </div>
-            </div>
-          </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/overview")}>
-              <i className="bi bi-map"></i>
-              Overview
-            </div>
+              {familyMembers.length === 0 && (
+                  <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "14px", padding: "10px" }}>No family members added yet.</p>
+              )}
 
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/houses")}>
-              <i className="bi bi-house"></i>
-              Houses
+              {familyMembers.map((member, index) => (
+                <div key={index} style={{ 
+                  backgroundColor: "white", 
+                  padding: "15px", 
+                  borderRadius: "10px", 
+                  marginBottom: "10px",
+                  border: "1px solid #eee",
+                  display: "grid",
+                  gridTemplateColumns: "2fr 1.5fr 1.5fr 1.5fr auto",
+                  gap: "10px",
+                  alignItems: "end"
+                }}>
+                  <Input label="Name" value={member.name} onChange={(e) => handleFamilyChange(index, 'name', e.target.value)} />
+                  <Input label="Occupation" value={member.occupation} onChange={(e) => handleFamilyChange(index, 'occupation', e.target.value)} />
+                  <Input label="NIC" value={member.nic} onChange={(e) => handleFamilyChange(index, 'nic', e.target.value)} />
+                  <Input label="DOB" type="date" value={member.dob} onChange={(e) => handleFamilyChange(index, 'dob', e.target.value)} />
+                  <Button variant="secondary" onClick={() => setFamilyMembers(familyMembers.filter((_, i) => i !== index))} style={{ padding: "8px", color: "#e03131" }}>
+                      <i className="bi bi-trash"></i>
+                  </Button>
+                </div>
+              ))}
             </div>
-
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 500,
-              }}
-            >
-              <i className="bi bi-people"></i>
-              Tenants
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/payments")}>
-              <i className="bi bi-currency-dollar"></i>
-              Payments
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/maintenance")}>
-              <i className="bi bi-wrench-adjustable"></i>
-              Maintenance
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/complaints")}>
-              <i className="bi bi-journal-text"></i>
-              Complaints
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/documents")}>
-              <i className="bi bi-file-earmark-text"></i>
-              Document
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/notification")}>
-              <i className="bi bi-bell"></i>
-              Notification
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/report")}>
-              <i className="bi bi-bar-chart"></i>
-              Report
-            </div>
-          </div>
-        </div>
-
-        {/* Main */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          {/* Form Card */}
-          <div
-            style={{
-              backgroundColor: "#ccffcc",
-              padding: "30px",
-              borderRadius: "18px",
-              width: "600px",
-              border: "1px solid #6aa84f",
-            }}
-          >
-            <div style={{ marginBottom: "14px" }}>
-              <label>Full name</label>
-              <input style={inputStyle} />
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "12px",
-                marginBottom: "14px",
-              }}
-            >
-              <div>
-                <label>Occupation</label>
-                <input style={inputStyle} />
-              </div>
-              <div>
-                <label>NIC</label>
-                <input style={inputStyle} />
-              </div>
-              <div>
-                <label>Phone Number</label>
-                <input style={inputStyle} />
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-                gap: "12px",
-                marginBottom: "14px",
-              }}
-            >
-              <div>
-                <label>House Allocated</label>
-                <input style={inputStyle} />
-              </div>
-              <div>
-                <label>Date of birth</label>
-                <input type="date" style={inputStyle} />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: "20px" }}>
-              <label>Email address</label>
-              <input style={inputStyle} />
-            </div>
-
-            {/* Family members */}
-            <div style={{ marginBottom: "14px", fontWeight: 600 }}>
-              Family Members
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
-                gap: "10px",
-                marginBottom: "10px",
-              }}
-            >
-              <input placeholder="Name" style={inputStyle} />
-              <input placeholder="Occupation" style={inputStyle} />
-              <input placeholder="NIC" style={inputStyle} />
-              <input type="date" style={inputStyle} />
-            </div>
-
-            <div
-              style={{
-                fontSize: "14px",
-                marginBottom: "20px",
-                cursor: "pointer",
-              }}
-            >
-              + Add family member
-            </div>
-
-            {/* Actions */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "12px",
-              }}
-            >
-              <button
-                onClick={() => navigate(-1)}
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  border: "1px solid #000",
-                  backgroundColor: "white",
-                  cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-
-              <button
-                style={{
-                  padding: "8px 20px",
-                  borderRadius: "8px",
-                  border: "none",
-                  backgroundColor: "#0b3d02",
-                  color: "white",
-                  cursor: "pointer",
-                }}
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
+          </form>
+        </Card>
       </div>
-
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+    </DashboardLayout>
   );
 }
 
 export default OwnerAddTenant;
+

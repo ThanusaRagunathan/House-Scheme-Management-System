@@ -1,319 +1,168 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getComplaints, updateComplaint, deleteComplaint } from "../../services/api";
+
+function StatCard({ title, subtitle, value, icon, color }) {
+  return (
+    <div className="glass-card" style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "white" }}>
+      <div>
+        <div style={{ color: "var(--text-muted)", fontSize: "14px", fontWeight: "500", marginBottom: "5px" }}>{title}</div>
+        <div style={{ fontSize: "24px", fontWeight: "700", color: color || "var(--primary)" }}>{value}</div>
+        {subtitle && <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "3px" }}>{subtitle}</div>}
+      </div>
+      <div style={{ padding: "12px", backgroundColor: color ? `${color}1A` : "rgba(26, 77, 46, 0.1)", borderRadius: "10px", color: color || "var(--primary)", fontSize: "20px" }}>
+        <i className={`bi ${icon}`}></i>
+      </div>
+    </div>
+  );
+}
 
 function OwnerComplaints() {
   const navigate = useNavigate();
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  // Summary cards
-  const summary = [
-    {
-      title: "Open complaints",
-      value: "1",
-      note: "Requires attention",
-      icon: "bi-exclamation-circle",
-    },
-    {
-      title: "In progress",
-      value: "1",
-      note: "Being addressed",
-      icon: "bi-hourglass-split",
-    },
-    {
-      title: "Resolved",
-      value: "1",
-      note: "Successfully resolved",
-      icon: "bi-check2-circle",
-    },
-  ];
+  useEffect(() => {
+    fetchComplaints();
+  }, []);
 
-  // Complaints data
-  const complaints = [
-    {
-      no: "C001",
-      house: "H002",
-      title: "Leaking faucet",
-      date: "2025-09-05",
-      status: "in progress",
-    },
-    {
-      no: "C002",
-      house: "H004",
-      title: "Loud neighbors",
-      date: "2025-09-13",
-      status: "open",
-    },
-    {
-      no: "C003",
-      house: "H001",
-      title: "Roof broken",
-      date: "2025-09-21",
-      status: "resolved",
-    },
-  ];
-
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
+  const fetchComplaints = async () => {
+    setLoading(true);
+    try {
+      const data = await getComplaints();
+      setComplaints(data);
+    } catch (error) {
+      console.error("Failed to fetch complaints:", error);
+      // Fallback for demo
+      setComplaints([
+        { id: 1, title: "Leaking faucet", submitted_date: "2025-09-05", status: "In Progress" },
+        { id: 2, title: "Loud neighbors", submitted_date: "2025-09-13", status: "Open" },
+        { id: 3, title: "Roof broken", submitted_date: "2025-09-21", status: "Resolved" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const statusStyle = (status) => ({
-    padding: "4px 10px",
-    borderRadius: "10px",
-    fontSize: "12px",
-    color: "white",
-    backgroundColor:
-      status === "resolved"
-        ? "red"
-        : status === "open"
-        ? "red"
-        : "black",
-  });
+  const handleStatusChange = async (id, newStatus) => {
+    setActionLoading(true);
+    try {
+        await updateComplaint(id, { status: newStatus });
+        setComplaints(complaints.map(c => c.id === id ? { ...c, status: newStatus } : c));
+    } catch (error) {
+        console.error("Failed to update status:", error);
+        alert("Action failed: " + error.message);
+    } finally {
+        setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this record?")) return;
+    setActionLoading(true);
+    try {
+        await deleteComplaint(id);
+        setComplaints(complaints.filter(c => c.id !== id));
+    } catch (error) {
+        console.error("Failed to delete complaint:", error);
+        alert("Action failed: " + error.message);
+    } finally {
+        setActionLoading(false);
+    }
+  };
+
+  const openCount = complaints.filter(c => c.status === 'Open').length;
+  const inProgressCount = complaints.filter(c => c.status === 'In Progress').length;
+  const resolvedCount = complaints.filter(c => c.status === 'Resolved').length;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="owner"
+      title="Complaints Management"
+      userName="Suresh Kumar"
+      userInitials="SK"
+      userRoleLabel="Property Owner"
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Complaints
-      </header>
-
-      {/* Body */}
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          {/* Sidebar Header */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-buildings"></i>
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 600 }}>Property Manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Owner Portal
-              </div>
-            </div>
-          </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/owner/overview")}>
-              <i className="bi bi-map"></i>
-              Overview
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/houses")}>
-              <i className="bi bi-house"></i>
-              Houses
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/tenants")}>
-              <i className="bi bi-people"></i>
-              Tenants
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/payments")}>
-              <i className="bi bi-currency-dollar"></i>
-              Payments
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/owner/maintenance")}
-            >
-              <i className="bi bi-wrench-adjustable"></i>
-              Maintenance
-            </div>
-
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 500,
-              }}
-            >
-              <i className="bi bi-journal-text"></i>
-              Complaints
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/documents")}>
-              <i className="bi bi-file-earmark-text"></i>
-              Document
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/notification")}>
-              <i className="bi bi-bell"></i>
-              Notification
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/report")}>
-              <i className="bi bi-bar-chart"></i>
-              Report
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div style={{ flex: 1, padding: "40px" }}>
-          {/* Summary cards */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "20px",
-              marginBottom: "30px",
-            }}
-          >
-            {summary.map((s, i) => (
-              <div
-                key={i}
-                style={{
-                  backgroundColor: "#ccffcc",
-                  borderRadius: "14px",
-                  padding: "16px",
-                  border: "1px solid #6aa84f",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      backgroundColor: "#0b3d02",
-                      borderRadius: "8px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    <i className={`bi ${s.icon}`}></i>
-                  </div>
-                  <strong>{s.title}</strong>
-                </div>
-
-                <div
-                  style={{
-                    marginTop: "10px",
-                    fontSize: "18px",
-                    fontWeight: 600,
-                  }}
-                >
-                  {s.value}
-                </div>
-                <div style={{ fontSize: "13px", color: "#444" }}>
-                  {s.note}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Complaints table */}
-          <h3 style={{ color: "#0b3d02" }}>All complaints</h3>
-
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "separate",
-              borderSpacing: "0 10px",
-            }}
-          >
-            <thead>
-              <tr>
-                <th>Complaint No.</th>
-                <th>House</th>
-                <th>Title</th>
-                <th>Submitted date</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {complaints.map((c, i) => (
-                <tr key={i} style={{ backgroundColor: "#e0e0e0" }}>
-                  <td style={{ padding: "10px" }}>{c.no}</td>
-                  <td style={{ padding: "10px" }}>{c.house}</td>
-                  <td style={{ padding: "10px" }}>{c.title}</td>
-                  <td style={{ padding: "10px" }}>{c.date}</td>
-                  <td style={{ padding: "10px" }}>
-                    <span style={statusStyle(c.status)}>
-                      {c.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: "10px" }}>
-                    <button
-                      style={{
-                        backgroundColor: "#ccc",
-                        border: "none",
-                        borderRadius: "20px",
-                        padding: "6px 14px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "40px" }}>
+        <StatCard title="Open Complaints" value={loading ? "..." : openCount} subtitle="Requires attention" icon="bi-exclamation-circle" color="#e03131" />
+        <StatCard title="In Progress" value={loading ? "..." : inProgressCount} subtitle="Being addressed" icon="bi-hourglass-split" color="#e67e22" />
+        <StatCard title="Resolved" value={loading ? "..." : resolvedCount} subtitle="Successfully fixed" icon="bi-check2-circle" color="#1a4d2e" />
       </div>
 
-      {/* Footer */}
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+      <Card title="Resident Feedback & Issues" subtitle="A list of all reported complaints across the housing scheme.">
+        {loading ? (
+          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading complaints...</p>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>No.</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Title</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Submitted Date</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Status</th>
+                  <th style={{ padding: "12px", textAlign: "right" }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {complaints.map((c, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>C{String(c.id || i + 1).padStart(3, '0')}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{c.title}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{new Date(c.submitted_date).toLocaleDateString()}</td>
+                    <td style={{ padding: "12px" }}>
+                      <span style={{ 
+                        padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
+                        backgroundColor: c.status === "Resolved" ? "#e2f2e5" : (c.status === "Open" ? "#fff5f5" : "#fff8e1"),
+                        color: c.status === "Resolved" ? "#1a4d2e" : (c.status === "Open" ? "#e03131" : "#f57c00"),
+                        textTransform: "uppercase"
+                      }}>
+                        {c.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: "12px", textAlign: "right" }}>
+                       <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                          {c.status !== "Resolved" && (
+                             <button 
+                               onClick={() => handleStatusChange(c.id, "Resolved")}
+                               style={{ background: "none", border: "none", cursor: "pointer", color: "#1a4d2e" }}
+                               title="Resolve"
+                               disabled={actionLoading}
+                             >
+                               <i className="bi bi-check-circle-fill"></i>
+                             </button>
+                          )}
+                          <button 
+                            onClick={() => navigate(`/owner/complaints/${c.id}`)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                            title="View"
+                          >
+                            <i className="bi bi-eye-fill"></i>
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(c.id)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
+                            title="Delete"
+                            disabled={actionLoading}
+                          >
+                            <i className="bi bi-trash"></i>
+                          </button>
+                       </div>
+                    </td>
+                  </tr>
+                ))}
+                {complaints.length === 0 && (
+                  <tr><td colSpan="5" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>No complaints filed yet.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </DashboardLayout>
   );
 }
 

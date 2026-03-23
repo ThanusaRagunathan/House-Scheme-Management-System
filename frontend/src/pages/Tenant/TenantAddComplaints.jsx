@@ -1,218 +1,98 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button, Input, TextArea } from "../../components/FormElements";
+import { createComplaint, getTenantProfile } from "../../services/api";
 
 function TenantAddComplaints() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+  });
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await getTenantProfile();
+        setProfile(data);
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      await createComplaint({
+        ...formData,
+        house_id: profile?.house_id, // Assuming profile includes the house_id
+      });
+      navigate("/tenant/complaints");
+    } catch (err) {
+      setError(err.message || "Failed to submit complaint. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="tenant"
+      title="File a Service Request"
+      userName={profile?.username || "Resident"}
+      userInitials={profile?.username?.charAt(0) || "R"}
+      userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Add complaints
-      </header>
+      <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+        {error && (
+            <div style={{ backgroundColor: "#fff5f5", color: "#e03131", padding: "15px", borderRadius: "10px", marginBottom: "20px", border: "1px solid #ffc9c9" }}>
+                {error}
+            </div>
+        )}
 
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
+        <Card 
+          title="Submit New Complaint" 
+          subtitle="Please provide clear details about the issue so we can resolve it promptly."
+          footer={
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+              <Button variant="secondary" onClick={() => navigate("/tenant/complaints")} disabled={loading}>Cancel</Button>
+              <Button variant="primary" onClick={handleSubmit} loading={loading}>Submit Ticket</Button>
+            </div>
+          }
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-person"></i>
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 600 }}>H001</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Tenant Portal
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/tenant/overview")}>
-              <i className="bi bi-map"></i> Overview
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/tenant/payments")}>
-              <i className="bi bi-currency-dollar"></i> Payments
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/tenant/maintenance")}>
-              <i className="bi bi-wrench-adjustable"></i> Maintenance
-            </div>
-
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 600,
-              }}
-            >
-              <i className="bi bi-journal-text"></i> Complaints
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/documents")}
-            >
-              <i className="bi bi-file-earmark-text"></i> Document
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/notification")}
-            >
-              <i className="bi bi-bell"></i> Notification
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: "#ccffcc",
-              padding: "30px",
-              borderRadius: "20px",
-              width: "520px",
-              border: "1px solid #6aa84f",
-            }}
-          >
-            {/* House */}
-            <div style={{ marginBottom: "16px" }}>
-              <label style={{ fontWeight: 600 }}>House</label>
-              <input
-                type="text"
-                style={inputStyle}
-              />
-            </div>
-
-            {/* Title */}
-            <div style={{ marginBottom: "16px" }}>
-              <label style={{ fontWeight: 600 }}>Title</label>
-              <input
-                type="text"
-                style={inputStyle}
-              />
-            </div>
-
-            {/* Description */}
-            <div style={{ marginBottom: "24px" }}>
-              <label style={{ fontWeight: 600 }}>Description</label>
-              <textarea
-                rows="5"
-                style={{
-                  ...inputStyle,
-                  resize: "none",
-                }}
-              />
-            </div>
-
-            {/* Actions */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "12px",
-              }}
-            >
-              <button
-                onClick={() => navigate(-1)}
-                style={{
-                  padding: "6px 16px",
-                  borderRadius: "8px",
-                  border: "1px solid #000",
-                  backgroundColor: "white",
-                  cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-
-              <button
-                style={{
-                  padding: "6px 18px",
-                  borderRadius: "8px",
-                  border: "none",
-                  backgroundColor: "#0b3d02",
-                  color: "white",
-                  cursor: "pointer",
-                }}
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
+          <form onSubmit={handleSubmit}>
+            <Input 
+              label="Subject / Topic" 
+              placeholder="e.g. Broken water pipe, Electrical issue" 
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              required
+              disabled={loading}
+            />
+            
+            <TextArea 
+              label="Detailed Description" 
+              placeholder="Explain the problem, when it started, and its exact location." 
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              required
+              rows={6}
+              disabled={loading}
+            />
+          </form>
+        </Card>
       </div>
-
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+    </DashboardLayout>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  padding: "8px",
-  marginTop: "6px",
-  borderRadius: "4px",
-  border: "1px solid #777",
-};
 
 export default TenantAddComplaints;

@@ -45,3 +45,16 @@ export const deleteTenant = async (tenantId) => {
   );
   return result.affectedRows > 0;
 };
+
+export const getTenantByUserId = async (userId) => {
+  const [rows] = await db.query(
+    `SELECT t.*, u.username, u.email, u.phone, h.address as houseAddress, h.house_id
+     FROM tenants t
+     JOIN users u ON t.user_id = u.user_id
+     LEFT JOIN tenancies ten ON t.tenant_id = ten.tenant_id
+     LEFT JOIN houses h ON ten.house_id = h.house_id
+     WHERE t.user_id = ?`,
+    [userId]
+  );
+  return rows[0];
+};

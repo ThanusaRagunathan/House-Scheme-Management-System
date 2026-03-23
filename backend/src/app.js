@@ -10,6 +10,8 @@ import documentRoutes from "./routes/document.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import reportRoutes from "./routes/report.routes.js";
 
+import { errorHandler } from "./middleware/error.middleware.js";
+
 const app = express();
 
 app.use(cors());
@@ -24,5 +26,8 @@ app.use("/api/maintenance", maintenanceRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/reports", reportRoutes);
+
+// Error Handler Middleware
+app.use(errorHandler);
 
 export default app;

@@ -1,219 +1,144 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getNotifications, getTenantProfile, updateNotification, deleteNotification } from "../../services/api";
 
 function TenantNotification() {
   const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [notifData, profileData] = await Promise.all([
+        getNotifications(),
+        getTenantProfile()
+      ]);
+      setNotifications(notifData);
+      setProfile(profileData);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+      // Fallback for demo
+      setNotifications([
+        { id: 1, title: "Rent payment due", description: "Your rent payment for November 2025 is due on November 1st.", date: "2025-11-01", status: "unread" },
+        { id: 2, title: "Pool closure", description: "The swimming pool will be closed for quarterly maintenance Oct 22-24.", date: "2025-10-20", status: "unread" },
+        { id: 3, title: "Complaint resolved", description: "Your request regarding 'Roof leakage' has been marked as resolved.", date: "2025-09-25", status: "read" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleMarkAsRead = async (id) => {
+    setActionLoading(true);
+    try {
+        await updateNotification(id, { status: 'read' });
+        setNotifications(notifications.map(n => n.id === id ? { ...n, status: 'read' } : n));
+    } catch (error) {
+        console.error("Failed to update notification:", error);
+        alert("Action failed: " + error.message);
+    } finally {
+        setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this notification?")) return;
+    setActionLoading(true);
+    try {
+        await deleteNotification(id);
+        setNotifications(notifications.filter(n => n.id !== id));
+    } catch (error) {
+        console.error("Failed to delete notification:", error);
+        alert("Action failed: " + error.message);
+    } finally {
+        setActionLoading(false);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => n.status === 'unread').length;
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="tenant"
+      title="Alerts & Announcements"
+      userName={profile?.username || "Resident"}
+      userInitials={profile?.username?.charAt(0) || "R"}
+      userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Notification
-      </header>
-
-      {/* Body */}
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-            position: "relative", // FIXED
-          }}
-        >
-          {/* Sidebar Top */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-person"></i>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "35px" }}>
+        {[
+          { title: "Unread", count: unreadCount, icon: "bi-envelope-exclamation", color: "var(--primary)" },
+          { title: "Total Alerts", count: notifications.length, icon: "bi-bell", color: "#3498db" },
+          { title: "Emergency", count: 0, icon: "bi-exclamation-triangle", color: "#e03131" },
+          { title: "Broadcasts", count: Math.max(0, notifications.length - 1), icon: "bi-megaphone", color: "#1a4d2e" },
+        ].map((action, i) => (
+          <div key={i} className="glass-card" style={{ padding: "18px", backgroundColor: "white", textAlign: "center" }}>
+             <div style={{ width: "35px", height: "35px", backgroundColor: `${action.color}1A`, color: action.color, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", fontSize: "16px" }}>
+              <i className={`bi ${action.icon}`}></i>
             </div>
-
-            <div>
-              <div style={{ fontWeight: 600 }}>H001</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Tenant Portal
-              </div>
-            </div>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "3px" }}>{action.title}</div>
+            <div style={{ fontSize: "18px", fontWeight: "700" }}>{action.count}</div>
           </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/tenant/overview")}>
-              <i className="bi bi-map"></i> Overview
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/tenant/payments")}>
-              <i className="bi bi-currency-dollar"></i> Payments
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/tenant/maintenance")}>
-              <i className="bi bi-wrench-adjustable"></i> Maintenance
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/tenant/complaints")}>
-              <i className="bi bi-journal-text"></i> Complaints
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/tenant/documents")}>
-              <i className="bi bi-file-earmark-text"></i> Document
-            </div>
-
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 600,
-              }}
-            >
-              <i className="bi bi-bell"></i> Notification
-            </div>
-          </div>
-
-          
-        </div>
-
-        {/* Main Content */}
-        <div style={{ flex: 1, padding: "40px" }}>
-          <h3 style={{ marginBottom: "20px", color: "#0b3d02" }}>
-            All notifications
-          </h3>
-
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "separate",
-              borderSpacing: "0 8px",
-              fontSize: "14px",
-            }}
-          >
-            <thead>
-              <tr style={{ textAlign: "left" }}>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr>
-                <td className="cell">Rent payment due</td>
-                <td className="cell">
-                  Your rent payment for November 2025 is due on November 1st.
-                </td>
-                <td className="cell">2025-09-11</td>
-                <td>
-                  <span className="status new">new</span>
-                </td>
-                <td className="cell">
-                  <button className="action-btn">Mark as read</button>
-                </td>
-              </tr>
-
-              <tr>
-                <td className="cell">Pool temporary closure</td>
-                <td className="cell">
-                  The swimming pool will be closed for maintenance from Oct 22–24.
-                </td>
-                <td className="cell">2025-09-15</td>
-                <td>
-                  <span className="status new">new</span>
-                </td>
-                <td className="cell">
-                  <button className="action-btn">Mark as read</button>
-                </td>
-              </tr>
-
-              <tr>
-                <td className="cell">Complaint update</td>
-                <td className="cell">
-                  Your complaint about the leaking faucet has been updated.
-                </td>
-                <td className="cell">2025-09-26</td>
-                <td>
-                  <span className="status read">read</span>
-                </td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        ))}
       </div>
 
-      {/* Footer */}
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-
-      {/* Inline styles */}
-      <style>{`
-        .cell {
-          background: #e0e0e0;
-          padding: 8px;
-        }
-        .status {
-          padding: 4px 8px;
-          border-radius: 6px;
-          font-size: 12px;
-          font-weight: 600;
-        }
-        .status.new {
-          background: black;
-          color: white;
-        }
-        .status.read {
-          background: #d1d1d1;
-        }
-        .action-btn {
-          font-size: 12px;
-          cursor: pointer;
-          padding: 4px 8px;
-        }
-      `}</style>
-    </div>
+      <Card title="Recent Notifications" subtitle={`Stay updated with the latest community news and personal alerts.`}>
+        {loading ? (
+          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading messages...</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+            {notifications.map((n, i) => (
+              <div key={i} style={{ 
+                padding: "16px", borderRadius: "12px", borderLeft: `4px solid ${n.status === 'unread' ? 'var(--primary)' : '#ccc'}`,
+                backgroundColor: n.status === 'unread' ? "#f8fdf9" : "white",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                boxShadow: "0 2px 5px rgba(0,0,0,0.02)"
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "5px" }}>
+                    <span style={{ fontWeight: "700", color: n.status === 'unread' ? "var(--primary)" : "var(--text-dark)" }}>{n.title}</span>
+                    <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>{new Date(n.date).toLocaleDateString()}</span>
+                  </div>
+                  <div style={{ fontSize: "14px", color: "#555", lineHeight: "1.4" }}>{n.description}</div>
+                </div>
+                <div style={{ marginLeft: "20px", display: "flex", gap: "10px", alignItems: "center" }}>
+                  {n.status === 'unread' ? (
+                    <Button variant="secondary" onClick={() => handleMarkAsRead(n.id || n.notification_id)} disabled={actionLoading}>
+                      Mark as Read
+                    </Button>
+                  ) : (
+                    <span style={{ fontSize: "11px", color: "#bbb", fontWeight: "500" }}><i className="bi bi-check2-all"></i> READ</span>
+                  )}
+                   <button 
+                    onClick={() => handleDelete(n.id || n.notification_id)}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131", padding: "5px" }}
+                    title="Delete"
+                    disabled={actionLoading}
+                  >
+                    <i className="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            ))}
+            {notifications.length === 0 && (
+              <div style={{ textAlign: "center", padding: "40px" }}>
+                <i className="bi bi-bell-slash" style={{ fontSize: "40px", color: "#eee", display: "block", marginBottom: "15px" }}></i>
+                <div style={{ color: "var(--text-muted)" }}>No notifications at the moment.</div>
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
+    </DashboardLayout>
   );
 }
 

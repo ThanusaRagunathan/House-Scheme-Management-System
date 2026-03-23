@@ -1,228 +1,127 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button, Input, Select } from "../../components/FormElements";
+import { createPayment, getTenantProfile } from "../../services/api";
 
 function TenantAddPayment() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    amount: "",
+    payment_method: "Online",
+    remarks: ""
+  });
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await getTenantProfile();
+        setProfile(data);
+        // Default amount could be the monthly rent if available
+        setFormData(prev => ({ ...prev, amount: "10000" }));
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      await createPayment({
+        ...formData,
+        house_id: profile?.house_id,
+        invoice_no: `INV-${Date.now().toString().slice(-6)}` // Dummy invoice gen
+      });
+      navigate("/tenant/payments");
+    } catch (err) {
+      setError(err.message || "Payment processing failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="tenant"
+      title="Secure Rent Payment"
+      userName={profile?.username || "Resident"}
+      userInitials={profile?.username?.charAt(0) || "R"}
+      userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Add payments
-      </header>
+      <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+        {error && (
+            <div style={{ backgroundColor: "#fff5f5", color: "#e03131", padding: "15px", borderRadius: "10px", marginBottom: "20px", border: "1px solid #ffc9c9" }}>
+                {error}
+            </div>
+        )}
 
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
+        <Card 
+          title="Make a Payment" 
+          subtitle="All payments are processed securely. Please confirm your details before continuing."
+          footer={
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+              <Button variant="secondary" onClick={() => navigate("/tenant/payments")} disabled={loading}>Cancel</Button>
+              <Button variant="primary" onClick={handleSubmit} loading={loading}>Process Payment</Button>
+            </div>
+          }
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-person"></i>
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 600 }}>H001</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Tenant Portal
-              </div>
-            </div>
+          <div style={{ marginBottom: "25px", padding: "15px", backgroundColor: "var(--bg-light)", borderRadius: "10px", border: "1px solid #f0f0f0" }}>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>Bill To:</div>
+            <div style={{ fontWeight: "700", fontSize: "16px" }}>{profile?.username}</div>
+            <div style={{ fontSize: "13px", color: "var(--text-dark)" }}>{profile?.houseAddress}</div>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/tenant/overview")}>
-              <i className="bi bi-map"></i> Overview
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                <Input 
+                    label="Amount (Rs.)" 
+                    type="number"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                    required
+                    disabled={loading}
+                />
+                
+                <Select 
+                    label="Payment Method" 
+                    value={formData.payment_method}
+                    onChange={(e) => setFormData({...formData, payment_method: e.target.value})}
+                    options={[
+                        { value: "Online", label: "Debit/Credit Card" },
+                        { value: "Bank Transfer", label: "Bank Transfer" },
+                        { value: "Wallet", label: "Digital Wallet" }
+                    ]}
+                    disabled={loading}
+                />
             </div>
 
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 600,
-              }}
-            >
-              <i className="bi bi-currency-dollar"></i> Payments
+            <Input 
+                label="Remarks (Optional)" 
+                placeholder="e.g. October Rent + Water Bill" 
+                value={formData.remarks}
+                onChange={(e) => setFormData({...formData, remarks: e.target.value})}
+                disabled={loading}
+            />
+
+            <div style={{ marginTop: "20px", padding: "12px", backgroundColor: "#fcf0f0", borderRadius: "8px", display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                <i className="bi bi-info-circle" style={{ color: "#e03131", marginTop: "2px" }}></i>
+                <div style={{ fontSize: "12px", color: "#666", lineHeight: "1.4" }}>
+                    <strong>Note:</strong> Offline cash payments are not accepted through this portal. For cash payments, please visit the Treasurer's office directly.
+                </div>
             </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/maintenance")}
-            >
-              <i className="bi bi-wrench-adjustable"></i> Maintenance
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/complaints")}
-            >
-              <i className="bi bi-journal-text"></i> Complaints
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/documents")}
-            >
-              <i className="bi bi-file-earmark-text"></i> Document
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/tenant/notification")}
-            >
-              <i className="bi bi-bell"></i> Notification
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: "#ccffcc",
-              padding: "30px",
-              borderRadius: "20px",
-              width: "520px",
-              border: "1px solid #6aa84f",
-            }}
-          >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "16px",
-              }}
-            >
-              <div>
-                <label>Name</label>
-                <input style={inputStyle} />
-              </div>
-
-              <div>
-                <label>House Address</label>
-                <input style={inputStyle} />
-              </div>
-
-              <div style={{ gridColumn: "1 / 3" }}>
-                <label>Amount</label>
-                <input style={{ ...inputStyle, width: "120px" }} />
-              </div>
-            </div>
-
-            <div style={{ marginTop: "20px" }}>
-              <span
-                style={{
-                  backgroundColor: "black",
-                  color: "white",
-                  padding: "6px 12px",
-                  borderRadius: "8px",
-                  fontSize: "13px",
-                }}
-              >
-                Only online payments
-              </span>
-              <div style={{ marginTop: "6px", fontSize: "13px" }}>
-                for offline payments contact the treasurer
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "12px",
-                marginTop: "24px",
-              }}
-            >
-              <button style={cancelBtn} onClick={()=>navigate("/tenant/payments")}>Cancel</button>
-              <button style={saveBtn}>Continue</button>
-            </div>
-          </div>
-        </div>
+          </form>
+        </Card>
       </div>
-
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+    </DashboardLayout>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  padding: "6px",
-  marginTop: "4px",
-  backgroundColor: "#e0e0e0",
-  border: "1px solid #999",
-};
-
-const cancelBtn = {
-  padding: "6px 16px",
-  borderRadius: "8px",
-  border: "1px solid #000",
-  backgroundColor: "white",
-  cursor: "pointer",
-};
-
-const saveBtn = {
-  padding: "6px 16px",
-  borderRadius: "8px",
-  border: "none",
-  backgroundColor: "#0b3d02",
-  color: "white",
-  cursor: "pointer",
-};
 
 export default TenantAddPayment;

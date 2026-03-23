@@ -5,6 +5,7 @@ import { verifyToken } from "../middleware/auth.middleware.js";
 const router = express.Router();
 
 router.get("/", verifyToken, tenantController.getAllTenants);
+router.get("/profile", verifyToken, tenantController.getTenantProfile);
 router.get("/:id", verifyToken, tenantController.getTenantById);
 router.post("/", verifyToken, tenantController.createTenant);
 router.put("/:id", verifyToken, tenantController.updateTenant);

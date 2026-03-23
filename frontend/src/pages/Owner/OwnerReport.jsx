@@ -1,321 +1,127 @@
-import Background from "../../assets/bgimg.jpg";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getPayments, getMaintenances, getHouses } from "../../services/api";
 
-function OwnerReport() {
-  const navigate = useNavigate();
-
-  const summaryCards = [
-    {
-      title: "Total revenue",
-      value: "Rs. 23,000",
-      icon: "bi-currency-dollar",
-    },
-    {
-      title: "Total expenses",
-      value: "Rs. 3,200",
-      icon: "bi-cash-stack",
-    },
-    {
-      title: "Net income",
-      value: "Rs. 19,800",
-      icon: "bi-graph-up-arrow",
-    },
-    {
-      title: "Occupancy rate",
-      value: "75%",
-      sub: "3 out of 4",
-      icon: "bi-bar-chart",
-    },
-  ];
-
-  const maintenance = [
-    {
-      no: "M001",
-      facility: "Pool",
-      desc: "Chemical balance check",
-      date: "2025-09-11",
-      amount: "Rs. 500",
-      status: "paid",
-    },
-    {
-      no: "M002",
-      facility: "Gym",
-      desc: "Equipment maintenance",
-      date: "2025-09-15",
-      amount: "Rs. 1,700",
-      status: "pending",
-    },
-    {
-      no: "M003",
-      facility: "Park",
-      desc: "Usual cleaning",
-      date: "2025-09-26",
-      amount: "Rs. 200",
-      status: "pending",
-    },
-    {
-      no: "M004",
-      facility: "Pool",
-      desc: "Regular cleaning",
-      date: "2025-09-28",
-      amount: "Rs. 800",
-      status: "paid",
-    },
-  ];
-
-  const payments = [
-    {
-      invoice: "INV-2025-001",
-      name: "Karthik",
-      house: "H001",
-      date: "2025-09-01",
-      amount: "Rs. 10,000",
-      status: "paid",
-      method: "Online",
-    },
-    {
-      invoice: "INV-2025-002",
-      name: "Jack Brown",
-      house: "H002",
-      date: "-",
-      amount: "Rs. 17,000",
-      status: "pending",
-      method: "-",
-    },
-    {
-      invoice: "INV-2025-003",
-      name: "Patrick Tompson",
-      house: "H004",
-      date: "2025-09-25",
-      amount: "Rs. 13,000",
-      status: "paid",
-      method: "Offline",
-    },
-  ];
-
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
-  };
-
-  const statusBadge = (status) => ({
-    padding: "4px 10px",
-    borderRadius: "10px",
-    fontSize: "12px",
-    backgroundColor: status === "paid" ? "#000" : "red",
-    color: "white",
-  });
-
+function StatCard({ title, value, icon, color, subtitle }) {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Report
-      </header>
-
-      {/* Body */}
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-buildings"></i>
-            </div>
-            <div>
-              <div style={{ fontWeight: 600 }}>Property Manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Owner Portal
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/owner/overview")}>
-              <i className="bi bi-map"></i>Overview
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/owner/houses")}>
-              <i className="bi bi-house"></i>Houses
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/owner/tenants")}>
-              <i className="bi bi-people"></i>Tenants
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/owner/payments")}>
-              <i className="bi bi-currency-dollar"></i>Payments
-            </div>
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/owner/maintenance")}
-            >
-              <i className="bi bi-wrench-adjustable"></i>Maintenance
-            </div>
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/owner/complaints")}
-            >
-              <i className="bi bi-journal-text"></i>Complaints
-            </div>
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/owner/documents")}
-            >
-              <i className="bi bi-file-earmark-text"></i>Document
-            </div>
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/owner/notification")}
-            >
-              <i className="bi bi-bell"></i>Notification
-            </div>
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 500,
-              }}
-            >
-              <i className="bi bi-bar-chart"></i>Report
-            </div>
-          </div>
+    <div className="glass-card" style={{ padding: "20px", backgroundColor: "white", border: "1px solid #f0f0f0" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <div style={{ color: "var(--text-muted)", fontSize: "14px", fontWeight: "500" }}>{title}</div>
+          <div style={{ fontSize: "22px", fontWeight: "700", marginTop: "5px", color: "var(--text-dark)" }}>{value}</div>
+          {subtitle && <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>{subtitle}</div>}
         </div>
-
-        {/* Main */}
-        <div style={{ flex: 1, padding: "40px" }}>
-          {/* Export */}
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button
-              style={{
-                backgroundColor: "#0b3d02",
-                color: "white",
-                border: "none",
-                borderRadius: "12px",
-                padding: "10px 18px",
-                cursor: "pointer",
-              }}
-            >
-               Export as PDF
-            </button>
-          </div>
-
-          {/* Summary cards */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: "20px",
-              margin: "30px 0",
-            }}
-          >
-            {summaryCards.map((c, i) => (
-              <div
-                key={i}
-                style={{
-                  backgroundColor: "#ccffcc",
-                  borderRadius: "14px",
-                  padding: "16px",
-                  border: "1px solid #6aa84f",
-                }}
-              >
-                <i className={`bi ${c.icon}`}></i>
-                <div style={{ fontWeight: 600 }}>{c.title}</div>
-                <div>{c.value}</div>
-                {c.sub && (
-                  <div style={{ fontSize: "12px", color: "#444" }}>
-                    {c.sub}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Maintenance + Payments tables */}
-          {[maintenance, payments].map((list, idx) => (
-            <table
-              key={idx}
-              style={{
-                width: "100%",
-                marginBottom: "30px",
-                borderCollapse: "separate",
-                borderSpacing: "0 10px",
-              }}
-            >
-              <tbody>
-                {list.map((r, i) => (
-                  <tr key={i} style={{ backgroundColor: "#e0e0e0" }}>
-                    {Object.values(r).map((v, j) => (
-                      <td key={j} style={{ padding: "10px" }}>
-                        {v === "paid" || v === "pending" ? (
-                          <span style={statusBadge(v)}>{v}</span>
-                        ) : (
-                          v
-                        )}
-                      </td>
-                    ))}
-                    <td>
-                      <button
-                        style={{
-                          borderRadius: "16px",
-                          border: "none",
-                          padding: "6px 14px",
-                        }}
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ))}
+        <div style={{ color: color || "var(--primary)", fontSize: "20px" }}>
+          <i className={`bi ${icon}`}></i>
         </div>
       </div>
-
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
     </div>
+  );
+}
+
+function OwnerReport() {
+  const [payments, setPayments] = useState([]);
+  const [maintenances, setMaintenances] = useState([]);
+  const [houses, setHouses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [payData, mainData, houseData] = await Promise.all([
+          getPayments(),
+          getMaintenances(),
+          getHouses()
+        ]);
+        setPayments(payData);
+        setMaintenances(mainData);
+        setHouses(houseData);
+      } catch (error) {
+        console.error("Failed to fetch report data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const totalRevenue = payments.filter(p => p.status === 'Paid').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+  const totalExpenses = maintenances.reduce((sum, m) => sum + (parseFloat(m.cost) || 0), 0);
+  const netIncome = totalRevenue - totalExpenses;
+  const occupancyRate = houses.length > 0 ? (houses.filter(h => h.status === 'Occupied').length / houses.length) * 100 : 0;
+
+  return (
+    <DashboardLayout
+      role="owner"
+      title="Financial Performance Report"
+      userName="Suresh Kumar"
+      userInitials="SK"
+      userRoleLabel="Property Owner"
+    >
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
+        <Button variant="primary">
+          <i className="bi bi-file-earmark-pdf"></i> Export Statement
+        </Button>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "35px" }}>
+        <StatCard title="Total Revenue" value={loading ? "..." : `Rs. ${totalRevenue.toLocaleString()}`} icon="bi-currency-dollar" color="#1a4d2e" subtitle="Paid invoices only" />
+        <StatCard title="Total Expenses" value={loading ? "..." : `Rs. ${totalExpenses.toLocaleString()}`} icon="bi-cash-stack" color="#e03131" subtitle="Maintenance costs" />
+        <StatCard title="Net Income" value={loading ? "..." : `Rs. ${netIncome.toLocaleString()}`} icon="bi-graph-up-arrow" color="#3498db" subtitle="Profit after expenses" />
+        <StatCard title="Occupancy" value={loading ? "..." : `${occupancyRate.toFixed(0)}%`} icon="bi-bar-chart" color="#f57c00" subtitle={`${houses.filter(h => h.status === 'Occupied').length} / ${houses.length} Units`} />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "30px" }}>
+        <Card title="Recent Revenue" subtitle="A summary of the latest incoming rent payments.">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ textAlign: "left", color: "var(--text-muted)", fontSize: "12px", borderBottom: "1px solid #eee" }}>
+                <th style={{ padding: "10px" }}>Date</th>
+                <th style={{ padding: "10px" }}>Payer</th>
+                <th style={{ padding: "10px", textAlign: "right" }}>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.filter(p => p.status === 'Paid').slice(0, 5).map((p, i) => (
+                <tr key={i} style={{ borderBottom: "1px solid #f9f9f9" }}>
+                  <td style={{ padding: "10px", fontSize: "13px" }}>{new Date(p.payment_date).toLocaleDateString()}</td>
+                  <td style={{ padding: "10px", fontSize: "13px" }}>{p.payer_name || 'Resident'}</td>
+                  <td style={{ padding: "10px", fontSize: "13px", fontWeight: "600", textAlign: "right" }}>Rs. {parseFloat(p.amount).toLocaleString()}</td>
+                </tr>
+              ))}
+              {!loading && payments.filter(p => p.status === 'Paid').length === 0 && (
+                <tr><td colSpan="3" style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>No revenue recorded.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </Card>
+
+        <Card title="Recent Expenses" subtitle="A summary of the latest maintenance expenditures.">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ textAlign: "left", color: "var(--text-muted)", fontSize: "12px", borderBottom: "1px solid #eee" }}>
+                <th style={{ padding: "10px" }}>Date</th>
+                <th style={{ padding: "10px" }}>Facility</th>
+                <th style={{ padding: "10px", textAlign: "right" }}>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {maintenances.slice(0, 5).map((m, i) => (
+                <tr key={i} style={{ borderBottom: "1px solid #f9f9f9" }}>
+                  <td style={{ padding: "10px", fontSize: "13px" }}>{new Date(m.date).toLocaleDateString()}</td>
+                  <td style={{ padding: "10px", fontSize: "13px" }}>{m.facility}</td>
+                  <td style={{ padding: "10px", fontSize: "13px", fontWeight: "600", textAlign: "right", color: "#e03131" }}>Rs. {parseFloat(m.cost).toLocaleString()}</td>
+                </tr>
+              ))}
+              {!loading && maintenances.length === 0 && (
+                <tr><td colSpan="3" style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>No expenses recorded.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </Card>
+      </div>
+    </DashboardLayout>
   );
 }
 

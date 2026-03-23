@@ -70,3 +70,17 @@ export const deleteTenant = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getTenantProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const tenant = await tenantModel.getTenantByUserId(userId);
+    if (!tenant) {
+      return res.status(404).json({ message: "Tenant profile not found" });
+    }
+    res.json(tenant);
+  } catch (error) {
+    console.error("Get tenant profile error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

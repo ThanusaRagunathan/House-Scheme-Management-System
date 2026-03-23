@@ -1,178 +1,167 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getNotifications, updateNotification, deleteNotification } from "../../services/api";
+
+function SummaryCard({ title, value, subtitle, icon, color }) {
+  return (
+    <div className="glass-card" style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "white" }}>
+      <div>
+        <div style={{ color: "var(--text-muted)", fontSize: "14px", fontWeight: "500", marginBottom: "5px" }}>{title}</div>
+        <div style={{ fontSize: "24px", fontWeight: "700", color: color || "var(--primary)" }}>{value}</div>
+        {subtitle && <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "3px" }}>{subtitle}</div>}
+      </div>
+      <div style={{ padding: "12px", backgroundColor: color ? `${color}1A` : "rgba(26, 77, 46, 0.1)", borderRadius: "10px", color: color || "var(--primary)", fontSize: "20px" }}>
+        <i className={`bi ${icon}`}></i>
+      </div>
+    </div>
+  );
+}
 
 function TreasurerNotification() {
   const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    setLoading(true);
+    try {
+      const data = await getNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+      // Fallback for demo
+      setNotifications([
+        { id: 1, title: "Rent payment due", description: "Your rent payment for November 2025 is due on November 1st.", date: "2025-09-11", status: "unread" },
+        { id: 2, title: "Pool temporary closure", description: "The swimming pool will be closed for maintenance from Oct 22–24.", date: "2025-09-15", status: "unread" },
+        { id: 3, title: "Complaint update", description: "Your complaint about the leaking faucet has been updated.", date: "2025-09-26", status: "read" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const card = {
-    backgroundColor: "#ccffcc",
-    borderRadius: "16px",
-    padding: "16px",
-    width: "220px",
-    border: "1px solid #6aa84f",
-    fontWeight: 600,
+  const handleMarkAsRead = async (id) => {
+    setActionLoading(true);
+    try {
+        await updateNotification(id, { status: 'read' });
+        setNotifications(notifications.map(n => n.id === id ? { ...n, status: 'read' } : n));
+    } catch (error) {
+        console.error("Failed to update notification:", error);
+        alert("Action failed: " + error.message);
+    } finally {
+        setActionLoading(false);
+    }
   };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this notification?")) return;
+    setActionLoading(true);
+    try {
+        await deleteNotification(id);
+        setNotifications(notifications.filter(n => n.id !== id));
+    } catch (error) {
+        console.error("Failed to delete notification:", error);
+        alert("Action failed: " + error.message);
+    } finally {
+        setActionLoading(false);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => n.status === 'unread').length;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="treasurer"
+      title="System Updates"
+      userName="Aravinth"
+      userInitials="AR"
+      userRoleLabel="Chief Treasurer"
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "42px",
-          fontWeight: 600,
-        }}
-      >
-        Notification
-      </header>
-
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "240px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          {/* Sidebar header */}
-          <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              $
-            </div>
-            <div>
-              <div style={{ fontWeight: 600 }}>Financial manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Treasurer Portal
-              </div>
-            </div>
-          </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/overview")}>
-              <i className="bi bi-map"></i> Overview
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/houses")}>
-              <i className="bi bi-house"></i> Houses
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/tenants")}>
-              <i className="bi bi-people"></i> Tenants
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/payments")}>
-              <i className="bi bi-currency-dollar"></i> Payments
-            </div>
-            <div
-              style={menuItemStyle} onClick={() => navigate("/treasurer/maintenance")}
-            >
-              <i className="bi bi-wrench-adjustable"></i> Maintenance
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/complaints")}>
-              <i className="bi bi-journal-text"></i> Complaints
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/documents")}>
-              <i className="bi bi-file-earmark-text"></i> Document
-            </div>
-
-            <div style={{ ...menuItemStyle, color: "#1d4ed8", fontWeight: 600 }} onClick={() => navigate("/treasurer/notifications")}>
-              <i className="bi bi-bell"></i> Notification
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/reports")}>
-              <i className="bi bi-bar-chart"></i> Report
-            </div>
-          </div>
-
-          
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "40px" }}>
+        <div onClick={() => navigate("/treasurer/notifications/add?type=closure")} className="glass-card clickable" style={{ padding: "20px", backgroundColor: "white", textAlign: "center", cursor: "pointer" }}>
+            <div style={{ color: "#e03131", fontSize: "20px", marginBottom: "10px" }}><i className="bi bi-x-circle"></i></div>
+            <div style={{ fontWeight: "700", fontSize: "14px" }}>Facility Closure</div>
         </div>
-
-        {/* Main */}
-        <div style={{ flex: 1, padding: "30px" }}>
-          {/* Action cards */}
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={card}>Facility closure<br /><span style={{ fontWeight: 400 }}>Notify about closures</span></div>
-            <div style={card}>Payment reminder<br /><span style={{ fontWeight: 400 }}>Send rent reminders</span></div>
-            <div style={card}>Maintenance update<br /><span style={{ fontWeight: 400 }}>Notify about maintenance</span></div>
-            <div style={card}>General notice<br /><span style={{ fontWeight: 400 }}>Send announcements</span></div>
-          </div>
-
-          {/* Table */}
-          <h3 style={{ marginTop: "30px", color: "#0b3d02" }}>
-            Recent notifications
-          </h3>
-
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ backgroundColor: "#e0e0e0" }}>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style={{ backgroundColor: "#ddd" }}>
-                <td>Rent payment due</td>
-                <td>Your rent payment for November 2025 is due on November 1st.</td>
-                <td>2025-09-11</td>
-                <td><span style={{ background: "black", color: "white", padding: "4px 8px", borderRadius: "6px" }}>new</span></td>
-                <td><button>Mark as read</button></td>
-              </tr>
-
-              <tr style={{ backgroundColor: "#ddd" }}>
-                <td>Pool temporary closure</td>
-                <td>The swimming pool will be closed for maintenance from Oct 22–24.</td>
-                <td>2025-09-15</td>
-                <td><span style={{ background: "black", color: "white", padding: "4px 8px", borderRadius: "6px" }}>new</span></td>
-                <td><button>Mark as read</button></td>
-              </tr>
-
-              <tr style={{ backgroundColor: "#ddd" }}>
-                <td>Complaint update</td>
-                <td>Your complaint about the leaking faucet has been updated.</td>
-                <td>2025-09-26</td>
-                <td><span style={{ background: "#ccc", padding: "4px 8px", borderRadius: "6px" }}>read</span></td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
+        <div onClick={() => navigate("/treasurer/notifications/add?type=reminder")} className="glass-card clickable" style={{ padding: "20px", backgroundColor: "white", textAlign: "center", cursor: "pointer" }}>
+            <div style={{ color: "#e67e22", fontSize: "20px", marginBottom: "10px" }}><i className="bi bi-currency-dollar"></i></div>
+            <div style={{ fontWeight: "700", fontSize: "14px" }}>Rent Reminder</div>
+        </div>
+        <div onClick={() => navigate("/treasurer/notifications/add?type=maintenance")} className="glass-card clickable" style={{ padding: "20px", backgroundColor: "white", textAlign: "center", cursor: "pointer" }}>
+            <div style={{ color: "#3498db", fontSize: "20px", marginBottom: "10px" }}><i className="bi bi-wrench"></i></div>
+            <div style={{ fontWeight: "700", fontSize: "14px" }}>Maintenance</div>
+        </div>
+        <div onClick={() => navigate("/treasurer/notifications/add?type=general")} className="glass-card clickable" style={{ padding: "20px", backgroundColor: "white", textAlign: "center", cursor: "pointer" }}>
+            <div style={{ color: "var(--primary)", fontSize: "20px", marginBottom: "10px" }}><i className="bi bi- megaphone"></i></div>
+            <div style={{ fontWeight: "700", fontSize: "14px" }}>General Notice</div>
         </div>
       </div>
 
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+      <Card title="Recent Notifications" subtitle={`You have ${unreadCount} unread system alerts.`}>
+        {loading ? (
+          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading records...</p>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Title</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Description</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Status</th>
+                  <th style={{ padding: "12px", textAlign: "right" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {notifications.map((n, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>{n.title}</td>
+                    <td style={{ padding: "12px", fontSize: "14px", maxWidth: "300px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{n.description}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{new Date(n.date).toLocaleDateString()}</td>
+                    <td style={{ padding: "12px" }}>
+                       <span style={{ 
+                        padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
+                        backgroundColor: (n.status === 'unread' || n.status === 'new') ? "#fff5f5" : "#f0f0f0",
+                        color: (n.status === 'unread' || n.status === 'new') ? "#e03131" : "#888",
+                        textTransform: "uppercase"
+                      }}>
+                        {n.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: "12px", textAlign: "right" }}>
+                       <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                          {(n.status === 'unread' || n.status === 'new') && (
+                            <Button variant="secondary" onClick={() => handleMarkAsRead(n.id)} disabled={actionLoading}>
+                              Mark Read
+                            </Button>
+                          )}
+                          <button 
+                            onClick={() => handleDelete(n.id)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
+                            title="Delete"
+                            disabled={actionLoading}
+                          >
+                            <i className="bi bi-trash"></i>
+                          </button>
+                       </div>
+                    </td>
+                  </tr>
+                ))}
+                {notifications.length === 0 && (
+                  <tr><td colSpan="5" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>No notifications found.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </DashboardLayout>
   );
 }
 

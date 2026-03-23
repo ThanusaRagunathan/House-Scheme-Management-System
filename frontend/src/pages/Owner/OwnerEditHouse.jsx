@@ -1,12 +1,14 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { Input, Select, Button, Card } from "../../components/FormElements";
-import { createHouse } from "../../services/api";
+import { getHouses, updateHouse } from "../../services/api";
 
-function OwnerAddHouse() {
+function OwnerEditHouse() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     code: "",
@@ -17,38 +19,61 @@ function OwnerAddHouse() {
     status: "Vacant"
   });
 
+  useEffect(() => {
+    const fetchHouse = async () => {
+      try {
+        const houses = await getHouses();
+        const house = houses.find(h => String(h.id) === String(id));
+        if (house) {
+          setFormData({
+            code: house.houseCode || house.code || "",
+            address: house.address || "",
+            rooms: house.rooms || "",
+            rent: house.rentAmount || house.rent || "",
+            rentType: "Monthly",
+            status: house.status || "Vacant"
+          });
+        } else {
+          setError("Property not found.");
+        }
+      } catch (err) {
+        setError("Failed to fetch property details.");
+      } finally {
+        setFetching(false);
+      }
+    };
+    fetchHouse();
+  }, [id]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      // Get ownerId from token
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Authentication required");
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      
       const houseData = {
         address: formData.address,
         rooms: parseInt(formData.rooms),
         rentAmount: parseFloat(formData.rent),
         status: formData.status,
-        ownerId: payload.id
+        houseCode: formData.code
       };
 
-      await createHouse(houseData);
+      await updateHouse(id, houseData);
       navigate("/owner/houses");
     } catch (err) {
-      setError(err.message || "Failed to add property. Please try again.");
+      setError(err.message || "Failed to update property. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  if (fetching) return <DashboardLayout role="owner" title="Edit Property"><p>Loading details...</p></DashboardLayout>;
+
   return (
     <DashboardLayout
       role="owner"
-      title="Add New Property"
+      title="Edit Property"
       userName="Suresh Kumar"
       userInitials="SK"
       userRoleLabel="Property Owner"
@@ -61,12 +86,12 @@ function OwnerAddHouse() {
         )}
         
         <Card 
-          title="Property Details" 
-          subtitle="Enter the information for the new housing unit."
+          title="Update Property Details" 
+          subtitle={`Editing house record ID: ${id}`}
           footer={
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
               <Button variant="secondary" onClick={() => navigate("/owner/houses")} disabled={loading}>Cancel</Button>
-              <Button variant="primary" onClick={handleSubmit} loading={loading}>Save Property</Button>
+              <Button variant="primary" onClick={handleSubmit} loading={loading}>Update Property</Button>
             </div>
           }
         >
@@ -108,7 +133,7 @@ function OwnerAddHouse() {
             </div>
 
             <Select 
-              label="Initial Status"
+              label="Current Status"
               value={formData.status}
               onChange={(e) => setFormData({...formData, status: e.target.value})}
               options={[
@@ -124,6 +149,4 @@ function OwnerAddHouse() {
   );
 }
 
-export default OwnerAddHouse;
-
-
+export default OwnerEditHouse;

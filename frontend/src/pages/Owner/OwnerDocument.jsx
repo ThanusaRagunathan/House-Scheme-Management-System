@@ -1,322 +1,139 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getDocuments, deleteDocument } from "../../services/api";
 
 function OwnerDocuments() {
   const navigate = useNavigate();
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const summary = [
-    { title: "Total documents", value: "4" },
-    { title: "Agreements", value: "2" },
-    { title: "Invoices", value: "1" },
-    { title: "Reports", value: "1" },
-  ];
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
 
-  const documents = [
-    {
-      name: "Rent agreement-H001",
-      type: "rent agreement",
-      uploadedBy: "John Smith",
-      date: "2025-09-11",
-      size: "2.3 MB",
-    },
-    {
-      name: "Invoice sept 2025-H001",
-      type: "invoice",
-      uploadedBy: "System",
-      date: "2025-09-15",
-      size: "156 KB",
-    },
-    {
-      name: "Pool maintenance report sept",
-      type: "maintenance",
-      uploadedBy: "Mike Devis",
-      date: "2025-09-26",
-      size: "890 KB",
-    },
-    {
-      name: "Rent agreement-H002",
-      type: "rent agreement",
-      uploadedBy: "John Smith",
-      date: "2025-09-28",
-      size: "2.1 MB",
-    },
-  ];
-
-  const recentUploads = documents.slice(0, 3);
-
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
+  const fetchDocuments = async () => {
+    setLoading(true);
+    try {
+      const data = await getDocuments();
+      setDocuments(data);
+    } catch (error) {
+      console.error("Failed to fetch documents:", error);
+      // Fallback for demo
+      setDocuments([
+        { id: 1, document_name: "Rent Agreement - H001", document_type: "Agreement", upload_date: "2025-09-11" },
+        { id: 2, document_name: "Invoice Sept 2025", document_type: "Invoice", upload_date: "2025-09-15" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this document?")) return;
+    setActionLoading(true);
+    try {
+        await deleteDocument(id);
+        setDocuments(documents.filter(d => d.id !== id));
+    } catch (error) {
+        console.error("Failed to delete document:", error);
+        alert("Action failed: " + error.message);
+    } finally {
+        setActionLoading(false);
+    }
+  };
+
+  const agreementCount = documents.filter(d => d.document_type === 'Agreement').length;
+  const invoiceCount = documents.filter(d => d.document_type === 'Invoice').length;
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="owner"
+      title="Document Repository"
+      userName="Suresh Kumar"
+      userInitials="SK"
+      userRoleLabel="Property Owner"
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Documents
-      </header>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
+        <Button variant="primary" onClick={() => navigate("/owner/uploaddocument")} disabled={actionLoading}>
+          <i className="bi bi-cloud-upload"></i> Upload Document
+        </Button>
+      </div>
 
-      {/* Body */}
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          {/* Sidebar Header */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-buildings"></i>
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 600 }}>Property Manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Owner Portal
-              </div>
-            </div>
-          </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/owner/overview")}>
-              <i className="bi bi-map"></i>
-              Overview
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/houses")}>
-              <i className="bi bi-house"></i>
-              Houses
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/tenants")}>
-              <i className="bi bi-people"></i>
-              Tenants
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/payments")}>
-              <i className="bi bi-currency-dollar"></i>
-              Payments
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/owner/maintenance")}
-            >
-              <i className="bi bi-wrench-adjustable"></i>
-              Maintenance
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/owner/complaints")}
-            >
-              <i className="bi bi-journal-text"></i>
-              Complaints
-            </div>
-
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 500,
-              }}
-            >
-              <i className="bi bi-file-earmark-text"></i>
-              Document
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/notification")}>
-              <i className="bi bi-bell"></i>
-              Notification
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/report")}>
-              <i className="bi bi-bar-chart"></i>
-              Report
-            </div>
-          </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "35px" }}>
+        <div className="glass-card" style={{ padding: "15px", backgroundColor: "white", textAlign: "center" }}>
+          <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>Total Files</div>
+          <div style={{ fontSize: "20px", fontWeight: "700", color: "var(--primary)" }}>{documents.length}</div>
         </div>
-
-        {/* Main Content */}
-        <div style={{ flex: 1, padding: "40px" }}>
-          {/* Upload button */}
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button
-              style={{
-                backgroundColor: "#0b3d02",
-                color: "white",
-                border: "none",
-                borderRadius: "12px",
-                padding: "10px 18px",
-                fontSize: "16px",
-                cursor: "pointer",
-              }}
-              onClick={()=>navigate("/owner/uploaddocument")}
-            >
-              + Upload document
-            </button>
-          </div>
-
-          {/* Summary cards */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: "20px",
-              marginTop: "30px",
-            }}
-          >
-            {summary.map((s, i) => (
-              <div
-                key={i}
-                style={{
-                  backgroundColor: "#ccffcc",
-                  borderRadius: "14px",
-                  padding: "16px",
-                  border: "1px solid #6aa84f",
-                }}
-              >
-                <strong>{s.title}</strong>
-                <div style={{ marginTop: "8px", fontSize: "18px", fontWeight: 600 }}>
-                  {s.value}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Documents table */}
-          <h3 style={{ marginTop: "30px", color: "#0b3d02" }}>
-            All documents
-          </h3>
-
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "separate",
-              borderSpacing: "0 10px",
-            }}
-          >
-            <thead>
-              <tr>
-                <th>Document name</th>
-                <th>Type</th>
-                <th>Uploaded by</th>
-                <th>Uploaded date</th>
-                <th>Size</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {documents.map((d, i) => (
-                <tr key={i} style={{ backgroundColor: "#e0e0e0" }}>
-                  <td style={{ padding: "10px" }}>{d.name}</td>
-                  <td style={{ padding: "10px" }}>{d.type}</td>
-                  <td style={{ padding: "10px" }}>{d.uploadedBy}</td>
-                  <td style={{ padding: "10px" }}>{d.date}</td>
-                  <td style={{ padding: "10px" }}>{d.size}</td>
-                  <td style={{ padding: "10px" }}>
-                    <i
-                      className="bi bi-pencil-square"
-                      style={{ marginRight: "10px", cursor: "pointer" }}
-                    ></i>
-                    <i
-                      className="bi bi-trash"
-                      style={{ color: "red", cursor: "pointer" }}
-                    ></i>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Recent uploads */}
-          <h3 style={{ marginTop: "30px", color: "#0b3d02" }}>
-            Recent uploads
-          </h3>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: "16px",
-            }}
-          >
-            {recentUploads.map((r, i) => (
-              <div
-                key={i}
-                style={{
-                  backgroundColor: "#ccffcc",
-                  borderRadius: "14px",
-                  padding: "12px 16px",
-                  border: "1px solid #6aa84f",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <strong>{r.name}</strong>
-                  <div style={{ fontSize: "12px", color: "#444" }}>
-                    {r.date}
-                  </div>
-                </div>
-                <i
-                  className="bi bi-download"
-                  style={{ fontSize: "18px", cursor: "pointer" }}
-                ></i>
-              </div>
-            ))}
-          </div>
+        <div className="glass-card" style={{ padding: "15px", backgroundColor: "white", textAlign: "center" }}>
+          <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>Agreements</div>
+          <div style={{ fontSize: "20px", fontWeight: "700", color: "#3498db" }}>{agreementCount}</div>
+        </div>
+        <div className="glass-card" style={{ padding: "15px", backgroundColor: "white", textAlign: "center" }}>
+          <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>Invoices</div>
+          <div style={{ fontSize: "20px", fontWeight: "700", color: "#e67e22" }}>{invoiceCount}</div>
+        </div>
+        <div className="glass-card" style={{ padding: "15px", backgroundColor: "white", textAlign: "center" }}>
+          <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>Other</div>
+          <div style={{ fontSize: "20px", fontWeight: "700", color: "var(--text-muted)" }}>{documents.length - agreementCount - invoiceCount}</div>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+      <Card title="All System Documents" subtitle="Secure storage for agreements, receipts, and maintenance records.">
+        {loading ? (
+          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading repository...</p>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Name</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Type</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
+                  <th style={{ padding: "12px", textAlign: "right" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {documents.map((d, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>
+                      <i className="bi bi-file-earmark-text" style={{ marginRight: "10px", color: "var(--primary)" }}></i>
+                      {d.document_name}
+                    </td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{d.document_type}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{new Date(d.upload_date).toLocaleDateString()}</td>
+                    <td style={{ padding: "12px", textAlign: "right" }}>
+                      <div style={{ display: "flex", gap: "15px", justifyContent: "flex-end" }}>
+                        <button 
+                          onClick={() => alert("Downloading " + d.document_name)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--primary)" }}
+                          title="Download"
+                        >
+                          <i className="bi bi-download"></i>
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(d.id || d.document_id)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
+                          title="Delete"
+                          disabled={actionLoading}
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {documents.length === 0 && (
+                  <tr><td colSpan="4" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>No documents found.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </DashboardLayout>
   );
 }
 
