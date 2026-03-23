@@ -15,7 +15,6 @@ function Home() {
         boxShadow: "0 2px 10px rgba(0,0,0,0.2)"
       }}>
         <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ color: "white", fontSize: "24px", fontWeight: "700" }}>HSMS</div>
           <nav style={{ display: "flex", gap: "30px" }}>
             <a href="#home" style={{ color: "white", fontWeight: "500" }}>Home</a>
             <a href="#about" style={{ color: "white", fontWeight: "500" }}>About Us</a>
@@ -139,9 +138,25 @@ function Home() {
 
 function FeatureCard({ title, desc }) {
   return (
-    <div className="glass-card" style={{ padding: "30px", transition: "var(--transition)", cursor: "default" }}
-      onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-10px)"}
-      onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+    <div className="glass-card" style={{ 
+      padding: "30px", 
+      transition: "var(--transition)", 
+      cursor: "default",
+      border: "1px solid rgba(0, 0, 0, 0.15)",
+      backgroundColor: "rgba(255, 255, 255, 0.8)",
+      borderRadius: "12px",
+      boxShadow: "0 4px 6px rgba(0,0,0,0.05)"
+    }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-10px)";
+        e.currentTarget.style.boxShadow = "0 10px 20px rgba(0,0,0,0.1)";
+        e.currentTarget.style.borderColor = "var(--primary)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.05)";
+        e.currentTarget.style.borderColor = "rgba(0, 0, 0, 0.15)";
+      }}
     >
       <h4 style={{ marginBottom: "15px", color: "var(--primary)" }}>{title}</h4>
       <p style={{ color: "var(--text-muted)", fontSize: "15px" }}>{desc}</p>
