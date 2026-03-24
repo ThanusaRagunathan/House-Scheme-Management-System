@@ -114,8 +114,8 @@ function Home() {
             </div>
             <div>
               <h4 style={{ color: "white", marginBottom: "20px" }}>Contact Us</h4>
-              <p style={{ opacity: 0.8, marginBottom: "10px" }}>Email: support@housescheme.lk</p>
-              <p style={{ opacity: 0.8, marginBottom: "10px" }}>Phone: +94 77 123 4567</p>
+              <p style={{ opacity: 0.8, marginBottom: "10px" }}>Email: <a href="mailto:support@housescheme.lk" style={{ color: "white", textDecoration: "underline" }}>support@housescheme.lk</a></p>
+              <p style={{ opacity: 0.8, marginBottom: "10px" }}>Phone: <a href="tel:+94771234567" style={{ color: "white", textDecoration: "underline" }}>+94 77 123 4567</a></p>
               <p style={{ opacity: 0.8 }}>Address: Prime Villas, Old Kandy Road, Dalugama, Sri Lanka</p>
             </div>
             <div>
