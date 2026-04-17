@@ -1,11 +1,17 @@
 import db from "../config/db.js";
 
 export const getAllPayments = async (tenancyId = null) => {
-  let query = "SELECT * FROM payments";
+  let query = `
+    SELECT p.*, t.full_name as TenantName, h.reference_code as houseCode 
+    FROM payments p
+    JOIN tenancies ten ON p.tenancy_id = ten.tenancy_id
+    JOIN Tenants t ON ten.Tenant_id = t.Tenant_id
+    JOIN houses h ON ten.house_id = h.house_id
+  `;
   const params = [];
   
   if (tenancyId) {
-    query += " WHERE tenancy_id = ?";
+    query += " WHERE p.tenancy_id = ?";
     params.push(tenancyId);
   }
   

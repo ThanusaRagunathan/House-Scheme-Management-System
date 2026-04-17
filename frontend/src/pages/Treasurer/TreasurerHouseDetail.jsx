@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { Card, Button } from "../../components/FormElements";
-import { getHouses } from "../../services/api";
+import { getHouse } from "../../services/api";
 
 function TreasurerHouseDetail() {
   const { id } = useParams();
@@ -14,8 +14,7 @@ function TreasurerHouseDetail() {
     const fetchHouse = async () => {
       setLoading(true);
       try {
-        const houses = await getHouses();
-        const found = houses.find(h => String(h.id) === String(id));
+        const found = await getHouse(id);
         if (found) {
           setHouse(found);
         } else {
@@ -29,7 +28,7 @@ function TreasurerHouseDetail() {
             rent: 10000,
             status: "Occupied",
             owner: "Thanusa Ragunathan",
-            tenant: "Jack Sparrow",
+            Tenant: "Jack Sparrow",
             history: [
               { date: "2024-01-01", type: "Payment", amount: 10000, status: "Verified" },
               { date: "2023-12-01", type: "Maintenance", amount: 1500, status: "Paid" }
@@ -52,9 +51,9 @@ function TreasurerHouseDetail() {
     <DashboardLayout
       role="treasurer"
       title={`Inventory Detail - ${house.houseCode || house.id}`}
-      userName="Aravinth"
-      userInitials="AR"
-      userRoleLabel="Chief Treasurer"
+
+
+
     >
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "25px" }}>
         <Button variant="secondary" onClick={() => navigate("/treasurer/houses")}>
@@ -73,12 +72,12 @@ function TreasurerHouseDetail() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
               <div>
                 <label style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase" }}>House Code</label>
-                <div style={{ fontSize: "16px", fontWeight: "700" }}>{house.houseCode}</div>
+                <div style={{ fontSize: "16px", fontWeight: "700" }}>{house.houseCode || `H-${house.id}`}</div>
               </div>
               <div>
                 <label style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase" }}>Current Status</label>
                 <div>
-                   <span style={{ 
+                  <span style={{
                     padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
                     backgroundColor: house.status === "Occupied" ? "#e2f2e5" : "#fff5f5",
                     color: house.status === "Occupied" ? "#1a4d2e" : "#e03131",
@@ -90,7 +89,7 @@ function TreasurerHouseDetail() {
               </div>
               <div>
                 <label style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase" }}>Monthly Rent</label>
-                <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)" }}>Rs. {parseFloat(house.rent).toLocaleString()}</div>
+                <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)" }}>Rs. {parseFloat(house.rent || 0).toLocaleString()}</div>
               </div>
               <div>
                 <label style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase" }}>Unit Type</label>
@@ -98,56 +97,57 @@ function TreasurerHouseDetail() {
               </div>
             </div>
             <div style={{ marginTop: "20px" }}>
-                <label style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase" }}>Full Address</label>
-                <div style={{ fontSize: "15px" }}>{house.address}</div>
+              <label style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase" }}>Full Address</label>
+              <div style={{ fontSize: "15px" }}>{house.address}</div>
             </div>
           </Card>
 
-          <Card title="Ownership & Resident">
-             <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                   <div>
-                      <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Owner</div>
-                      <div style={{ fontWeight: "600" }}>{house.owner || "Thanusa Ragunathan"}</div>
-                   </div>
-                   <Button variant="secondary" size="sm" onClick={() => navigate('/treasurer/tenants')}>Contact</Button>
+          <Card title="Ownership & Tenant">
+            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Owner</div>
+                  <div style={{ fontWeight: "600" }}>{house.owner}</div>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                   <div>
-                      <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Current Tenant</div>
-                      <div style={{ fontWeight: "600" }}>{house.tenant || "Jack Sparrow"}</div>
-                   </div>
-                   <Button variant="secondary" size="sm" onClick={() => navigate('/treasurer/tenants')}>Profile</Button>
+                <Button variant="secondary" size="sm" onClick={() => navigate('/treasurer/Tenants')}>Contact</Button>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Current Tenant</div>
+                  <div style={{ fontWeight: "600" }}>{house.Tenant}</div>
                 </div>
-             </div>
+                <Button variant="secondary" size="sm" onClick={() => navigate('/treasurer/Tenants')}>Profile</Button>
+              </div>
+            </div>
           </Card>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
           <Card title="Financial History (Recent)">
-             <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-                {house.history.map((h, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px", backgroundColor: "#f9f9f9", borderRadius: "8px", fontSize: "13px" }}>
-                     <div>
-                        <div style={{ fontWeight: "600" }}>{h.type}</div>
-                        <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{h.date}</div>
-                     </div>
-                     <div style={{ textAlign: "right" }}>
-                        <div style={{ fontWeight: "700" }}>Rs. {h.amount}</div>
-                        <div style={{ fontSize: "11px", color: h.status === 'Verified' ? '#1a4d2e' : 'inherit' }}>{h.status}</div>
-                     </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+              {(house.history || []).map((h, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px", backgroundColor: "#f9f9f9", borderRadius: "8px", fontSize: "13px" }}>
+                  <div>
+                    <div style={{ fontWeight: "600" }}>{h.type}</div>
+                    <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{h.date ? new Date(h.date).toLocaleDateString() : 'N/A'}</div>
                   </div>
-                ))}
-                <Button variant="secondary" onClick={() => navigate('/treasurer/payments')}>View All Payments</Button>
-             </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontWeight: "700" }}>Rs. {h.amount}</div>
+                    <div style={{ fontSize: "11px", color: h.status === 'Verified' || h.status === 'Paid' ? '#1a4d2e' : 'inherit' }}>{h.status}</div>
+                  </div>
+                </div>
+              ))}
+              {(!house.history || house.history.length === 0) && <p style={{ fontSize: "13px", color: "var(--text-muted)", textAlign: "center" }}>No transaction history found.</p>}
+              <Button variant="secondary" onClick={() => navigate('/treasurer/payments')}>View All Payments</Button>
+            </div>
           </Card>
 
           <Card title="Maintenance Logs">
-             <div style={{ textAlign: "center", padding: "10px" }}>
-                <div style={{ fontSize: "24px", color: "var(--primary)", marginBottom: "10px" }}><i className="bi bi-tools"></i></div>
-                <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>No active maintenance requests for this unit.</p>
-                <Button variant="secondary" style={{ width: "100%" }} onClick={() => navigate('/treasurer/maintenance')}>System Logs</Button>
-             </div>
+            <div style={{ textAlign: "center", padding: "10px" }}>
+              <div style={{ fontSize: "24px", color: "var(--primary)", marginBottom: "10px" }}><i className="bi bi-tools"></i></div>
+              <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>No active maintenance requests for this unit.</p>
+              <Button variant="secondary" style={{ width: "100%" }} onClick={() => navigate('/treasurer/maintenance')}>System Logs</Button>
+            </div>
           </Card>
         </div>
       </div>

@@ -6,11 +6,11 @@ function Home() {
 
   return (
     <div className="home-wrapper">
-      <header style={{ 
-        padding: "20px 0", 
-        backgroundColor: "var(--primary)", 
-        position: "fixed", 
-        width: "100%", 
+      <header style={{
+        padding: "20px 0",
+        backgroundColor: "var(--primary)",
+        position: "fixed",
+        width: "100%",
         zIndex: 1000,
         boxShadow: "0 2px 10px rgba(0,0,0,0.2)"
       }}>
@@ -24,7 +24,7 @@ function Home() {
         </div>
       </header>
 
-      <section id="home" 
+      <section id="home"
         style={{
           position: "relative",
           minHeight: "100vh",
@@ -40,10 +40,10 @@ function Home() {
             House Scheme <br /> Management System
           </h1>
           <p style={{ fontSize: "20px", maxWidth: "600px", marginBottom: "40px", opacity: "0.9" }}>
-            Simplify your house, tenant and finance management in one sophisticated platform built for modern living.
+            Simplify your house, Tenant and finance management in one sophisticated platform built for modern living.
           </p>
-          <button 
-            onClick={() => navigate('/login')} 
+          <button
+            onClick={() => navigate('/login')}
             className="btn-primary"
             style={{ fontSize: "18px", padding: "15px 40px" }}
           >
@@ -58,13 +58,13 @@ function Home() {
             <div>
               <h2 style={{ fontSize: "40px", marginBottom: "20px" }}>Manage Your Housing Scheme Smarter</h2>
               <p style={{ fontSize: "18px", color: "var(--text-muted)" }}>
-                The House Scheme Management System unites all housing operations in one platform. It enables owners, tenants, and treasurers to manage properties, payments, and finances seamlessly. 
+                The House Scheme Management System unites all housing operations in one platform. It enables owners, Tenants, and treasurers to manage houses, payments, and finances seamlessly.
                 With user-friendly tools and secure data handling, it replaces manual records, reduces errors, and ensures transparency and easy access anytime, anywhere.
               </p>
             </div>
             <div className="glass-card" style={{ padding: "40px", backgroundColor: "var(--primary)", color: "white" }}>
               <h3 style={{ color: "white", marginBottom: "15px" }}>Our Mission</h3>
-              <p>To provide a transparent, efficient, and user-centric ecosystem for residential communities, ensuring that administrative complexity never hinders community living.</p>
+              <p>To provide a transparent, efficient, and user-centric ecosystem for Tenantial communities, ensuring that administrative complexity never hinders community living.</p>
             </div>
           </div>
         </div>
@@ -77,29 +77,29 @@ function Home() {
             <div style={{ height: "4px", width: "80px", backgroundColor: "var(--secondary)", margin: "20px auto" }}></div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "30px" }}>
-            <FeatureCard 
-              title="Property & Tenant Management" 
-              desc="Add, update, and manage multiple properties, tenants, and their respective lease agreements effortlessly." 
+            <FeatureCard
+              title="House & Tenant Management"
+              desc="Add, update, and manage multiple houses, Tenants, and their respective lease agreements effortlessly."
             />
-            <FeatureCard 
-              title="Rent Collection & Tracking" 
-              desc="Automate monthly rent collection, view payment history, and issue receipts digitally." 
+            <FeatureCard
+              title="Rent Collection & Tracking"
+              desc="Automate monthly rent collection, view payment history, and issue receipts digitally."
             />
-            <FeatureCard 
-              title="Maintenance Requests" 
-              desc="Tenants can raise maintenance issues that are tracked until resolved, ensuring accountability." 
+            <FeatureCard
+              title="Maintenance Requests"
+              desc="Tenants can raise maintenance issues that are tracked until resolved, ensuring accountability."
             />
-            <FeatureCard 
-              title="Financial Reporting" 
-              desc="Treasurers can generate detailed reports for income, expenses, and fund utilization." 
+            <FeatureCard
+              title="Financial Reporting"
+              desc="Treasurers can generate detailed reports for income, expenses, and fund utilization."
             />
-            <FeatureCard 
-              title="Alerts & Notifications" 
-              desc="Receive instant reminders for rent due dates, maintenance updates, and payment confirmations." 
+            <FeatureCard
+              title="Alerts & Notifications"
+              desc="Receive instant reminders for rent due dates, maintenance updates, and payment confirmations."
             />
-            <FeatureCard 
-              title="Lease Agreement Management" 
-              desc="Create and manage lease documents and renewal alerts digitally." 
+            <FeatureCard
+              title="Lease Agreement Management"
+              desc="Create and manage lease documents and renewal alerts digitally."
             />
           </div>
         </div>
@@ -138,9 +138,9 @@ function Home() {
 
 function FeatureCard({ title, desc }) {
   return (
-    <div className="glass-card" style={{ 
-      padding: "30px", 
-      transition: "var(--transition)", 
+    <div className="glass-card" style={{
+      padding: "30px",
+      transition: "var(--transition)",
       cursor: "default",
       border: "1px solid rgba(0, 0, 0, 0.15)",
       backgroundColor: "rgba(255, 255, 255, 0.8)",

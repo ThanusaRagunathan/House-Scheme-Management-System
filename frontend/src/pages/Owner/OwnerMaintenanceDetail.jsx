@@ -48,9 +48,9 @@ function OwnerMaintenanceDetail() {
     <DashboardLayout
       role="owner"
       title={`Maintenance Record - #${String(task.id).padStart(3, '0')}`}
-      userName="Thanusa"
-      userInitials="TR"
-      userRoleLabel="Property Owner"
+      
+      
+      
     >
       <div style={{ marginBottom: "25px" }}>
         <Button variant="secondary" onClick={() => navigate("/owner/maintenance")}>

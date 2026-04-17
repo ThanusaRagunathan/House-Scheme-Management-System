@@ -26,7 +26,7 @@ function Login() {
       } else if (role === "treasurer") {
         navigate("/treasurer/overview");
       } else if (role === "tenant") {
-        navigate("/tenant/overview");
+        navigate("/Tenant/overview");
       } else {
         setError("Unknown user role");
       }
@@ -127,7 +127,7 @@ function Login() {
               onClick={() => navigate('/forgot-password')}
               style={{ fontSize: "14px", color: "var(--primary)", fontWeight: "500", cursor: "pointer" }}
             >
-              Forgot password?
+              Forgot password? Contact Admin
             </span>
           </div>
 

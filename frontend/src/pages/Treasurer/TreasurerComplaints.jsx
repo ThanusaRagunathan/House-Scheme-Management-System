@@ -50,13 +50,13 @@ function TreasurerComplaints() {
   const handleStatusChange = async (id, newStatus) => {
     setActionLoading(true);
     try {
-        await updateComplaint(id, { status: newStatus });
-        setComplaints(complaints.map(c => c.id === id ? { ...c, status: newStatus } : c));
+      await updateComplaint(id, { status: newStatus });
+      setComplaints(complaints.map(c => c.id === id ? { ...c, status: newStatus } : c));
     } catch (error) {
-        console.error("Failed to update status:", error);
-        alert("Action failed: " + error.message);
+      console.error("Failed to update status:", error);
+      alert("Action failed: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -64,13 +64,13 @@ function TreasurerComplaints() {
     if (!window.confirm("Are you sure you want to delete this complaint?")) return;
     setActionLoading(true);
     try {
-        await deleteComplaint(id);
-        setComplaints(complaints.filter(c => c.id !== id));
+      await deleteComplaint(id);
+      setComplaints(complaints.filter(c => c.id !== id));
     } catch (error) {
-        console.error("Failed to delete record:", error);
-        alert("Action failed: " + error.message);
+      console.error("Failed to delete record:", error);
+      alert("Action failed: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -82,9 +82,9 @@ function TreasurerComplaints() {
     <DashboardLayout
       role="treasurer"
       title="Complaints Management"
-      userName="Aravinth"
-      userInitials="AR"
-      userRoleLabel="Chief Treasurer"
+
+
+
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "40px" }}>
         <SummaryCard title="Open Complaints" value={loading ? "..." : openCount} subtitle="Requires attention" icon="bi-exclamation-circle" color="#e03131" />
@@ -92,7 +92,7 @@ function TreasurerComplaints() {
         <SummaryCard title="Resolved" value={loading ? "..." : resolvedCount} subtitle="Successfully resolved" icon="bi-check2-circle" color="#1a4d2e" />
       </div>
 
-      <Card title="All Resident Complaints" subtitle="Monitoring and addressing issues reported by residents.">
+      <Card title="All Tenant Complaints" subtitle="Monitoring and addressing issues reported by Tenants.">
         {loading ? (
           <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading records...</p>
         ) : (
@@ -116,7 +116,7 @@ function TreasurerComplaints() {
                     <td style={{ padding: "12px", fontSize: "14px" }}>{c.title}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{new Date(c.submitted_date).toLocaleDateString()}</td>
                     <td style={{ padding: "12px" }}>
-                      <span style={{ 
+                      <span style={{
                         padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
                         backgroundColor: (c.status === "Resolved" || c.status === "resolved") ? "#e2f2e5" : (c.status === "Open" || c.status === "open" ? "#fff5f5" : "#fff8e1"),
                         color: (c.status === "Resolved" || c.status === "resolved") ? "#1a4d2e" : (c.status === "Open" || c.status === "open" ? "#e03131" : "#f57c00"),
@@ -126,33 +126,33 @@ function TreasurerComplaints() {
                       </span>
                     </td>
                     <td style={{ padding: "12px", textAlign: "right" }}>
-                       <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-                          {c.status !== "Resolved" && c.status !== "resolved" && (
-                            <button 
-                              onClick={() => handleStatusChange(c.id, "Resolved")}
-                              style={{ background: "none", border: "none", cursor: "pointer", color: "#1a4d2e" }}
-                              title="Resolve"
-                              disabled={actionLoading}
-                            >
-                              <i className="bi bi-check-circle-fill"></i>
-                            </button>
-                          )}
-                          <button 
-                            onClick={() => navigate(`/treasurer/complaints/${c.id}`)}
-                            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
-                            title="View"
-                          >
-                            <i className="bi bi-eye-fill"></i>
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(c.id)}
-                            style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
-                            title="Delete"
+                      <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                        {c.status !== "Resolved" && c.status !== "resolved" && (
+                          <button
+                            onClick={() => handleStatusChange(c.id, "Resolved")}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#1a4d2e" }}
+                            title="Resolve"
                             disabled={actionLoading}
                           >
-                            <i className="bi bi-trash"></i>
+                            <i className="bi bi-check-circle-fill"></i>
                           </button>
-                       </div>
+                        )}
+                        <button
+                          onClick={() => navigate(`/treasurer/complaints/${c.id}`)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                          title="View"
+                        >
+                          <i className="bi bi-eye-fill"></i>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(c.id)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
+                          title="Delete"
+                          disabled={actionLoading}
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

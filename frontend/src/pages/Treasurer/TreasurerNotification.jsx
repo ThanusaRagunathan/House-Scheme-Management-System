@@ -50,13 +50,13 @@ function TreasurerNotification() {
   const handleMarkAsRead = async (id) => {
     setActionLoading(true);
     try {
-        await updateNotification(id, { status: 'read' });
-        setNotifications(notifications.map(n => n.id === id ? { ...n, status: 'read' } : n));
+      await updateNotification(id, { status: 'read' });
+      setNotifications(notifications.map(n => n.id === id ? { ...n, status: 'read' } : n));
     } catch (error) {
-        console.error("Failed to update notification:", error);
-        alert("Action failed: " + error.message);
+      console.error("Failed to update notification:", error);
+      alert("Action failed: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -64,13 +64,13 @@ function TreasurerNotification() {
     if (!window.confirm("Are you sure you want to delete this notification?")) return;
     setActionLoading(true);
     try {
-        await deleteNotification(id);
-        setNotifications(notifications.filter(n => n.id !== id));
+      await deleteNotification(id);
+      setNotifications(notifications.filter(n => n.id !== id));
     } catch (error) {
-        console.error("Failed to delete notification:", error);
-        alert("Action failed: " + error.message);
+      console.error("Failed to delete notification:", error);
+      alert("Action failed: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -80,26 +80,26 @@ function TreasurerNotification() {
     <DashboardLayout
       role="treasurer"
       title="System Updates"
-      userName="Aravinth"
-      userInitials="AR"
-      userRoleLabel="Chief Treasurer"
+
+
+
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "40px" }}>
         <div onClick={() => navigate("/treasurer/notifications/add?type=closure")} className="glass-card clickable" style={{ padding: "20px", backgroundColor: "white", textAlign: "center", cursor: "pointer" }}>
-            <div style={{ color: "#e03131", fontSize: "20px", marginBottom: "10px" }}><i className="bi bi-x-circle"></i></div>
-            <div style={{ fontWeight: "700", fontSize: "14px" }}>Facility Closure</div>
+          <div style={{ color: "#e03131", fontSize: "20px", marginBottom: "10px" }}><i className="bi bi-x-circle"></i></div>
+          <div style={{ fontWeight: "700", fontSize: "14px" }}>Facility Closure</div>
         </div>
         <div onClick={() => navigate("/treasurer/notifications/add?type=reminder")} className="glass-card clickable" style={{ padding: "20px", backgroundColor: "white", textAlign: "center", cursor: "pointer" }}>
-            <div style={{ color: "#e67e22", fontSize: "20px", marginBottom: "10px" }}><i className="bi bi-currency-dollar"></i></div>
-            <div style={{ fontWeight: "700", fontSize: "14px" }}>Rent Reminder</div>
+          <div style={{ color: "#e67e22", fontSize: "20px", marginBottom: "10px" }}><i className="bi bi-currency-dollar"></i></div>
+          <div style={{ fontWeight: "700", fontSize: "14px" }}>Rent Reminder</div>
         </div>
         <div onClick={() => navigate("/treasurer/notifications/add?type=maintenance")} className="glass-card clickable" style={{ padding: "20px", backgroundColor: "white", textAlign: "center", cursor: "pointer" }}>
-            <div style={{ color: "#3498db", fontSize: "20px", marginBottom: "10px" }}><i className="bi bi-wrench"></i></div>
-            <div style={{ fontWeight: "700", fontSize: "14px" }}>Maintenance</div>
+          <div style={{ color: "#3498db", fontSize: "20px", marginBottom: "10px" }}><i className="bi bi-wrench"></i></div>
+          <div style={{ fontWeight: "700", fontSize: "14px" }}>Maintenance</div>
         </div>
         <div onClick={() => navigate("/treasurer/notifications/add?type=general")} className="glass-card clickable" style={{ padding: "20px", backgroundColor: "white", textAlign: "center", cursor: "pointer" }}>
-            <div style={{ color: "var(--primary)", fontSize: "20px", marginBottom: "10px" }}><i className="bi bi- megaphone"></i></div>
-            <div style={{ fontWeight: "700", fontSize: "14px" }}>General Notice</div>
+          <div style={{ color: "var(--primary)", fontSize: "20px", marginBottom: "10px" }}><i className="bi bi- megaphone"></i></div>
+          <div style={{ fontWeight: "700", fontSize: "14px" }}>General Notice</div>
         </div>
       </div>
 
@@ -125,7 +125,7 @@ function TreasurerNotification() {
                     <td style={{ padding: "12px", fontSize: "14px", maxWidth: "300px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{n.description}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{new Date(n.date).toLocaleDateString()}</td>
                     <td style={{ padding: "12px" }}>
-                       <span style={{ 
+                      <span style={{
                         padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
                         backgroundColor: (n.status === 'unread' || n.status === 'new') ? "#fff5f5" : "#f0f0f0",
                         color: (n.status === 'unread' || n.status === 'new') ? "#e03131" : "#888",
@@ -135,21 +135,21 @@ function TreasurerNotification() {
                       </span>
                     </td>
                     <td style={{ padding: "12px", textAlign: "right" }}>
-                       <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-                          {(n.status === 'unread' || n.status === 'new') && (
-                            <Button variant="secondary" onClick={() => handleMarkAsRead(n.id)} disabled={actionLoading}>
-                              Mark Read
-                            </Button>
-                          )}
-                          <button 
-                            onClick={() => handleDelete(n.id)}
-                            style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
-                            title="Delete"
-                            disabled={actionLoading}
-                          >
-                            <i className="bi bi-trash"></i>
-                          </button>
-                       </div>
+                      <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                        {(n.status === 'unread' || n.status === 'new') && (
+                          <Button variant="secondary" onClick={() => handleMarkAsRead(n.id)} disabled={actionLoading}>
+                            Mark Read
+                          </Button>
+                        )}
+                        <button
+                          onClick={() => handleDelete(n.id)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
+                          title="Delete"
+                          disabled={actionLoading}
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

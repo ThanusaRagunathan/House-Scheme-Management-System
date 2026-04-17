@@ -6,7 +6,7 @@ import { getTenants, deleteTenant } from "../../services/api";
 
 function OwnerTenant() {
   const navigate = useNavigate();
-  const [tenants, setTenants] = useState([]);
+  const [Tenants, setTenants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -20,12 +20,12 @@ function OwnerTenant() {
       const data = await getTenants();
       setTenants(data);
     } catch (error) {
-      console.error("Failed to fetch tenants:", error);
+      console.error("Failed to fetch Tenants:", error);
       // Fallback for demo
       setTenants([
-        { id: 1, username: "Karthik", email: "karthik@gmail.com", phone: "077 123 4567", houseAddress: "H001" },
-        { id: 2, username: "Jack Brown", email: "jack123@gmail.com", phone: "077 548 5503", houseAddress: "H002" },
-        { id: 3, username: "Patrick Tompson", email: "pato@gmail.com", phone: "075 472 3652", houseAddress: "H004" },
+        { id: 1, username: "Ariana Grande", email: "ariana@example.com", phone: "077 123 4567", houseAddress: "H - 001" },
+        { id: 2, username: "Jack Brown", email: "jack123@gmail.com", phone: "077 548 5503", houseAddress: "H - 002" },
+        { id: 3, username: "Patrick Tompson", email: "pato@gmail.com", phone: "075 472 3652", houseAddress: "H - 004" },
       ]);
     } finally {
       setLoading(false);
@@ -33,38 +33,35 @@ function OwnerTenant() {
   };
 
   const handleDeleteTenant = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this tenant?")) return;
-    
+    if (!window.confirm("Are you sure you want to delete this Tenant?")) return;
+
     setActionLoading(true);
     try {
-        await deleteTenant(id);
-        setTenants(tenants.filter(t => t.id !== id));
-        alert("Tenant deleted successfully");
+      await deleteTenant(id);
+      setTenants(Tenants.filter(t => t.id !== id));
+      alert("Tenant deleted successfully");
     } catch (error) {
-        console.error("Failed to delete tenant:", error);
-        alert("Failed to delete tenant: " + error.message);
+      console.error("Failed to delete Tenant:", error);
+      alert("Failed to delete Tenant: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
   return (
     <DashboardLayout
       role="owner"
-      title="Tenant Directory"
-      userName="Suresh Kumar"
-      userInitials="SK"
-      userRoleLabel="Property Owner"
-    >
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
-        <Button variant="primary" onClick={() => navigate("/owner/addtenant")} disabled={actionLoading}>
+      title={`Tenant Directory ${!loading ? `(${Tenants.length})` : ''}`}
+      headerAction={
+        <Button variant="primary" onClick={() => navigate("/owner/addTenant")} disabled={actionLoading}>
           <i className="bi bi-person-plus"></i> Add New Tenant
         </Button>
-      </div>
+      }
+    >
 
-      <Card title="Active Residents" subtitle="A complete list of all tenants across all housing units.">
+      <Card>
         {loading ? (
-          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading tenants...</p>
+          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading Tenants...</p>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -73,29 +70,35 @@ function OwnerTenant() {
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Name</th>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Email</th>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Phone</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>H-Ref</th>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Unit</th>
                   <th style={{ padding: "12px", textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {tenants.map((t, index) => (
+                {Tenants.map((t, index) => (
                   <tr key={index} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>{t.username}</td>
+                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>{t.full_name || t.username}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{t.email}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{t.phone}</td>
+                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600", color: "var(--primary)", whiteSpace: "nowrap" }}>{t.houseCode || '-'}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{t.houseAddress || 'Unallocated'}</td>
                     <td style={{ padding: "12px", textAlign: "right" }}>
                       <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-                        <Button variant="secondary" onClick={() => navigate(`/owner/tenants/${t.id}`)}>
-                           View
+                        <Button 
+                          variant="secondary" 
+                          onClick={() => navigate(`/owner/Tenants/${t.id}`)}
+                          style={{ minWidth: 'auto', padding: '6px 12px', fontSize: '13px' }}
+                        >
+                          View
                         </Button>
-                        <button 
-                          onClick={() => navigate(`/owner/tenants/edit/${t.id}`)}
+                        <button
+                          onClick={() => navigate(`/owner/Tenants/edit/${t.id}`)}
                           style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
                         >
                           <i className="bi bi-pencil-square"></i>
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteTenant(t.id)}
                           style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
                           disabled={actionLoading}
@@ -106,8 +109,11 @@ function OwnerTenant() {
                     </td>
                   </tr>
                 ))}
-                {tenants.length === 0 && (
-                  <tr><td colSpan="5" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>No tenants registered yet.</td></tr>
+                {Tenants.length === 0 && (
+                  <tr><td colSpan="6" style={{ textAlign: "center" , padding: "80px 20px", color: "var(--text-muted)", backgroundColor: "white", borderRadius: "10px", border: "1px dashed #eee" }}>
+                    <i className="bi bi-people" style={{ fontSize: "40px", marginBottom: "15px", display: "block", color: "#ddd" }}></i>
+                    No Tenants registered yet.
+                  </td></tr>
                 )}
               </tbody>
             </table>

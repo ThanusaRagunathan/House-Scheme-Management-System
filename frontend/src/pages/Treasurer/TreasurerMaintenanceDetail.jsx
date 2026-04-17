@@ -62,9 +62,9 @@ function TreasurerMaintenanceDetail() {
     <DashboardLayout
       role="treasurer"
       title={`Maintenance Detail - M-${String(task.id).padStart(3, '0')}`}
-      userName="Aravinth"
-      userInitials="AR"
-      userRoleLabel="Chief Treasurer"
+      
+      
+      
     >
       <div style={{ marginBottom: "25px" }}>
         <Button variant="secondary" onClick={() => navigate("/treasurer/maintenance")}>

@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import houseRoutes from "./routes/house.routes.js";
-import tenantRoutes from "./routes/tenant.routes.js";
+import TenantRoutes from "./routes/Tenant.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import complaintRoutes from "./routes/complaint.routes.js";
 import maintenanceRoutes from "./routes/maintenance.routes.js";
@@ -19,7 +19,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/houses", houseRoutes);
-app.use("/api/tenants", tenantRoutes);
+app.use("/api/Tenants", TenantRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/maintenance", maintenanceRoutes);

@@ -36,7 +36,7 @@ function TenantAddComplaints() {
         ...formData,
         house_id: profile?.house_id, // Assuming profile includes the house_id
       });
-      navigate("/tenant/complaints");
+      navigate("/Tenant/complaints");
     } catch (err) {
       setError(err.message || "Failed to submit complaint. Please try again.");
     } finally {
@@ -46,44 +46,44 @@ function TenantAddComplaints() {
 
   return (
     <DashboardLayout
-      role="tenant"
+      role="Tenant"
       title="File a Service Request"
-      userName={profile?.username || "Resident"}
+      userName={profile?.username || "Tenant"}
       userInitials={profile?.username?.charAt(0) || "R"}
       userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
     >
       <div style={{ maxWidth: "600px", margin: "0 auto" }}>
         {error && (
-            <div style={{ backgroundColor: "#fff5f5", color: "#e03131", padding: "15px", borderRadius: "10px", marginBottom: "20px", border: "1px solid #ffc9c9" }}>
-                {error}
-            </div>
+          <div style={{ backgroundColor: "#fff5f5", color: "#e03131", padding: "15px", borderRadius: "10px", marginBottom: "20px", border: "1px solid #ffc9c9" }}>
+            {error}
+          </div>
         )}
 
-        <Card 
-          title="Submit New Complaint" 
+        <Card
+          title="Submit New Complaint"
           subtitle="Please provide clear details about the issue so we can resolve it promptly."
           footer={
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-              <Button variant="secondary" onClick={() => navigate("/tenant/complaints")} disabled={loading}>Cancel</Button>
+              <Button variant="secondary" onClick={() => navigate("/Tenant/complaints")} disabled={loading}>Cancel</Button>
               <Button variant="primary" onClick={handleSubmit} loading={loading}>Submit Ticket</Button>
             </div>
           }
         >
           <form onSubmit={handleSubmit}>
-            <Input 
-              label="Subject / Topic" 
-              placeholder="e.g. Broken water pipe, Electrical issue" 
+            <Input
+              label="Subject / Topic"
+              placeholder="e.g. Broken water pipe, Electrical issue"
               value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
               disabled={loading}
             />
-            
-            <TextArea 
-              label="Detailed Description" 
-              placeholder="Explain the problem, when it started, and its exact location." 
+
+            <TextArea
+              label="Detailed Description"
+              placeholder="Explain the problem, when it started, and its exact location."
               value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
               rows={6}
               disabled={loading}

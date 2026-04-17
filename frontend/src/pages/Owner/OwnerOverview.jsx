@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
-import { getHouses } from "../../services/api";
+import { getHouses, getTenants, getPayments, getMaintenances } from "../../services/api";
 
 function StatCard({ title, subtitle, value, icon, color }) {
   return (
@@ -21,86 +21,100 @@ function StatCard({ title, subtitle, value, icon, color }) {
 function OwnerOverview() {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
-      totalHouses: 0,
-      occupied: 0,
-      vacant: 0,
-      totalRent: 0
+    totalHouses: 0,
+    occupied: 0,
+    vacant: 0,
+    totalRent: 0,
+    totalExpenditure: 0,
+    pendingPayments: 0
   });
+  const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
-        try {
-            const houses = await getHouses();
-            const total = houses.length;
-            const occupiedCount = houses.filter(h => h.status === 'Occupied').length;
-            const totalRentValue = houses.reduce((sum, h) => sum + (parseFloat(h.rent) || 0), 0);
-            
-            setStats({
-                totalHouses: total,
-                occupied: occupiedCount,
-                vacant: total - occupiedCount,
-                totalRent: totalRentValue
-            });
-        } catch (error) {
-            console.error("Failed to load overview data:", error);
-            // Fallback for demo if API fails
-            setStats({ totalHouses: 12, occupied: 8, vacant: 4, totalRent: 124000 });
-        } finally {
-            setLoading(false);
-        }
+    const fetchData = async () => {
+      try {
+        const [houses, tenants, payments, maintenances] = await Promise.all([
+          getHouses(),
+          getTenants(),
+          getPayments(),
+          getMaintenances()
+        ]);
+
+        const total = houses.length;
+        const occupiedCount = houses.filter(h => h.status === 'Occupied').length;
+        const totalRentValue = houses.reduce((sum, h) => sum + (parseFloat(h.rent || h.rent_amount) || 0), 0);
+        const totalExpenditure = maintenances.reduce((sum, m) => sum + (parseFloat(m.cost) || 0), 0);
+        const pendingPayments = payments.filter(p => p.status === 'Pending').length;
+
+        setStats({
+          totalHouses: total,
+          occupied: occupiedCount,
+          vacant: total - occupiedCount,
+          totalRent: totalRentValue,
+          totalExpenditure,
+          pendingPayments
+        });
+
+        // Combine for activity feed
+        const activity = [
+          ...tenants.map(t => ({ title: `New Tenant: ${t.name || t.fullName || t.username}`, time: "Recently Added", type: "document" })),
+          ...payments.filter(p => p.paid_date).slice(0, 5).map(p => ({ title: `Payment Received: Rs. ${parseFloat(p.amount).toLocaleString()}`, time: new Date(p.paid_date).toLocaleDateString(), type: "payment" })),
+          ...maintenances.slice(0, 3).map(m => ({ title: `Maintenance: ${m.description}`, time: m.scheduled_date ? new Date(m.scheduled_date).toLocaleDateString() : 'Scheduled', type: "maintenance" }))
+        ].slice(0, 5);
+
+        setRecentActivity(activity);
+      } catch (error) {
+        console.error("Failed to load overview data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
-    fetchStats();
+    fetchData();
   }, []);
 
   return (
-    <DashboardLayout
-      role="owner"
-      title="Dashboard Overview"
-      userName="Suresh Kumar"
-      userInitials="SK"
-      userRoleLabel="Property Owner"
-    >
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "25px", marginBottom: "40px" }}>
+    <DashboardLayout role="owner" title="Dashboard Overview">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "25px", marginBottom: "40px" }}>
         <StatCard title="Total Houses" value={loading ? "..." : stats.totalHouses} subtitle={`${stats.occupied} occupied, ${stats.vacant} vacant`} icon="bi-buildings" color="#1a4d2e" />
         <StatCard title="Total Tenants" value={loading ? "..." : stats.occupied} subtitle="Active leases" icon="bi-people" color="#3498db" />
-        <StatCard title="Pending Payments" value="1" subtitle="Requires attention" icon="bi-exclamation-circle" color="#e67e22" />
+        <StatCard title="Pending Payments" value={loading ? "..." : stats.pendingPayments} subtitle="Requires attention" icon="bi-exclamation-circle" color="#e67e22" />
         <StatCard title="Monthly Revenue" value={loading ? "..." : `Rs. ${stats.totalRent.toLocaleString()}`} subtitle="Projected income" icon="bi-currency-dollar" color="#9b59b6" />
+        <StatCard title="Total Expenditure" value={loading ? "..." : `Rs. ${stats.totalExpenditure.toLocaleString()}`} subtitle="All maintenance costs" icon="bi-tools" color="#e03131" />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "25px" }}>
         <div className="glass-card" style={{ padding: "30px", backgroundColor: "white" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px" }}>
             <h3 style={{ fontSize: "18px" }}>Recent Activity</h3>
-            <button style={{ color: "var(--primary)", fontSize: "14px", fontWeight: "600", background: "none", border: "none", cursor: "pointer" }}>View All</button>
+            <button 
+              onClick={() => navigate('/owner/tenants')}
+              style={{ color: "var(--primary)", fontSize: "14px", fontWeight: "600", background: "none", border: "none", cursor: "pointer" }}>View All</button>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-            <ActivityItem title="Payment received from Karthik S." time="2 hours ago" type="payment" />
-            <ActivityItem title="New maintenance request: House #12" time="5 hours ago" type="maintenance" />
-            <ActivityItem title="Lease agreement updated for Priya R." time="Yesterday" type="document" />
-            <ActivityItem title="Complaint resolved: Water leakage" time="2 days ago" type="complaint" />
+            {recentActivity.length > 0 ? (
+              recentActivity.map((act, id) => (
+                <ActivityItem key={id} title={act.title} time={act.time} type={act.type} />
+              ))
+            ) : (
+              <div style={{ textAlign: "center", padding: "40px 0", color: "var(--text-muted)" }}>
+                <i className="bi bi-clock-history" style={{ fontSize: "32px", display: "block", marginBottom: "10px", color: "#eee" }}></i>
+                No recent activity found.
+              </div>
+            )}
           </div>
         </div>
 
         <div className="glass-card" style={{ padding: "30px", backgroundColor: "var(--primary)", color: "white" }}>
           <h3 style={{ fontSize: "18px", color: "white", marginBottom: "20px" }}>Quick Actions</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <button 
-              onClick={() => navigate('/owner/addhouse')}
-              style={{ width: "100%", padding: "12px", borderRadius: "8px", backgroundColor: "rgba(255,255,255,0.1)", color: "white", textAlign: "left", display: "flex", alignItems: "center", gap: "10px", border: "none", cursor: "pointer" }}
-            >
-              <i className="bi bi-plus-circle"></i> Add New Property
+            <button onClick={() => navigate('/owner/addhouse')} style={{ width: "100%", padding: "12px", borderRadius: "8px", backgroundColor: "rgba(255,255,255,0.1)", color: "white", textAlign: "left", display: "flex", alignItems: "center", gap: "10px", border: "none", cursor: "pointer" }}>
+              <i className="bi bi-plus-circle"></i> Add New House
             </button>
-            <button 
-              onClick={() => navigate('/owner/addtenant')}
-              style={{ width: "100%", padding: "12px", borderRadius: "8px", backgroundColor: "rgba(255,255,255,0.1)", color: "white", textAlign: "left", display: "flex", alignItems: "center", gap: "10px", border: "none", cursor: "pointer" }}
-            >
+            <button onClick={() => navigate('/owner/addTenant')} style={{ width: "100%", padding: "12px", borderRadius: "8px", backgroundColor: "rgba(255,255,255,0.1)", color: "white", textAlign: "left", display: "flex", alignItems: "center", gap: "10px", border: "none", cursor: "pointer" }}>
               <i className="bi bi-person-plus"></i> Register Tenant
             </button>
-            <button 
-                onClick={() => navigate('/owner/createtask')}
-                style={{ width: "100%", padding: "12px", borderRadius: "8px", backgroundColor: "rgba(255,255,255,0.1)", color: "white", textAlign: "left", display: "flex", alignItems: "center", gap: "10px", border: "none", cursor: "pointer" }}
-            >
+            <button onClick={() => navigate('/owner/createtask')} style={{ width: "100%", padding: "12px", borderRadius: "8px", backgroundColor: "rgba(255,255,255,0.1)", color: "white", textAlign: "left", display: "flex", alignItems: "center", gap: "10px", border: "none", cursor: "pointer" }}>
               <i className="bi bi-hammer"></i> Create Task
             </button>
           </div>
@@ -112,10 +126,10 @@ function OwnerOverview() {
 
 function ActivityItem({ title, time, type }) {
   const getIcon = () => {
-    switch(type) {
+    switch (type) {
       case 'payment': return 'bi-cash';
       case 'maintenance': return 'bi-tools';
-      case 'document': return 'bi-file-text';
+      case 'document': return 'bi-person-check';
       case 'complaint': return 'bi-chat-left-text';
       default: return 'bi-dot';
     }
@@ -135,5 +149,3 @@ function ActivityItem({ title, time, type }) {
 }
 
 export default OwnerOverview;
-
-

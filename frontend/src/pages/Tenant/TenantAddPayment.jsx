@@ -40,7 +40,7 @@ function TenantAddPayment() {
         house_id: profile?.house_id,
         invoice_no: `INV-${Date.now().toString().slice(-6)}` // Dummy invoice gen
       });
-      navigate("/tenant/payments");
+      navigate("/Tenant/payments");
     } catch (err) {
       setError(err.message || "Payment processing failed. Please try again.");
     } finally {
@@ -50,25 +50,25 @@ function TenantAddPayment() {
 
   return (
     <DashboardLayout
-      role="tenant"
+      role="Tenant"
       title="Secure Rent Payment"
-      userName={profile?.username || "Resident"}
+      userName={profile?.username || "Tenant"}
       userInitials={profile?.username?.charAt(0) || "R"}
       userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
     >
       <div style={{ maxWidth: "600px", margin: "0 auto" }}>
         {error && (
-            <div style={{ backgroundColor: "#fff5f5", color: "#e03131", padding: "15px", borderRadius: "10px", marginBottom: "20px", border: "1px solid #ffc9c9" }}>
-                {error}
-            </div>
+          <div style={{ backgroundColor: "#fff5f5", color: "#e03131", padding: "15px", borderRadius: "10px", marginBottom: "20px", border: "1px solid #ffc9c9" }}>
+            {error}
+          </div>
         )}
 
-        <Card 
-          title="Make a Payment" 
+        <Card
+          title="Make a Payment"
           subtitle="All payments are processed securely. Please confirm your details before continuing."
           footer={
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-              <Button variant="secondary" onClick={() => navigate("/tenant/payments")} disabled={loading}>Cancel</Button>
+              <Button variant="secondary" onClick={() => navigate("/Tenant/payments")} disabled={loading}>Cancel</Button>
               <Button variant="primary" onClick={handleSubmit} loading={loading}>Process Payment</Button>
             </div>
           }
@@ -81,41 +81,41 @@ function TenantAddPayment() {
 
           <form onSubmit={handleSubmit}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-                <Input 
-                    label="Amount (Rs.)" 
-                    type="number"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                    required
-                    disabled={loading}
-                />
-                
-                <Select 
-                    label="Payment Method" 
-                    value={formData.payment_method}
-                    onChange={(e) => setFormData({...formData, payment_method: e.target.value})}
-                    options={[
-                        { value: "Online", label: "Debit/Credit Card" },
-                        { value: "Bank Transfer", label: "Bank Transfer" },
-                        { value: "Wallet", label: "Digital Wallet" }
-                    ]}
-                    disabled={loading}
-                />
+              <Input
+                label="Amount (Rs.)"
+                type="number"
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                required
+                disabled={loading}
+              />
+
+              <Select
+                label="Payment Method"
+                value={formData.payment_method}
+                onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
+                options={[
+                  { value: "Online", label: "Debit/Credit Card" },
+                  { value: "Bank Transfer", label: "Bank Transfer" },
+                  { value: "Wallet", label: "Digital Wallet" }
+                ]}
+                disabled={loading}
+              />
             </div>
 
-            <Input 
-                label="Remarks (Optional)" 
-                placeholder="e.g. October Rent + Water Bill" 
-                value={formData.remarks}
-                onChange={(e) => setFormData({...formData, remarks: e.target.value})}
-                disabled={loading}
+            <Input
+              label="Remarks (Optional)"
+              placeholder="e.g. October Rent + Water Bill"
+              value={formData.remarks}
+              onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+              disabled={loading}
             />
 
             <div style={{ marginTop: "20px", padding: "12px", backgroundColor: "#fcf0f0", borderRadius: "8px", display: "flex", gap: "10px", alignItems: "flex-start" }}>
-                <i className="bi bi-info-circle" style={{ color: "#e03131", marginTop: "2px" }}></i>
-                <div style={{ fontSize: "12px", color: "#666", lineHeight: "1.4" }}>
-                    <strong>Note:</strong> Offline cash payments are not accepted through this portal. For cash payments, please visit the Treasurer's office directly.
-                </div>
+              <i className="bi bi-info-circle" style={{ color: "#e03131", marginTop: "2px" }}></i>
+              <div style={{ fontSize: "12px", color: "#666", lineHeight: "1.4" }}>
+                <strong>Note:</strong> Offline cash payments are not accepted through this portal. For cash payments, please visit the Treasurer's office directly.
+              </div>
             </div>
           </form>
         </Card>

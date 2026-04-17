@@ -54,14 +54,14 @@ function TenantComplaints() {
     if (!window.confirm("Are you sure you want to delete this complaint?")) return;
     setActionLoading(true);
     try {
-        await deleteComplaint(id);
-        setComplaints(complaints.filter(c => c.id !== id));
-        alert("Complaint deleted successfully");
+      await deleteComplaint(id);
+      setComplaints(complaints.filter(c => c.id !== id));
+      alert("Complaint deleted successfully");
     } catch (error) {
-        console.error("Failed to delete complaint:", error);
-        alert("Delete failed: " + error.message);
+      console.error("Failed to delete complaint:", error);
+      alert("Delete failed: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -71,14 +71,14 @@ function TenantComplaints() {
 
   return (
     <DashboardLayout
-      role="tenant"
+      role="Tenant"
       title="My Service Requests"
-      userName={profile?.username || "Resident"}
+      userName={profile?.username || "Tenant"}
       userInitials={profile?.username?.charAt(0) || "R"}
       userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
     >
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
-        <Button variant="primary" onClick={() => navigate("/tenant/addcomplaint")} disabled={actionLoading}>
+        <Button variant="primary" onClick={() => navigate("/Tenant/addcomplaint")} disabled={actionLoading}>
           <i className="bi bi-plus-lg"></i> File New Complaint
         </Button>
       </div>
@@ -102,38 +102,38 @@ function TenantComplaints() {
                     <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Submitted on {new Date(c.created_at).toLocaleDateString()}</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <span style={{ 
-                        padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
-                        backgroundColor: c.status === 'Resolved' ? "#e2f2e5" : "#fff5f5",
-                        color: c.status === 'Resolved' ? "#1a4d2e" : "#e03131",
-                        textTransform: "uppercase"
+                    <span style={{
+                      padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
+                      backgroundColor: c.status === 'Resolved' ? "#e2f2e5" : "#fff5f5",
+                      color: c.status === 'Resolved' ? "#1a4d2e" : "#e03131",
+                      textTransform: "uppercase"
                     }}>
-                        {c.status}
+                      {c.status}
                     </span>
                     {c.status !== 'Resolved' && (
-                        <div style={{ display: "flex", gap: "5px" }}>
-                            <button 
-                                onClick={() => navigate(`/tenant/complaints/edit/${c.id}`)}
-                                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
-                                title="Edit"
-                            >
-                                <i className="bi bi-pencil-square"></i>
-                            </button>
-                            <button 
-                                onClick={() => handleDelete(c.id)}
-                                style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
-                                title="Delete"
-                                disabled={actionLoading}
-                            >
-                                <i className="bi bi-trash"></i>
-                            </button>
-                        </div>
+                      <div style={{ display: "flex", gap: "5px" }}>
+                        <button
+                          onClick={() => navigate(`/Tenant/complaints/edit/${c.id}`)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                          title="Edit"
+                        >
+                          <i className="bi bi-pencil-square"></i>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(c.id)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
+                          title="Delete"
+                          disabled={actionLoading}
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
-                
+
                 <p style={{ fontSize: "14px", color: "#555", lineHeight: "1.5", marginBottom: "15px" }}>{c.description}</p>
-                
+
                 {c.resolution_note && (
                   <div style={{ backgroundColor: "#f0f7f2", padding: "12px", borderRadius: "8px", borderLeft: "4px solid #1a4d2e", marginBottom: "15px" }}>
                     <div style={{ fontSize: "12px", fontWeight: "700", color: "#1a4d2e", marginBottom: "4px" }}>Resolution Update</div>
@@ -143,9 +143,9 @@ function TenantComplaints() {
                 )}
 
                 <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: "15px", display: "flex", justifyContent: "flex-end" }}>
-                   <Button variant="secondary" size="sm" onClick={() => navigate(`/tenant/complaints/${c.id}`)}>
-                      View Progress History
-                   </Button>
+                  <Button variant="secondary" size="sm" onClick={() => navigate(`/Tenant/complaints/${c.id}`)}>
+                    View Progress History
+                  </Button>
                 </div>
               </div>
             ))}

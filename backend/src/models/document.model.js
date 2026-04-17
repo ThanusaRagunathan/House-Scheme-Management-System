@@ -1,22 +1,29 @@
 import db from "../config/db.js";
 
 export const getAllDocuments = async (houseId = null) => {
-  let query = "SELECT * FROM documents";
+  let query = `
+    SELECT d.*, h.reference_code AS house_code 
+    FROM documents d
+    LEFT JOIN houses h ON d.house_id = h.house_id
+  `;
   const params = [];
   
   if (houseId) {
-    query += " WHERE house_id = ?";
+    query += " WHERE d.house_id = ?";
     params.push(houseId);
   }
   
-  query += " ORDER BY upload_date DESC";
+  query += " ORDER BY d.upload_date DESC";
   const [rows] = await db.query(query, params);
   return rows;
 };
 
 export const getDocumentById = async (documentId) => {
   const [rows] = await db.query(
-    "SELECT * FROM documents WHERE document_id = ?",
+    `SELECT d.*, h.reference_code AS house_code 
+     FROM documents d
+     LEFT JOIN houses h ON d.house_id = h.house_id
+     WHERE d.document_id = ?`,
     [documentId]
   );
   return rows[0];

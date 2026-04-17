@@ -26,13 +26,13 @@ export const getHouseById = async (req, res, next) => {
 
 export const createHouse = async (req, res, next) => {
   try {
-    const { address, rooms, rentAmount, status, ownerId } = req.body;
+    const { referenceCode, address, rooms, rentAmount, status, ownerId } = req.body;
     
-    if (!address || !rooms || !rentAmount || !status || !ownerId) {
+    if (!referenceCode || !address || !rooms || !rentAmount || !status || !ownerId) {
       throw new ApiError(400, "Missing required fields");
     }
     
-    const houseId = await houseModel.createHouse(address, rooms, rentAmount, status, ownerId);
+    const houseId = await houseModel.createHouse(referenceCode, address, rooms, rentAmount, status, ownerId);
     res.status(201).json({ message: "House created", houseId });
   } catch (error) {
     next(error);
@@ -42,9 +42,9 @@ export const createHouse = async (req, res, next) => {
 export const updateHouse = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { address, rooms, rentAmount, status } = req.body;
+    const { referenceCode, address, rooms, rentAmount, status } = req.body;
     
-    const success = await houseModel.updateHouse(id, address, rooms, rentAmount, status);
+    const success = await houseModel.updateHouse(id, referenceCode, address, rooms, rentAmount, status);
     if (!success) {
       throw new ApiError(404, "House not found");
     }
@@ -57,13 +57,18 @@ export const updateHouse = async (req, res, next) => {
 export const deleteHouse = async (req, res, next) => {
   try {
     const { id } = req.params;
+    console.log(`Backend: Attempting to delete house with ID: ${id}`);
     
     const success = await houseModel.deleteHouse(id);
     if (!success) {
-      throw new ApiError(404, "House not found");
+      console.warn(`Backend: Delete failed, house not found for ID: ${id}`);
+      throw new ApiError(404, `House not found (ID: ${id})`);
     }
+    
+    console.log(`Backend: Successfully deleted house ID: ${id}`);
     res.json({ message: "House deleted" });
   } catch (error) {
+    console.error("Backend: Delete house error:", error);
     next(error);
   }
 };

@@ -40,13 +40,13 @@ function TenantNotification() {
   const handleMarkAsRead = async (id) => {
     setActionLoading(true);
     try {
-        await updateNotification(id, { status: 'read' });
-        setNotifications(notifications.map(n => n.id === id ? { ...n, status: 'read' } : n));
+      await updateNotification(id, { status: 'read' });
+      setNotifications(notifications.map(n => n.id === id ? { ...n, status: 'read' } : n));
     } catch (error) {
-        console.error("Failed to update notification:", error);
-        alert("Action failed: " + error.message);
+      console.error("Failed to update notification:", error);
+      alert("Action failed: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -54,13 +54,13 @@ function TenantNotification() {
     if (!window.confirm("Are you sure you want to delete this notification?")) return;
     setActionLoading(true);
     try {
-        await deleteNotification(id);
-        setNotifications(notifications.filter(n => n.id !== id));
+      await deleteNotification(id);
+      setNotifications(notifications.filter(n => n.id !== id));
     } catch (error) {
-        console.error("Failed to delete notification:", error);
-        alert("Action failed: " + error.message);
+      console.error("Failed to delete notification:", error);
+      alert("Action failed: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -68,9 +68,9 @@ function TenantNotification() {
 
   return (
     <DashboardLayout
-      role="tenant"
+      role="Tenant"
       title="Alerts & Announcements"
-      userName={profile?.username || "Resident"}
+      userName={profile?.username || "Tenant"}
       userInitials={profile?.username?.charAt(0) || "R"}
       userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
     >
@@ -82,7 +82,7 @@ function TenantNotification() {
           { title: "Broadcasts", count: Math.max(0, notifications.length - 1), icon: "bi-megaphone", color: "#1a4d2e" },
         ].map((action, i) => (
           <div key={i} className="glass-card" style={{ padding: "18px", backgroundColor: "white", textAlign: "center" }}>
-             <div style={{ width: "35px", height: "35px", backgroundColor: `${action.color}1A`, color: action.color, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", fontSize: "16px" }}>
+            <div style={{ width: "35px", height: "35px", backgroundColor: `${action.color}1A`, color: action.color, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", fontSize: "16px" }}>
               <i className={`bi ${action.icon}`}></i>
             </div>
             <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "3px" }}>{action.title}</div>
@@ -97,7 +97,7 @@ function TenantNotification() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
             {notifications.map((n, i) => (
-              <div key={i} style={{ 
+              <div key={i} style={{
                 padding: "16px", borderRadius: "12px", borderLeft: `4px solid ${n.status === 'unread' ? 'var(--primary)' : '#ccc'}`,
                 backgroundColor: n.status === 'unread' ? "#f8fdf9" : "white",
                 display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -118,7 +118,7 @@ function TenantNotification() {
                   ) : (
                     <span style={{ fontSize: "11px", color: "#bbb", fontWeight: "500" }}><i className="bi bi-check2-all"></i> READ</span>
                   )}
-                   <button 
+                  <button
                     onClick={() => handleDelete(n.id || n.notification_id)}
                     style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131", padding: "5px" }}
                     title="Delete"

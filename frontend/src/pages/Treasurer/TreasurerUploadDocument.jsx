@@ -1,187 +1,124 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-/* styles */
-const label = {
-  display: "block",
-  fontWeight: 600,
-  marginBottom: "6px",
-  marginTop: "14px",
-};
-
-const input = {
-  width: "200px",
-  padding: "6px",
-  border: "1px solid #000",
-  backgroundColor: "#e0e0e0",
-  display: "block",
-};
-
-const fileBtn = {
-  marginTop: "16px",
-  padding: "6px 14px",
-  borderRadius: "6px",
-  border: "1px solid #000",
-  backgroundColor: "#e0e0e0",
-  cursor: "pointer",
-};
-
-const cancelBtn = {
-  padding: "6px 16px",
-  borderRadius: "6px",
-  border: "1px solid #000",
-  backgroundColor: "white",
-  cursor: "pointer",
-};
-
-const saveBtn = {
-  padding: "6px 18px",
-  borderRadius: "6px",
-  border: "none",
-  backgroundColor: "#0b3d02",
-  color: "white",
-  cursor: "pointer",
-};
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Input, Button, Select, TextArea } from "../../components/FormElements";
+import { createDocument } from "../../services/api";
 
 function TreasurerUploadDocuments() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    type: "Invoice",
+    description: "",
+  });
 
-  const menuItem = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    cursor: "pointer",
-    fontSize: "14px",
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      await createDocument({
+        documentName: formData.name,
+        documentType: formData.type,
+        description: formData.description,
+        uploadDate: new Date().toISOString().split('T')[0]
+      });
+
+      alert("Financial document saved successfully!");
+      navigate("/treasurer/documents");
+    } catch (err) {
+      console.error("Upload failed:", err);
+      setError("Failed to save document. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="treasurer"
+      title="Upload Financial Document"
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "42px",
-          fontWeight: 600,
-        }}
-      >
-        Upload documents
-      </header>
+      <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+        {error && (
+          <div style={{ 
+            backgroundColor: "#fff5f5", color: "#e03131", padding: "15px", 
+            borderRadius: "10px", marginBottom: "20px", border: "1px solid #ffc9c9" 
+          }}>
+            <i className="bi bi-exclamation-circle-fill" style={{ marginRight: "10px" }}></i>
+            {error}
+          </div>
+        )}
 
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "240px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
+        <Card 
+          title="Document Upload" 
+          subtitle="Upload financial records, invoices, or payment receipts to the system."
         >
-          {/* Sidebar header */}
-          <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              $
-            </div>
-            <div>
-              <div style={{ fontWeight: 600 }}>Financial manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Treasurer Portal
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <Input
+                label="Document Name"
+                placeholder="e.g. Maintenance Invoice - March 2024"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+              />
+
+              <Select
+                label="Document Type"
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                options={[
+                  { label: "Invoice", value: "Invoice" },
+                  { label: "Receipt", value: "Receipt" },
+                  { label: "Bank Statement", value: "Bank Statement" },
+                  { label: "Tax Document", value: "Tax Document" },
+                  { label: "Other", value: "Other" },
+                ]}
+                required
+              />
+
+              <div style={{
+                padding: "30px",
+                border: "2px dashed #ddd",
+                borderRadius: "12px",
+                textAlign: "center",
+                backgroundColor: "#f9f9f9",
+                cursor: "pointer"
+              }}>
+                <i className="bi bi-file-earmark-arrow-up" style={{ fontSize: "40px", color: "var(--primary)", display: "block", marginBottom: "10px" }}></i>
+                <div style={{ fontSize: "14px", fontWeight: "600" }}>Select financial record for upload</div>
+                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "5px" }}>PDF, PNG, JPG (Max 10MB)</div>
+                <input type="file" style={{ display: "none" }} id="financial-upload" />
+              </div>
+
+              <TextArea
+                label="Additional Notes"
+                placeholder="Enter any relevant financial details or descriptions..."
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+              />
+
+              <div style={{ 
+                display: "flex", justifyContent: "flex-end", gap: "10px", 
+                marginTop: "10px", paddingTop: "20px", borderTop: "1px solid #f0f0f0" 
+              }}>
+                <Button variant="secondary" type="button" onClick={() => navigate("/treasurer/documents")} disabled={loading}>
+                  Cancel
+                </Button>
+                <Button variant="primary" type="submit" loading={loading}>
+                  Save Record
+                </Button>
               </div>
             </div>
-          </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            <div style={menuItem} onClick={() => navigate("/treasurer/overview")}>
-              Overview
-            </div>
-            <div style={menuItem}>Houses</div>
-            <div style={menuItem}>Tenants</div>
-            <div style={menuItem}>Payments</div>
-            <div style={menuItem}>Maintenance</div>
-            <div style={menuItem}>Complaints</div>
-
-            <div
-              style={{
-                ...menuItem,
-                color: "#1d4ed8",
-                fontWeight: 600,
-              }}
-            >
-              Document
-            </div>
-
-            <div style={menuItem}>Notification</div>
-            <div style={menuItem}>Report</div>
-          </div>
-        </div>
-
-        {/* Main content */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: "#ccffcc",
-              padding: "30px",
-              borderRadius: "18px",
-              width: "520px",
-              border: "1px solid #6aa84f",
-            }}
-          >
-            <label style={label}>Document name</label>
-            <input style={input} />
-
-            <label style={label}>Document type</label>
-            <input style={input} />
-
-            <button style={fileBtn}>Choose file</button>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "12px",
-                marginTop: "30px",
-              }}
-            >
-              <button style={cancelBtn} onClick={() => navigate(-1)}>
-                Cancel
-              </button>
-              <button style={saveBtn}>Save</button>
-            </div>
-          </div>
-        </div>
+          </form>
+        </Card>
       </div>
-
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+    </DashboardLayout>
   );
 }
 

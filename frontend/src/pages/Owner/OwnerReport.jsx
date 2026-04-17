@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/DashboardLayout";
 import { Card, Button } from "../../components/FormElements";
 import { getPayments, getMaintenances, getHouses } from "../../services/api";
+import { formatDate } from "../../utils/formatters";
 
 function StatCard({ title, value, icon, color, subtitle }) {
   return (
@@ -55,15 +56,12 @@ function OwnerReport() {
     <DashboardLayout
       role="owner"
       title="Financial Performance Report"
-      userName="Suresh Kumar"
-      userInitials="SK"
-      userRoleLabel="Property Owner"
-    >
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
+      headerAction={
         <Button variant="primary">
           <i className="bi bi-file-earmark-pdf"></i> Export Statement
         </Button>
-      </div>
+      }
+    >
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "35px" }}>
         <StatCard title="Total Revenue" value={loading ? "..." : `Rs. ${totalRevenue.toLocaleString()}`} icon="bi-currency-dollar" color="#1a4d2e" subtitle="Paid invoices only" />
@@ -83,11 +81,15 @@ function OwnerReport() {
               </tr>
             </thead>
             <tbody>
-              {payments.filter(p => p.status === 'Paid').slice(0, 5).map((p, i) => (
+              {[...payments]
+                .filter(p => p.status === 'Paid')
+                .sort((a, b) => new Date(b.paid_date || 0) - new Date(a.paid_date || 0))
+                .slice(0, 5)
+                .map((p, i) => (
                 <tr key={i} style={{ borderBottom: "1px solid #f9f9f9" }}>
-                  <td style={{ padding: "10px", fontSize: "13px" }}>{new Date(p.payment_date).toLocaleDateString()}</td>
-                  <td style={{ padding: "10px", fontSize: "13px" }}>{p.payer_name || 'Resident'}</td>
-                  <td style={{ padding: "10px", fontSize: "13px", fontWeight: "600", textAlign: "right" }}>Rs. {parseFloat(p.amount).toLocaleString()}</td>
+                  <td style={{ padding: "10px", fontSize: "13px" }}>{p.paid_date ? formatDate(p.paid_date) : '-'}</td>
+                  <td style={{ padding: "10px", fontSize: "13px" }}>{p.TenantName || 'Tenant'}</td>
+                  <td style={{ padding: "10px", fontSize: "13px", fontWeight: "600", textAlign: "right" }}>Rs. {parseFloat(p.amount || 0).toLocaleString()}</td>
                 </tr>
               ))}
               {!loading && payments.filter(p => p.status === 'Paid').length === 0 && (
@@ -107,11 +109,14 @@ function OwnerReport() {
               </tr>
             </thead>
             <tbody>
-              {maintenances.slice(0, 5).map((m, i) => (
+              {[...maintenances]
+                .sort((a, b) => new Date(b.scheduled_date || b.date || 0) - new Date(a.scheduled_date || a.date || 0))
+                .slice(0, 5)
+                .map((m, i) => (
                 <tr key={i} style={{ borderBottom: "1px solid #f9f9f9" }}>
-                  <td style={{ padding: "10px", fontSize: "13px" }}>{new Date(m.date).toLocaleDateString()}</td>
-                  <td style={{ padding: "10px", fontSize: "13px" }}>{m.facility}</td>
-                  <td style={{ padding: "10px", fontSize: "13px", fontWeight: "600", textAlign: "right", color: "#e03131" }}>Rs. {parseFloat(m.cost).toLocaleString()}</td>
+                  <td style={{ padding: "10px", fontSize: "13px" }}>{m.scheduled_date ? formatDate(m.scheduled_date) : (m.date ? formatDate(m.date) : '-')}</td>
+                  <td style={{ padding: "10px", fontSize: "13px" }}>{m.house_code ? m.house_code : (m.facility || m.description || 'Facility')}</td>
+                  <td style={{ padding: "10px", fontSize: "13px", fontWeight: "600", textAlign: "right", color: "#e03131" }}>Rs. {parseFloat(m.cost || 0).toLocaleString()}</td>
                 </tr>
               ))}
               {!loading && maintenances.length === 0 && (

@@ -10,26 +10,30 @@ CREATE TABLE users (
     role ENUM('Owner', 'Treasurer', 'Tenant') NOT NULL,
     email VARCHAR(100),
     phone VARCHAR(15),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    isFirstLogin BOOLEAN DEFAULT TRUE
 );
 
 
 -- Houses Table
 CREATE TABLE houses (
     house_id INT AUTO_INCREMENT PRIMARY KEY,
+    reference_code VARCHAR(50) NOT NULL UNIQUE,
     address VARCHAR(255) NOT NULL,
     rooms INT NOT NULL,
     rent_amount DECIMAL(10,2) NOT NULL,
-    status ENUM('Occupied','Vacant') NOT NULL,
+    status ENUM('Occupied','Vacant','Maintenance') NOT NULL,
     owner_id INT NOT NULL,
     FOREIGN KEY (owner_id) REFERENCES users(user_id)
         ON DELETE CASCADE
 );
 
 -- Tenants Table (Personal Information Only)
-CREATE TABLE tenants (
-    tenant_id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE Tenants (
+    Tenant_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL UNIQUE,
+    full_name VARCHAR(255) NOT NULL,
+    nic VARCHAR(15) NOT NULL,
     occupation VARCHAR(50),
     date_of_birth DATE,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -39,11 +43,11 @@ CREATE TABLE tenants (
 -- Tenancies Table (Tenant–House Relationship)
 CREATE TABLE tenancies (
     tenancy_id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    Tenant_id INT NOT NULL,
     house_id INT NOT NULL,
     start_date DATE,
     end_date DATE,
-    FOREIGN KEY (tenant_id) REFERENCES tenants(tenant_id)
+    FOREIGN KEY (Tenant_id) REFERENCES Tenants(Tenant_id)
         ON DELETE CASCADE,
     FOREIGN KEY (house_id) REFERENCES houses(house_id)
         ON DELETE CASCADE
@@ -122,5 +126,17 @@ CREATE TABLE reports (
     generated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     generated_by INT NOT NULL,
     FOREIGN KEY (generated_by) REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+-- Family Members Table
+CREATE TABLE family_members (
+    member_id INT AUTO_INCREMENT PRIMARY KEY,
+    Tenant_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    occupation VARCHAR(100),
+    nic VARCHAR(15),
+    date_of_birth DATE,
+    FOREIGN KEY (Tenant_id) REFERENCES Tenants(Tenant_id)
         ON DELETE CASCADE
 );

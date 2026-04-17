@@ -52,7 +52,7 @@ function OwnerMaintenance() {
     setActionLoading(true);
     try {
         await deleteMaintenance(id);
-        setTasks(tasks.filter(t => t.id !== id));
+        setTasks(tasks.filter(t => (t.task_id || t.id) !== id));
         alert("Task deleted successfully");
     } catch (error) {
         console.error("Failed to delete task:", error);
@@ -65,8 +65,8 @@ function OwnerMaintenance() {
   const handleStatusChange = async (id, newStatus) => {
     setActionLoading(true);
     try {
-        await updateMaintenance(id, { status: newStatus });
-        setTasks(tasks.map(t => t.id === id ? { ...t, status: newStatus } : t));
+        await updateMaintenance(id, { taskStatus: newStatus });
+        setTasks(tasks.map(t => (t.task_id || t.id) === id ? { ...t, task_status: newStatus } : t));
     } catch (error) {
         console.error("Failed to update status:", error);
         alert("Failed to update status: " + error.message);
@@ -76,22 +76,18 @@ function OwnerMaintenance() {
   };
 
   const totalCost = tasks.reduce((sum, t) => sum + (parseFloat(t.cost) || 0), 0);
-  const pendingCount = tasks.filter(t => t.status !== 'Paid').length;
+  const pendingCount = tasks.filter(t => (t.task_status || t.status) !== 'Paid').length;
 
   return (
     <DashboardLayout
       role="owner"
-      title="Maintenance Management"
-      userName="Suresh Kumar"
-      userInitials="SK"
-      userRoleLabel="Property Owner"
-    >
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
+      title={`Maintenance ${!loading ? `(${tasks.length})` : ''}`}
+      headerAction={
         <Button variant="primary" onClick={() => navigate("/owner/createtask")} disabled={actionLoading}>
           <i className="bi bi-plus-circle"></i> Create Task
         </Button>
-      </div>
-
+      }
+    >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "40px" }}>
         <StatCard title="Total Tasks" value={loading ? "..." : tasks.length} subtitle={`${pendingCount} pending`} icon="bi-wrench" color="#1a4d2e" />
         <StatCard title="Total Expenditure" value={loading ? "..." : `Rs. ${totalCost.toLocaleString()}`} subtitle="All time" icon="bi-currency-dollar" color="#e67e22" />
@@ -118,26 +114,26 @@ function OwnerMaintenance() {
               <tbody>
                 {tasks.map((t, i) => (
                   <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>M{String(t.id || t.maintenance_id).padStart(3, '0')}</td>
-                    <td style={{ padding: "12px", fontSize: "14px" }}>{t.facility}</td>
-                    <td style={{ padding: "12px", fontSize: "14px" }}>{t.description}</td>
-                    <td style={{ padding: "12px", fontSize: "14px" }}>{new Date(t.date).toLocaleDateString()}</td>
-                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>Rs. {parseFloat(t.cost).toLocaleString()}</td>
-                    <td style={{ padding: "12px" }}>
-                      <span style={{ 
-                        padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
-                        backgroundColor: t.status === "Paid" ? "#e2f2e5" : "#fff5f5",
-                        color: t.status === "Paid" ? "#1a4d2e" : "#e03131",
-                        textTransform: "uppercase"
-                      }}>
-                        {t.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: "12px", textAlign: "right" }}>
-                       <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-                          {t.status === "Pending" && (
+                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>M{String(t.task_id || t.id || t.maintenance_id || '').padStart(3, '0')}</td>
+                     <td style={{ padding: "12px", fontSize: "14px" }}>{t.house_code ? t.house_code : (t.house_id ? `House #${t.house_id}` : (t.facility || 'N/A'))}</td>
+                     <td style={{ padding: "12px", fontSize: "14px" }}>{t.description}</td>
+                     <td style={{ padding: "12px", fontSize: "14px" }}>{t.scheduled_date ? new Date(t.scheduled_date).toLocaleDateString() : (t.date ? new Date(t.date).toLocaleDateString() : 'N/A')}</td>
+                     <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>Rs. {parseFloat(t.cost || 0).toLocaleString()}</td>
+                     <td style={{ padding: "12px" }}>
+                       <span style={{ 
+                         padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
+                         backgroundColor: (t.task_status || t.status) === "Paid" ? "#e2f2e5" : "#fff5f5",
+                         color: (t.task_status || t.status) === "Paid" ? "#1a4d2e" : "#e03131",
+                         textTransform: "uppercase"
+                       }}>
+                         {t.task_status || t.status}
+                       </span>
+                     </td>
+                     <td style={{ padding: "12px", textAlign: "right" }}>
+                        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                           {(t.task_status || t.status) === "Pending" && (
                             <button 
-                              onClick={() => handleStatusChange(t.id, "Paid")}
+                              onClick={() => handleStatusChange(t.task_id || t.id, "Paid")}
                               style={{ background: "none", border: "none", cursor: "pointer", color: "#1a4d2e" }}
                               title="Mark as Paid"
                             >
@@ -145,20 +141,20 @@ function OwnerMaintenance() {
                             </button>
                           )}
                           <button 
-                            onClick={() => navigate(`/owner/maintenance/${t.id}`)}
+                            onClick={() => navigate(`/owner/maintenance/${t.task_id || t.id}`)}
                             style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
                             title="View"
                           >
                             <i className="bi bi-eye-fill"></i>
                           </button>
                           <button 
-                            onClick={() => navigate(`/owner/maintenance/edit/${t.id}`)}
+                            onClick={() => navigate(`/owner/maintenance/edit/${t.task_id || t.id}`)}
                             style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
                           >
                             <i className="bi bi-pencil-square"></i>
                           </button>
                           <button 
-                            onClick={() => handleDeleteTask(t.id)}
+                            onClick={() => handleDeleteTask(t.task_id || t.id)}
                             style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
                           >
                             <i className="bi bi-trash"></i>

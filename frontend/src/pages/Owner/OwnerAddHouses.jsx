@@ -29,6 +29,7 @@ function OwnerAddHouse() {
       const payload = JSON.parse(atob(token.split('.')[1]));
       
       const houseData = {
+        referenceCode: `H - ${formData.code}`,
         address: formData.address,
         rooms: parseInt(formData.rooms),
         rentAmount: parseFloat(formData.rent),
@@ -39,7 +40,7 @@ function OwnerAddHouse() {
       await createHouse(houseData);
       navigate("/owner/houses");
     } catch (err) {
-      setError(err.message || "Failed to add property. Please try again.");
+      setError(err.message || "Failed to add house. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -48,10 +49,10 @@ function OwnerAddHouse() {
   return (
     <DashboardLayout
       role="owner"
-      title="Add New Property"
-      userName="Suresh Kumar"
-      userInitials="SK"
-      userRoleLabel="Property Owner"
+      title="Add New House"
+      
+      
+      
     >
       <div style={{ maxWidth: "600px", margin: "0 auto" }}>
         {error && (
@@ -61,21 +62,19 @@ function OwnerAddHouse() {
         )}
         
         <Card 
-          title="Property Details" 
+          title="House Details" 
           subtitle="Enter the information for the new housing unit."
-          footer={
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-              <Button variant="secondary" onClick={() => navigate("/owner/houses")} disabled={loading}>Cancel</Button>
-              <Button variant="primary" onClick={handleSubmit} loading={loading}>Save Property</Button>
-            </div>
-          }
         >
           <form onSubmit={handleSubmit}>
             <Input 
               label="House Reference Code" 
-              placeholder="e.g. H005" 
+              placeholder="001" 
+              prefix="H - "
               value={formData.code}
-              onChange={(e) => setFormData({...formData, code: e.target.value})}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                setFormData({...formData, code: value});
+              }}
               required
             />
             
@@ -93,7 +92,10 @@ function OwnerAddHouse() {
                 type="number"
                 placeholder="2" 
                 value={formData.rooms}
-                onChange={(e) => setFormData({...formData, rooms: e.target.value})}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  setFormData({...formData, rooms: value});
+                }}
                 required
               />
               
@@ -102,7 +104,10 @@ function OwnerAddHouse() {
                 type="number"
                 placeholder="15000" 
                 value={formData.rent}
-                onChange={(e) => setFormData({...formData, rent: e.target.value})}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  setFormData({...formData, rent: value});
+                }}
                 required
               />
             </div>
@@ -117,6 +122,11 @@ function OwnerAddHouse() {
                 { label: "Maintenance", value: "Maintenance" }
               ]}
             />
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "30px", paddingTop: "20px", borderTop: "1px solid #eee" }}>
+              <Button variant="secondary" type="button" onClick={() => navigate("/owner/houses")} disabled={loading}>Cancel</Button>
+              <Button variant="primary" type="submit" loading={loading}>Save House</Button>
+            </div>
           </form>
         </Card>
       </div>

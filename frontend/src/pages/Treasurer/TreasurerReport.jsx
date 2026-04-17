@@ -55,9 +55,9 @@ function TreasurerReports() {
     <DashboardLayout
       role="treasurer"
       title="Financial Performance & Audits"
-      userName="Aravinth"
-      userInitials="AR"
-      userRoleLabel="Chief Treasurer"
+
+
+
     >
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
         <Button variant="primary">
@@ -106,7 +106,7 @@ function TreasurerReports() {
               <thead>
                 <tr style={{ textAlign: "left", color: "var(--text-muted)", fontSize: "12px", borderBottom: "2px solid #f0f0f0" }}>
                   <th style={{ padding: "12px 10px" }}>Invoice</th>
-                  <th style={{ padding: "12px 10px" }}>Resident</th>
+                  <th style={{ padding: "12px 10px" }}>Tenant</th>
                   <th style={{ padding: "12px 10px" }}>House</th>
                   <th style={{ padding: "12px 10px" }}>Status</th>
                   <th style={{ padding: "12px 10px", textAlign: "right" }}>Amount (Rs.)</th>
@@ -116,10 +116,10 @@ function TreasurerReports() {
                 {payments.slice(0, 10).map((p, i) => (
                   <tr key={i} style={{ borderBottom: "1px solid #f9f9f9" }}>
                     <td style={{ padding: "12px 10px", fontSize: "13px", fontWeight: "600" }}>{p.invoice_no}</td>
-                    <td style={{ padding: "12px 10px", fontSize: "13px" }}>{p.tenantName || 'Resident'}</td>
+                    <td style={{ padding: "12px 10px", fontSize: "13px" }}>{p.TenantName || 'Tenant'}</td>
                     <td style={{ padding: "12px 10px", fontSize: "13px" }}>{p.houseAddress || 'Unit'}</td>
                     <td style={{ padding: "12px 10px" }}>
-                       <span style={{ fontSize: "10px", fontWeight: "700", padding: "3px 8px", borderRadius: "10px", backgroundColor: p.status === 'Paid' ? "#e2f2e5" : "#fff5f5", color: p.status === 'Paid' ? "#1a4d2e" : "#e03131" }}>{p.status.toUpperCase()}</span>
+                      <span style={{ fontSize: "10px", fontWeight: "700", padding: "3px 8px", borderRadius: "10px", backgroundColor: p.status === 'Paid' ? "#e2f2e5" : "#fff5f5", color: p.status === 'Paid' ? "#1a4d2e" : "#e03131" }}>{p.status.toUpperCase()}</span>
                     </td>
                     <td style={{ padding: "12px 10px", fontSize: "13px", fontWeight: "700", textAlign: "right" }}>{parseFloat(p.amount).toLocaleString()}</td>
                   </tr>

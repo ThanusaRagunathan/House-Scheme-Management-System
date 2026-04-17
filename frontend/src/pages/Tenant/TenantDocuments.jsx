@@ -41,21 +41,21 @@ function TenantDocuments() {
     if (!window.confirm("Are you sure you want to delete this document reference?")) return;
     setActionLoading(true);
     try {
-        await deleteDocument(id);
-        setDocuments(documents.filter(d => d.id !== id));
+      await deleteDocument(id);
+      setDocuments(documents.filter(d => d.id !== id));
     } catch (error) {
-        console.error("Failed to delete document:", error);
-        alert("Action failed: " + error.message);
+      console.error("Failed to delete document:", error);
+      alert("Action failed: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
   return (
     <DashboardLayout
-      role="tenant"
+      role="Tenant"
       title="Personal & Community Documents"
-      userName={profile?.username || "Resident"}
+      userName={profile?.username || "Tenant"}
       userInitials={profile?.username?.charAt(0) || "R"}
       userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
     >
@@ -95,7 +95,7 @@ function TenantDocuments() {
                   <Button variant="secondary" onClick={() => alert("Downloading " + doc.title)}>
                     <i className="bi bi-download"></i> Download
                   </Button>
-                  <button 
+                  <button
                     onClick={() => handleDelete(doc.id)}
                     style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131", fontSize: "18px" }}
                     title="Delete"

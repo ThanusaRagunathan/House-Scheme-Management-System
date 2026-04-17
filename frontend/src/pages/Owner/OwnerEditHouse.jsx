@@ -26,7 +26,7 @@ function OwnerEditHouse() {
         const house = houses.find(h => String(h.id) === String(id));
         if (house) {
           setFormData({
-            code: house.houseCode || house.code || "",
+            code: house.referenceCode ? house.referenceCode.replace(/^H - /, "") : "",
             address: house.address || "",
             rooms: house.rooms || "",
             rent: house.rentAmount || house.rent || "",
@@ -34,10 +34,10 @@ function OwnerEditHouse() {
             status: house.status || "Vacant"
           });
         } else {
-          setError("Property not found.");
+          setError("House not found.");
         }
       } catch (err) {
-        setError("Failed to fetch property details.");
+        setError("Failed to fetch house details.");
       } finally {
         setFetching(false);
       }
@@ -52,31 +52,31 @@ function OwnerEditHouse() {
 
     try {
       const houseData = {
+        referenceCode: `H - ${formData.code}`,
         address: formData.address,
         rooms: parseInt(formData.rooms),
         rentAmount: parseFloat(formData.rent),
-        status: formData.status,
-        houseCode: formData.code
+        status: formData.status
       };
 
       await updateHouse(id, houseData);
       navigate("/owner/houses");
     } catch (err) {
-      setError(err.message || "Failed to update property. Please try again.");
+      setError(err.message || "Failed to update house. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetching) return <DashboardLayout role="owner" title="Edit Property"><p>Loading details...</p></DashboardLayout>;
+  if (fetching) return <DashboardLayout role="owner" title="Edit House"><p>Loading details...</p></DashboardLayout>;
 
   return (
     <DashboardLayout
       role="owner"
-      title="Edit Property"
-      userName="Suresh Kumar"
-      userInitials="SK"
-      userRoleLabel="Property Owner"
+      title="Edit House"
+      
+      
+      
     >
       <div style={{ maxWidth: "600px", margin: "0 auto" }}>
         {error && (
@@ -86,21 +86,25 @@ function OwnerEditHouse() {
         )}
         
         <Card 
-          title="Update Property Details" 
+          title="Update House Details" 
           subtitle={`Editing house record ID: ${id}`}
           footer={
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
               <Button variant="secondary" onClick={() => navigate("/owner/houses")} disabled={loading}>Cancel</Button>
-              <Button variant="primary" onClick={handleSubmit} loading={loading}>Update Property</Button>
+              <Button variant="primary" onClick={handleSubmit} loading={loading}>Update House</Button>
             </div>
           }
         >
           <form onSubmit={handleSubmit}>
             <Input 
               label="House Reference Code" 
-              placeholder="e.g. H005" 
+              placeholder="001" 
+              prefix="H - "
               value={formData.code}
-              onChange={(e) => setFormData({...formData, code: e.target.value})}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                setFormData({...formData, code: value});
+              }}
               required
             />
             
@@ -118,7 +122,10 @@ function OwnerEditHouse() {
                 type="number"
                 placeholder="2" 
                 value={formData.rooms}
-                onChange={(e) => setFormData({...formData, rooms: e.target.value})}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  setFormData({...formData, rooms: value});
+                }}
                 required
               />
               
@@ -127,7 +134,10 @@ function OwnerEditHouse() {
                 type="number"
                 placeholder="15000" 
                 value={formData.rent}
-                onChange={(e) => setFormData({...formData, rent: e.target.value})}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  setFormData({...formData, rent: value});
+                }}
                 required
               />
             </div>

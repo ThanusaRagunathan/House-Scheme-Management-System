@@ -17,8 +17,8 @@ function HouseCard({ house, onDelete }) {
     <div className="glass-card" style={{ padding: "20px", backgroundColor: "white", display: "flex", flexDirection: "column", gap: "15px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <div style={{ fontSize: "18px", fontWeight: "700", color: "var(--primary)" }}>{house.houseCode || house.code}</div>
-          <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{house.houseType || 'Residential'}</div>
+          <div style={{ fontSize: "12px", color: "var(--primary)", fontWeight: "600" }}>{house.referenceCode}</div>
+          <div style={{ fontSize: "16px", fontWeight: "700" }}>{house.address || house.location}</div>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
             <button onClick={() => navigate(`/treasurer/houses/edit/${house.id}`)} style={{ border: "none", background: "none", cursor: "pointer", color: "var(--text-muted)" }}>
@@ -38,7 +38,7 @@ function HouseCard({ house, onDelete }) {
       <div style={{ display: "flex", gap: "20px" }}>
         <div>
           <div style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>Monthly Rent</div>
-          <div style={{ fontWeight: "700" }}>Rs. {parseFloat(house.rent).toLocaleString()}</div>
+          <div style={{ fontWeight: "700" }}>Rs. {parseFloat(house.rent || 0).toLocaleString()}</div>
         </div>
         <div>
           <div style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>Status</div>
@@ -94,15 +94,15 @@ function TreasurerHouses() {
     return (
         <DashboardLayout
             role="treasurer"
-            title="House Inventory"
-            userName="Aravinth"
-            userInitials="AR"
-            userRoleLabel="Chief Treasurer"
+            title="House Portfolio"
+            
+            
+            
         >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
                 <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "700" }}>Housing Units ({houses.length})</h3>
                 <Button variant="primary" onClick={() => navigate("/treasurer/houses/add")}>
-                    <i className="bi bi-plus-lg"></i> Add New Unit
+                    <i className="bi bi-plus-lg"></i> Add New House
                 </Button>
             </div>
 

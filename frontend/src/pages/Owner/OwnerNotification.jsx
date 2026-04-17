@@ -34,13 +34,13 @@ function OwnerNotification() {
   const handleMarkAsRead = async (id) => {
     setActionLoading(true);
     try {
-        await updateNotification(id, { status: 'read' });
-        setNotifications(notifications.map(n => n.id === id ? { ...n, status: 'read' } : n));
+      await updateNotification(id, { status: 'read' });
+      setNotifications(notifications.map(n => n.id === id ? { ...n, status: 'read' } : n));
     } catch (error) {
-        console.error("Failed to update notification:", error);
-        alert("Action failed: " + error.message);
+      console.error("Failed to update notification:", error);
+      alert("Action failed: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -48,13 +48,13 @@ function OwnerNotification() {
     if (!window.confirm("Are you sure you want to delete this notification?")) return;
     setActionLoading(true);
     try {
-        await deleteNotification(id);
-        setNotifications(notifications.filter(n => n.id !== id));
+      await deleteNotification(id);
+      setNotifications(notifications.filter(n => n.id !== id));
     } catch (error) {
-        console.error("Failed to delete notification:", error);
-        alert("Action failed: " + error.message);
+      console.error("Failed to delete notification:", error);
+      alert("Action failed: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -64,23 +64,23 @@ function OwnerNotification() {
     <DashboardLayout
       role="owner"
       title="Notifications & Updates"
-      userName="Suresh Kumar"
-      userInitials="SK"
-      userRoleLabel="Property Owner"
+
+
+
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "35px" }}>
         {[
-          { title: "Broadcast", sub: "Send to all", icon: "bi-megaphone", color: "#1a4d2e" },
-          { title: "Rent Reminders", sub: "Send to debtors", icon: "bi-currency-dollar", color: "#e67e22" },
-          { title: "Maintenance", sub: "Notify residents", icon: "bi-wrench", color: "#3498db" },
-          { title: "Draft", sub: "Saved notices", icon: "bi-file-earmark-text", color: "var(--text-muted)" },
+          { title: "Broadcast", sub: "Send to all", icon: "bi-megaphone", path: "/owner/addnotification" },
+          { title: "Rent Reminders", sub: "Send to debtors", icon: "bi-currency-dollar", path: "/owner/sendreminder" },
+          { title: "Maintenance", sub: "Notify Tenants", icon: "bi-wrench", path: "/owner/createtask" },
+          { title: "Draft", sub: "Saved notices", icon: "bi-file-earmark-text", path: "/owner/drafts" },
         ].map((action, i) => (
-          <div key={i} className="glass-card clickable" style={{ padding: "20px", backgroundColor: "white", textAlign: "center", cursor: "pointer" }}>
-            <div style={{ width: "45px", height: "45px", backgroundColor: `${action.color}1A`, color: action.color, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 15px", fontSize: "20px" }}>
+          <div key={i} onClick={() => action.path && navigate(action.path)} className="glass-card clickable" style={{ padding: "20px", backgroundColor: "#1a4d2e", color: "white", textAlign: "center", cursor: "pointer" }}>
+            <div style={{ width: "45px", height: "45px", backgroundColor: "rgba(255, 255, 255, 0.2)", color: "white", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 15px", fontSize: "20px" }}>
               <i className={`bi ${action.icon}`}></i>
             </div>
             <div style={{ fontWeight: "700", fontSize: "15px", marginBottom: "5px" }}>{action.title}</div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{action.sub}</div>
+            <div style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.8)" }}>{action.sub}</div>
           </div>
         ))}
       </div>
@@ -91,7 +91,7 @@ function OwnerNotification() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
             {notifications.map((n, i) => (
-              <div key={i} style={{ 
+              <div key={i} style={{
                 padding: "16px", borderRadius: "12px", borderLeft: `4px solid ${n.status === 'unread' ? 'var(--primary)' : '#ccc'}`,
                 backgroundColor: n.status === 'unread' ? "#f8fdf9" : "white",
                 display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -112,7 +112,7 @@ function OwnerNotification() {
                   ) : (
                     <span style={{ fontSize: "12px", color: "#ccc" }}><i className="bi bi-check-all"></i> Seen</span>
                   )}
-                  <button 
+                  <button
                     onClick={() => handleDelete(n.id || n.notification_id)}
                     style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131", padding: "5px" }}
                     title="Delete"

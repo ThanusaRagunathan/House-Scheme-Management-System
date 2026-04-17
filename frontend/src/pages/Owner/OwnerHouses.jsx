@@ -5,10 +5,15 @@ import { getHouses, deleteHouse } from "../../services/api";
 
 function HouseCard({ house, onDelete }) {
   const navigate = useNavigate();
-  
+
   const handleDelete = async () => {
-    if (window.confirm(`Are you sure you want to delete house ${house.houseCode || house.code}?`)) {
-      await onDelete(house.id);
+    const identifier = house.id || house.house_id;
+    if (window.confirm(`Are you sure you want to delete house ${house.referenceCode || house.houseCode || house.code}?`)) {
+      if (!identifier) {
+        alert("Cannot delete: House ID is missing.");
+        return;
+      }
+      await onDelete(identifier);
     }
   };
 
@@ -16,13 +21,13 @@ function HouseCard({ house, onDelete }) {
     <div className="glass-card" style={{ padding: "20px", backgroundColor: "white", display: "flex", flexDirection: "column", gap: "15px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
         <div>
-          <div style={{ fontSize: "18px", fontWeight: "700", color: "var(--primary)" }}>{house.houseCode || house.code}</div>
-          <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>{house.address}</div>
+          <div style={{ fontSize: "12px", color: "var(--primary)", fontWeight: "600" }}>{house.referenceCode}</div>
+          <div style={{ fontSize: "16px", fontWeight: "700" }}>{house.address}</div>
         </div>
-        <span style={{ 
-          padding: "4px 10px", 
-          borderRadius: "20px", 
-          fontSize: "11px", 
+        <span style={{
+          padding: "4px 10px",
+          borderRadius: "20px",
+          fontSize: "11px",
           fontWeight: "700",
           backgroundColor: house.status === "Occupied" ? "#e2f2e5" : "#fff8e1",
           color: house.status === "Occupied" ? "#1a4d2e" : "#f57c00"
@@ -42,31 +47,31 @@ function HouseCard({ house, onDelete }) {
         </div>
       </div>
 
-      {house.tenants && house.tenants.length > 0 && (
+      {house.Tenants && house.Tenants.length > 0 && (
         <div>
           <div style={{ fontSize: "12px", fontWeight: "600", marginBottom: "5px", color: "var(--text-muted)" }}>Current Tenants</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-            {house.tenants.map((t, i) => (
-              <span key={i} style={{ fontSize: "12px", padding: "2px 8px", backgroundColor: "#f0f0f0", borderRadius: "4px" }}>{t.fullName || (typeof t === 'string' ? t.split(' ')[0] : 'Resident')}</span>
+            {house.Tenants.map((t, i) => (
+              <span key={i} style={{ fontSize: "12px", padding: "2px 8px", backgroundColor: "#f0f0f0", borderRadius: "4px" }}>{t.fullName || (typeof t === 'string' ? t.split(' ')[0] : 'Tenant')}</span>
             ))}
           </div>
         </div>
       )}
 
       <div style={{ marginTop: "auto", display: "flex", gap: "10px", paddingTop: "15px", borderTop: "1px solid #f0f0f0" }}>
-        <button 
-           onClick={() => navigate(`/owner/houses/${house.id || house.houseCode}`)}
+        <button
+          onClick={() => navigate(`/owner/houses/${house.id || house.houseCode}`)}
           style={{ flex: 1, padding: "8px", borderRadius: "6px", backgroundColor: "var(--primary)", color: "white", fontWeight: "600", fontSize: "12px", border: "none", cursor: "pointer" }}
         >
           Details
         </button>
-        <button 
+        <button
           onClick={() => navigate(`/owner/houses/edit/${house.id}`)}
           style={{ padding: "8px", borderRadius: "6px", backgroundColor: "#f0f0f0", color: "#555", border: "none", cursor: "pointer" }}
         >
           <i className="bi bi-pencil-square"></i>
         </button>
-        <button 
+        <button
           onClick={handleDelete}
           style={{ padding: "8px", borderRadius: "6px", backgroundColor: "#fff5f5", color: "#e03131", border: "none", cursor: "pointer" }}
         >
@@ -78,83 +83,114 @@ function HouseCard({ house, onDelete }) {
 }
 
 function OwnerHouses() {
-    const navigate = useNavigate();
-    const [houses, setHouses] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [actionLoading, setActionLoading] = useState(false);
+  const navigate = useNavigate();
+  const [houses, setHouses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState("");
 
-    useEffect(() => {
-        fetchHouses();
-    }, []);
+  useEffect(() => {
+    fetchHouses();
+  }, []);
 
-    const fetchHouses = async () => {
-        setLoading(true);
-        try {
-            const data = await getHouses();
-            setHouses(data);
-        } catch (error) {
-            console.error("Failed to fetch houses:", error);
-            // Fallback for demo if API fails
-            setHouses([
-                { id: 1, houseCode: "H001", status: "Occupied", address: "123, Oak Street", rooms: 2, rent: "10,000", tenants: [{fullName: "Karthik"}] },
-                { id: 2, houseCode: "H002", status: "Occupied", address: "124, Oak Street", rooms: 3, rent: "17,000", tenants: [{fullName: "Jack Brown"}] }
-            ]);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchHouses = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await getHouses();
+      console.log("Frontend: Houses fetched successfully:", data);
+      setHouses(data);
+    } catch (err) {
+      console.error("Frontend: Failed to fetch houses:", err);
+      setError("Failed to load houses from server. Showing demo data for preview.");
+      // Fallback for demo if API fails
+      setHouses([
+        { id: 1, referenceCode: "H - 001 (Demo)", status: "Occupied", address: "123, Oak Street", rooms: 2, rent: "10,000", Tenants: [{ fullName: "Ariana Grande" }] },
+        { id: 2, referenceCode: "H - 002 (Demo)", status: "Vacant", address: "124, Oak Street", rooms: 3, rent: "17,000", Tenants: [] }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleDeleteHouse = async (id) => {
-        setActionLoading(true);
-        try {
-            await deleteHouse(id);
-            setHouses(houses.filter(h => h.id !== id));
-            alert("House deleted successfully");
-        } catch (error) {
-            console.error("Failed to delete house:", error);
-            alert("Failed to delete house: " + error.message);
-        } finally {
-            setActionLoading(false);
-        }
-    };
+  const handleDeleteHouse = async (id) => {
+    console.log(`Frontend: Requesting delete for house ID: ${id}`);
+    setActionLoading(true);
+    try {
+      await deleteHouse(id);
+      setHouses(prev => prev.filter(h => h.id !== id));
+      alert("House deleted successfully");
+    } catch (error) {
+      console.error("Frontend: Failed to delete house:", error);
+      alert(`Failed to delete house: ${error.message}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   return (
     <DashboardLayout
       role="owner"
-      title="Property Portfolio"
-      userName="Suresh Kumar"
-      userInitials="SK"
-      userRoleLabel="Property Owner"
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
-        <div>
-           <h3 style={{ fontSize: "18px" }}>All Houses ({houses.length})</h3>
-           <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>Manage and monitor your housing units</p>
-        </div>
+      title={`House Portfolio ${!loading ? `(${houses.length})` : ''}`}
+      headerAction={
         <button
           style={{
             backgroundColor: "var(--primary)",
             color: "white",
             border: "none",
-            borderRadius: "10px",
-            padding: "12px 24px",
-            fontSize: "15px",
+            borderRadius: "8px",
+            padding: "10px 20px",
+            fontSize: "14px",
             fontWeight: "600",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
-            gap: "10px",
+            gap: "8px",
             opacity: actionLoading ? 0.7 : 1
           }}
-          onClick={()=>navigate("/owner/addhouse")}
+          onClick={() => navigate("/owner/addhouse")}
           disabled={actionLoading}
         >
-          <i className="bi bi-plus-lg"></i> Add New Unit
+          <i className="bi bi-plus-lg"></i> Add New House
         </button>
-      </div>
+      }
+    >
+
+      {error && (
+        <div style={{ 
+          backgroundColor: "#fff5f5", 
+          color: "#e03131", 
+          padding: "15px 20px", 
+          borderRadius: "12px", 
+          marginBottom: "25px", 
+          fontSize: "14px", 
+          display: "flex", 
+          alignItems: "center", 
+          gap: "10px",
+          border: "1px solid #ffc9c9"
+        }}>
+          <i className="bi bi-exclamation-circle-fill" style={{ fontSize: "16px" }}></i>
+          {error}
+        </div>
+      )}
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "50px" }}>Loading houses...</div>
+        <div style={{ textAlign: "center", padding: "50px", color: "var(--text-muted)" }}>
+          <div className="spinner" style={{ marginBottom: "15px" }}></div>
+          Loading houses...
+        </div>
+      ) : houses.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "80px 20px", backgroundColor: "white", borderRadius: "20px", border: "1px dashed #e0e0e0" }}>
+          <i className="bi bi-house-door" style={{ fontSize: "48px", color: "#e0e0e0", marginBottom: "20px", display: "block" }}></i>
+          <h3 style={{ fontSize: "20px", color: "var(--primary)", marginBottom: "10px" }}>No Houses Registered</h3>
+          <p style={{ color: "var(--text-muted)", marginBottom: "25px" }}>You haven't added any housing units to your portfolio yet.</p>
+          <button 
+            onClick={() => navigate("/owner/addhouse")}
+            style={{ padding: "10px 20px", borderRadius: "8px", backgroundColor: "var(--primary)", color: "white", border: "none", fontWeight: "600", cursor: "pointer" }}
+          >
+            Add Your First House
+          </button>
+        </div>
       ) : (
         <div
           style={{
@@ -164,7 +200,7 @@ function OwnerHouses() {
           }}
         >
           {houses.map((house) => (
-            <HouseCard key={house.id || house.houseCode} house={house} onDelete={handleDeleteHouse} />
+            <HouseCard key={house.id || house.house_id} house={house} onDelete={handleDeleteHouse} />
           ))}
         </div>
       )}

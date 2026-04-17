@@ -36,7 +36,7 @@ function OwnerDocuments() {
     setActionLoading(true);
     try {
         await deleteDocument(id);
-        setDocuments(documents.filter(d => d.id !== id));
+        setDocuments(documents.filter(d => (d.document_id || d.id) !== id));
     } catch (error) {
         console.error("Failed to delete document:", error);
         alert("Action failed: " + error.message);
@@ -51,16 +51,13 @@ function OwnerDocuments() {
   return (
     <DashboardLayout
       role="owner"
-      title="Document Repository"
-      userName="Suresh Kumar"
-      userInitials="SK"
-      userRoleLabel="Property Owner"
-    >
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
+      title={`Document Repository ${!loading ? `(${documents.length})` : ''}`}
+      headerAction={
         <Button variant="primary" onClick={() => navigate("/owner/uploaddocument")} disabled={actionLoading}>
           <i className="bi bi-cloud-upload"></i> Upload Document
         </Button>
-      </div>
+      }
+    >
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "35px" }}>
         <div className="glass-card" style={{ padding: "15px", backgroundColor: "white", textAlign: "center" }}>
@@ -90,6 +87,7 @@ function OwnerDocuments() {
               <thead>
                 <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Name</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>House / Facility</th>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Type</th>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
                   <th style={{ padding: "12px", textAlign: "right" }}>Actions</th>
@@ -102,6 +100,7 @@ function OwnerDocuments() {
                       <i className="bi bi-file-earmark-text" style={{ marginRight: "10px", color: "var(--primary)" }}></i>
                       {d.document_name}
                     </td>
+                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "500", color: "var(--primary)" }}>{d.house_code ? d.house_code : (d.facility || 'General')}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{d.document_type}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{new Date(d.upload_date).toLocaleDateString()}</td>
                     <td style={{ padding: "12px", textAlign: "right" }}>
@@ -126,7 +125,7 @@ function OwnerDocuments() {
                   </tr>
                 ))}
                 {documents.length === 0 && (
-                  <tr><td colSpan="4" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>No documents found.</td></tr>
+                  <tr><td colSpan="5" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>No documents found.</td></tr>
                 )}
               </tbody>
             </table>

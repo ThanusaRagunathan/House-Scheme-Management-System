@@ -9,7 +9,7 @@ function SummaryCard({ title, value, subtitle, icon, color }) {
     <div className="glass-card" style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "white" }}>
       <div>
         <div style={{ color: "var(--text-muted)", fontSize: "13px", fontWeight: "500", marginBottom: "5px" }}>{title}</div>
-        <div style={{ fontSize: "22px", fontWeight: "700", color: "var(--text-dark)" }}>{value}</div>
+        <div style={{ fontSize: "22px", fontWeight: "700", color: color }}>{value}</div>
         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>{subtitle}</div>
       </div>
       <div style={{ width: "45px", height: "45px", backgroundColor: `${color}1A`, color: color, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>
@@ -54,18 +54,17 @@ function TenantPayments() {
 
   return (
     <DashboardLayout
-      role="tenant"
+      role="Tenant"
       title="My Payments & Invoices"
-      userName={profile?.username || "Resident"}
+      userName={profile?.username || "Tenant"}
       userInitials={profile?.username?.charAt(0) || "R"}
       userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
-    >
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
-        <Button variant="primary" onClick={() => navigate("/tenant/addpayment")}>
+      headerAction={
+        <Button variant="primary" onClick={() => navigate("/Tenant/addpayment")}>
           <i className="bi bi-plus-lg"></i> Make New Payment
         </Button>
-      </div>
-
+      }
+    >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "35px" }}>
         <SummaryCard title="Total Paid" value={`Rs. ${totalPaid.toLocaleString()}`} subtitle="All time" icon="bi-check-all" color="#1a4d2e" />
         <SummaryCard title="Outstanding" value={`Rs. ${totalPending.toLocaleString()}`} subtitle="Due now" icon="bi-clock-history" color="#e67e22" />
@@ -95,7 +94,7 @@ function TenantPayments() {
                     <td style={{ padding: "15px 10px", fontSize: "14px" }}>{p.paid_date ? new Date(p.paid_date).toLocaleDateString() : 'Awaiting Payment'}</td>
                     <td style={{ padding: "15px 10px", fontSize: "14px", fontWeight: "600" }}>Rs. {parseFloat(p.amount).toLocaleString()}</td>
                     <td style={{ padding: "15px 10px" }}>
-                      <span style={{ 
+                      <span style={{
                         padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
                         backgroundColor: p.status === 'Paid' ? "#e2f2e5" : "#fff5f5",
                         color: p.status === 'Paid' ? "#1a4d2e" : "#e03131",

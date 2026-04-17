@@ -37,21 +37,8 @@ export const register = (data) => {
     body: JSON.stringify(data),
   });
 };
-
-export const forgotPassword = (phone) => {
-  return apiCall("/auth/forgot-password", {
-    method: "POST",
-    body: JSON.stringify({ phone }),
-  });
-};
-
-export const resetPassword = (phone, otp, newPassword) => {
-  return apiCall("/auth/reset-password", {
-    method: "POST",
-    body: JSON.stringify({ phone, otp, newPassword }),
-  });
-};
-
+export const getProfile = () => apiCall("/auth/profile");
+export const updateProfile = (data) => apiCall("/auth/profile", { method: "PUT", body: JSON.stringify(data) });
 
 // House Services
 export const getHouses = () => apiCall("/houses");
@@ -61,11 +48,11 @@ export const updateHouse = (id, data) => apiCall(`/houses/${id}`, { method: "PUT
 export const deleteHouse = (id) => apiCall(`/houses/${id}`, { method: "DELETE" });
 
 // Tenant Services
-export const getTenants = () => apiCall("/tenants");
-export const getTenantProfile = () => apiCall("/tenants/profile");
-export const createTenant = (data) => apiCall("/tenants", { method: "POST", body: JSON.stringify(data) });
-export const updateTenant = (id, data) => apiCall(`/tenants/${id}`, { method: "PUT", body: JSON.stringify(data) });
-export const deleteTenant = (id) => apiCall(`/tenants/${id}`, { method: "DELETE" });
+export const getTenants = () => apiCall("/Tenants");
+export const getTenantProfile = () => apiCall("/Tenants/profile");
+export const createTenant = (data) => apiCall("/Tenants", { method: "POST", body: JSON.stringify(data) });
+export const updateTenant = (id, data) => apiCall(`/Tenants/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export const deleteTenant = (id) => apiCall(`/Tenants/${id}`, { method: "DELETE" });
 
 // Payment Services
 export const getPayments = () => apiCall("/payments");
@@ -95,3 +82,20 @@ export const getNotifications = () => apiCall("/notifications");
 export const createNotification = (data) => apiCall("/notifications", { method: "POST", body: JSON.stringify(data) });
 export const updateNotification = (id, data) => apiCall(`/notifications/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const deleteNotification = (id) => apiCall(`/notifications/${id}`, { method: "DELETE" });
+
+// Password Reset
+export const resetPassword = async ({ userId, newPassword }) => {
+  const response = await fetch(`/api/auth/reset-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userId, newPassword }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to reset password");
+  }
+
+  return response.json();
+};

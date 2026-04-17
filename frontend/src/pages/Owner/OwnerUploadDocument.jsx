@@ -1,241 +1,127 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Input, Button, Select, TextArea } from "../../components/FormElements";
+import { createDocument } from "../../services/api";
 
 function OwnerUploadDocument() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    type: "Agreement",
+    description: "",
+  });
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      // In a real app, we would use FormData for actual file uploads
+      // For this system, we'll send the metadata to the createDocument API
+      await createDocument({
+        documentName: formData.name,
+        documentType: formData.type,
+        description: formData.description,
+        uploadDate: new Date().toISOString().split('T')[0]
+      });
+
+      alert("Document information saved successfully!");
+      navigate("/owner/documents");
+    } catch (err) {
+      console.error("Upload failed:", err);
+      setError("Failed to save document. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="owner"
+      title="Upload Document"
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Create task
-      </header>
+      <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+        {error && (
+          <div style={{ 
+            backgroundColor: "#fff5f5", color: "#e03131", padding: "15px", 
+            borderRadius: "10px", marginBottom: "20px", border: "1px solid #ffc9c9" 
+          }}>
+            <i className="bi bi-exclamation-circle-fill" style={{ marginRight: "10px" }}></i>
+            {error}
+          </div>
+        )}
 
-      {/* Body */}
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
+        <Card 
+          title="Document Details" 
+          subtitle="Provide document information and metadata for secure storage."
         >
-          {/* Sidebar header */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-buildings"></i>
-            </div>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <Input
+                label="Document Name"
+                placeholder="e.g. Rent Agreement - H-001"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+              />
 
-            <div>
-              <div style={{ fontWeight: 600 }}>Property Manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Owner Portal
+              <Select
+                label="Document Category"
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                options={[
+                  { label: "Agreement", value: "Agreement" },
+                  { label: "Invoice", value: "Invoice" },
+                  { label: "Receipt", value: "Receipt" },
+                  { label: "Maintenance Record", value: "Maintenance Record" },
+                  { label: "Other", value: "Other" },
+                ]}
+                required
+              />
+
+              <div style={{
+                padding: "30px",
+                border: "2px dashed #ddd",
+                borderRadius: "12px",
+                textAlign: "center",
+                backgroundColor: "#f9f9f9",
+                cursor: "pointer"
+              }}>
+                <i className="bi bi-cloud-arrow-up" style={{ fontSize: "40px", color: "var(--primary)", display: "block", marginBottom: "10px" }}></i>
+                <div style={{ fontSize: "14px", fontWeight: "600" }}>Click to select a file or drag and drop</div>
+                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "5px" }}>PDF, PNG, JPG (Max 5MB)</div>
+                <input type="file" style={{ display: "none" }} id="file-upload" />
+              </div>
+
+              <TextArea
+                label="Description (Optional)"
+                placeholder="Add any notes about this document..."
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={4}
+              />
+
+              <div style={{ 
+                display: "flex", justifyContent: "flex-end", gap: "10px", 
+                marginTop: "10px", paddingTop: "20px", borderTop: "1px solid #f0f0f0" 
+              }}>
+                <Button variant="secondary" type="button" onClick={() => navigate("/owner/documents")} disabled={loading}>
+                  Cancel
+                </Button>
+                <Button variant="primary" type="submit" loading={loading}>
+                  Save Document
+                </Button>
               </div>
             </div>
-          </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/owner/overview")}>
-              <i className="bi bi-map"></i>
-              Overview
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/houses")}>
-              <i className="bi bi-house"></i>
-              Houses
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/tenants")}>
-              <i className="bi bi-people"></i>
-              Tenants
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/payments")}>
-              <i className="bi bi-currency-dollar"></i>
-              Payments
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/owner/maintenance")}
-            >
-              <i className="bi bi-wrench-adjustable"></i>
-              Maintenance
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/owner/complaints")}
-            >
-              <i className="bi bi-journal-text"></i>
-              Complaints
-            </div>
-
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 500,
-              }}
-            >
-              <i className="bi bi-file-earmark-text"></i>
-              Document
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/notification")}>
-              <i className="bi bi-bell"></i>
-              Notification
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/report")}>
-              <i className="bi bi-bar-chart"></i>
-              Report
-            </div>
-          </div>
-        </div>
-
-        {/* Main content */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          {/* Form card */}
-          <div
-            style={{
-              backgroundColor: "#ccffcc",
-              padding: "30px",
-              borderRadius: "18px",
-              width: "520px",
-              border: "1px solid #6aa84f",
-            }}
-          >
-            {/* Facility */}
-            <label style={label}>Facility</label>
-            <input style={{ ...input, width: "140px" }} />
-
-            {/* Description */}
-            <label style={label}>Description</label>
-            <textarea
-              style={{
-                ...input,
-                height: "90px",
-                resize: "none",
-              }}
-            />
-
-            {/* Date */}
-            <label style={label}>Scheduled Date</label>
-            <input type="date" style={{ ...input, width: "160px" }} />
-
-            {/* Actions */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "12px",
-                marginTop: "24px",
-              }}
-            >
-              <button
-                style={cancelBtn}
-                onClick={() => navigate("/owner/maintenance")}
-              >
-                Cancel
-              </button>
-
-              <button style={saveBtn}>Save</button>
-            </div>
-          </div>
-        </div>
+          </form>
+        </Card>
       </div>
-
-      {/* Footer */}
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+    </DashboardLayout>
   );
 }
-
-/* ---------- styles ---------- */
-
-const label = {
-  display: "block",
-  fontWeight: 600,
-  marginTop: "14px",
-  marginBottom: "6px",
-};
-
-const input = {
-  width: "100%",
-  padding: "6px",
-  border: "1px solid #000",
-  backgroundColor: "#e0e0e0",
-};
-
-const cancelBtn = {
-  padding: "6px 14px",
-  borderRadius: "6px",
-  border: "1px solid #000",
-  backgroundColor: "white",
-  cursor: "pointer",
-};
-
-const saveBtn = {
-  padding: "6px 18px",
-  borderRadius: "6px",
-  border: "none",
-  backgroundColor: "#0b3d02",
-  color: "white",
-  cursor: "pointer",
-};
 
 export default OwnerUploadDocument;

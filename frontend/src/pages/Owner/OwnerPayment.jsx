@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { Button, Card } from "../../components/FormElements";
 import { getPayments, updatePayment, deletePayment } from "../../services/api";
+import { formatDate } from "../../utils/formatters";
 
 function StatCard({ title, subtitle, value, icon, color }) {
   return (
@@ -24,10 +25,42 @@ function OwnerPayment() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: 'paid_date', direction: 'desc' });
 
   useEffect(() => {
     fetchPayments();
   }, []);
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedPayments = [...payments].sort((a, b) => {
+    let valA = a[sortConfig.key];
+    let valB = b[sortConfig.key];
+    if (valA === null) return 1;
+    if (valB === null) return -1;
+    if (sortConfig.key === 'amount') return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+    if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const SortHeader = ({ label, sortKey }) => (
+    <th 
+      style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)", cursor: "pointer", userSelect: "none" }}
+      onClick={() => handleSort(sortKey)}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+        {label}
+        <i className={`bi bi-arrow-${sortConfig.key === sortKey ? (sortConfig.direction === 'asc' ? 'up' : 'down') : 'down-up'}`} style={{ fontSize: "10px", opacity: sortConfig.key === sortKey ? 1 : 0.3 }}></i>
+      </div>
+    </th>
+  );
 
   const fetchPayments = async () => {
     setLoading(true);
@@ -38,8 +71,8 @@ function OwnerPayment() {
       console.error("Failed to fetch payments:", error);
       // Fallback for demo
       setPayments([
-          { id: 1, invoice_no: "INV-2026-001", tenantName: "Karthik", houseAddress: "H001", paid_date: "2026-09-01", amount: 10000, status: "Paid", payment_method: "Online" },
-          { id: 2, invoice_no: "INV-2026-002", tenantName: "Jack Brown", houseAddress: "H002", paid_date: null, amount: 17000, status: "Pending", payment_method: "-" },
+        { id: 1, invoice_no: "INV-2026-001", TenantName: "Karthik", houseAddress: "H001", paid_date: "2026-09-01", amount: 10000, status: "Paid", payment_method: "Online" },
+        { id: 2, invoice_no: "INV-2026-002", TenantName: "Jack Brown", houseAddress: "H002", paid_date: null, amount: 17000, status: "Pending", payment_method: "-" },
       ]);
     } finally {
       setLoading(false);
@@ -50,26 +83,26 @@ function OwnerPayment() {
     if (!window.confirm("Are you sure you want to delete this payment record?")) return;
     setActionLoading(true);
     try {
-        await deletePayment(id);
-        setPayments(payments.filter(p => p.id !== id));
+      await deletePayment(id);
+      setPayments(payments.filter(p => p.id !== id));
     } catch (error) {
-        console.error("Failed to delete payment:", error);
-        alert("Action failed: " + error.message);
+      console.error("Failed to delete payment:", error);
+      alert("Action failed: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
   const handleStatusUpdate = async (id, status) => {
     setActionLoading(true);
     try {
-        await updatePayment(id, { status });
-        setPayments(payments.map(p => p.id === id ? { ...p, status, paid_date: status === 'Paid' ? new Date().toISOString() : null } : p));
+      await updatePayment(id, { status });
+      setPayments(payments.map(p => p.id === id ? { ...p, status, paid_date: status === 'Paid' ? new Date().toISOString() : null } : p));
     } catch (error) {
-        console.error("Failed to update status:", error);
-        alert("Action failed: " + error.message);
+      console.error("Failed to update status:", error);
+      alert("Action failed: " + error.message);
     } finally {
-        setActionLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -83,16 +116,12 @@ function OwnerPayment() {
     <DashboardLayout
       role="owner"
       title="Financial Management"
-      userName="Suresh Kumar"
-      userInitials="SK"
-      userRoleLabel="Property Owner"
-    >
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
+      headerAction={
         <Button variant="primary" onClick={() => navigate("/owner/generate-receipts")}>
-           <i className="bi bi-receipt"></i> Generate Bulk Invoices
+          <i className="bi bi-receipt"></i> Generate Bulk Invoices
         </Button>
-      </div>
-
+      }
+    >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "40px" }}>
         <StatCard title="Total Collected" value={loading ? "..." : `Rs. ${totalCollected.toLocaleString()}`} subtitle="Year to Date" icon="bi-currency-dollar" color="#1a4d2e" />
         <StatCard title="Total Outstanding" value={loading ? "..." : `Rs. ${totalOutstanding.toLocaleString()}`} subtitle={`${unpaidPayments.length} Units`} icon="bi-clock-history" color="#e67e22" />
@@ -100,33 +129,41 @@ function OwnerPayment() {
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "30px" }}>
-        <Card title="Payment History" subtitle="List of all recently recorded transactions.">
+        <Card 
+          title="Payment History"
+          headerAction={
+            <span style={{ fontSize: "11px", color: "var(--text-muted)", backgroundColor: "#f8f9fa", padding: "4px 12px", borderRadius: "20px", display: "flex", alignItems: "center", gap: "6px", border: "1px solid #eee" }}>
+              <i className="bi bi-info-circle-fill" style={{ color: "var(--primary)" }}></i>
+              Click column headers to sort
+            </span>
+          }
+        >
           {loading ? (
-              <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading payments...</p>
+            <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading payments...</p>
           ) : (
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
-                    <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Invoice</th>
-                    <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Tenant</th>
-                    <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>House</th>
-                    <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
-                    <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Amount</th>
+                    <SortHeader label="Invoice" sortKey="invoice_no" />
+                    <SortHeader label="Tenant" sortKey="TenantName" />
+                    <SortHeader label="House" sortKey="houseCode" />
+                    <SortHeader label="Date" sortKey="paid_date" />
+                    <SortHeader label="Amount" sortKey="amount" />
                     <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Status</th>
                     <th style={{ padding: "12px", textAlign: "right" }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.map((p, i) => (
+                  {sortedPayments.map((p, i) => (
                     <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
                       <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>{p.invoice_no}</td>
-                      <td style={{ padding: "12px", fontSize: "14px" }}>{p.tenantName || 'N/A'}</td>
-                      <td style={{ padding: "12px", fontSize: "14px" }}>{p.houseAddress || 'N/A'}</td>
-                      <td style={{ padding: "12px", fontSize: "14px" }}>{p.paid_date ? new Date(p.paid_date).toLocaleDateString() : '-'}</td>
+                      <td style={{ padding: "12px", fontSize: "14px" }}>{p.TenantName || 'N/A'}</td>
+                      <td style={{ padding: "12px", fontSize: "14px" }}>{p.houseCode || 'N/A'}</td>
+                      <td style={{ padding: "12px", fontSize: "14px" }}>{p.paid_date ? formatDate(p.paid_date) : '-'}</td>
                       <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>Rs. {parseFloat(p.amount).toLocaleString()}</td>
                       <td style={{ padding: "12px" }}>
-                        <span style={{ 
+                        <span style={{
                           padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
                           backgroundColor: p.status === "Paid" ? "#e2f2e5" : "#fff5f5",
                           color: p.status === "Paid" ? "#1a4d2e" : "#e03131",
@@ -136,38 +173,38 @@ function OwnerPayment() {
                         </span>
                       </td>
                       <td style={{ padding: "12px", textAlign: "right" }}>
-                         <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-                            {p.status !== "Paid" && (
-                              <button 
-                                onClick={() => handleStatusUpdate(p.id, "Paid")}
-                                style={{ background: "none", border: "none", cursor: "pointer", color: "#1a4d2e" }}
-                                title="Mark as Paid"
-                                disabled={actionLoading}
-                              >
-                                <i className="bi bi-check-circle-fill"></i>
-                              </button>
-                            )}
-                            <button 
-                              onClick={() => navigate(`/owner/payments/edit/${p.id}`)}
-                               style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
-                               title="Edit"
+                        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                          {p.status !== "Paid" && (
+                            <button
+                              onClick={() => handleStatusUpdate(p.id, "Paid")}
+                              style={{ background: "none", border: "none", cursor: "pointer", color: "#1a4d2e" }}
+                              title="Mark as Paid"
+                              disabled={actionLoading}
                             >
-                               <i className="bi bi-pencil-square"></i>
+                              <i className="bi bi-check-circle-fill"></i>
                             </button>
-                            <button 
-                               onClick={() => handleDelete(p.id)}
-                               style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
-                               title="Delete"
-                               disabled={actionLoading}
-                            >
-                               <i className="bi bi-trash"></i>
-                            </button>
-                         </div>
+                          )}
+                          <button
+                            onClick={() => navigate(`/owner/payments/edit/${p.id}`)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                            title="Edit"
+                          >
+                            <i className="bi bi-pencil-square"></i>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(p.id)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
+                            title="Delete"
+                            disabled={actionLoading}
+                          >
+                            <i className="bi bi-trash"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
                   {payments.length === 0 && (
-                      <tr><td colSpan="7" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>No payments found.</td></tr>
+                    <tr><td colSpan="7" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>No payments found.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -176,36 +213,36 @@ function OwnerPayment() {
         </Card>
 
         {unpaidPayments.length > 0 && (
-            <Card title="Outstanding Balances" subtitle="Payments that are currently due/overdue.">
+          <Card title="Outstanding Balances" subtitle="Payments that are currently due/overdue.">
             <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                    <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
+                  <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
                     <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Invoice</th>
                     <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Tenant</th>
                     <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>House</th>
                     <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Amount</th>
                     <th style={{ padding: "12px" }}></th>
-                    </tr>
+                  </tr>
                 </thead>
                 <tbody>
-                    {unpaidPayments.map((p, i) => (
+                  {unpaidPayments.map((p, i) => (
                     <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                        <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>{p.invoice_no}</td>
-                        <td style={{ padding: "12px", fontSize: "14px" }}>{p.tenantName || 'N/A'}</td>
-                        <td style={{ padding: "12px", fontSize: "14px" }}>{p.houseAddress || 'N/A'}</td>
-                        <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>Rs. {parseFloat(p.amount).toLocaleString()}</td>
-                        <td style={{ padding: "12px", textAlign: "right" }}>
-                        <Button variant="secondary" onClick={() => alert("Reminder sent to " + p.tenantName)} disabled={actionLoading}>
-                            <i className="bi bi-bell"></i> Remind
+                      <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>{p.invoice_no}</td>
+                      <td style={{ padding: "12px", fontSize: "14px" }}>{p.TenantName || 'N/A'}</td>
+                      <td style={{ padding: "12px", fontSize: "14px" }}>{p.houseCode || 'N/A'}</td>
+                      <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>Rs. {parseFloat(p.amount).toLocaleString()}</td>
+                      <td style={{ padding: "12px", textAlign: "right" }}>
+                        <Button variant="secondary" onClick={() => alert("Reminder sent to " + p.TenantName)} disabled={actionLoading}>
+                          <i className="bi bi-bell"></i> Remind
                         </Button>
-                        </td>
+                      </td>
                     </tr>
-                    ))}
+                  ))}
                 </tbody>
-                </table>
+              </table>
             </div>
-            </Card>
+          </Card>
         )}
       </div>
     </DashboardLayout>

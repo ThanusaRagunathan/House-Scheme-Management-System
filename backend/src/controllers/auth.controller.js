@@ -1,7 +1,34 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { findUserByUsername, createUser, findUserByPhone, updatePassword } from "../models/user.model.js";
+import { findUserByUsername, createUser, findUserByPhone, updatePassword, findUserById, updateUser } from "../models/user.model.js";
 import { ApiError } from "../middleware/error.middleware.js";
+
+export const getProfile = async (req, res, next) => {
+  try {
+    const user = await findUserById(req.user.id);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+    // Don't send password
+    const { password, ...userData } = user;
+    res.json(userData);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateProfile = async (req, res, next) => {
+  try {
+    const { username, phone } = req.body;
+    const success = await updateUser(req.user.id, { username, phone });
+    if (!success) {
+      throw new ApiError(500, "Failed to update profile");
+    }
+    res.json({ message: "Profile updated successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
 
 const otpStore = new Map(); // Store OTP details in-memory: Map<phone, {otp, expiry, userId}>
 
@@ -18,13 +45,17 @@ export const login = async (req, res, next) => {
       throw new ApiError(401, "Invalid credentials");
     }
 
+    if (user.isFirstLogin) {
+      return res.status(403).json({ message: "Password reset required" });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new ApiError(401, "Invalid credentials");
     }
 
     const token = jwt.sign(
-      { id: user.user_id, role: user.role },
+      { id: user.user_id, username: user.username, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
@@ -37,7 +68,7 @@ export const login = async (req, res, next) => {
 
 export const register = async (req, res, next) => {
   try {
-    const { username, password, role } = req.body;
+    const { username, password, role, email, phone } = req.body;
 
     if (!username || !password || !role) {
       throw new ApiError(400, "Missing required fields");
@@ -49,7 +80,7 @@ export const register = async (req, res, next) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const userId = await createUser(username, hashedPassword, role);
+    const userId = await createUser(username, hashedPassword, role, email, phone);
 
     res.status(201).json({ message: "User created successfully", userId });
   } catch (error) {
@@ -85,40 +116,19 @@ export const forgotPassword = async (req, res, next) => {
 
 export const resetPassword = async (req, res, next) => {
   try {
-    const { phone, otp, newPassword } = req.body;
+    const { userId, newPassword } = req.body;
 
-    if (!phone || !otp || !newPassword) {
-      throw new ApiError(400, "Phone, OTP, and new password are required");
-    }
-
-    const record = otpStore.get(phone);
-    if (!record) {
-      throw new ApiError(400, "No OTP requested for this phone number");
-    }
-
-    if (Date.now() > record.expiry) {
-      otpStore.delete(phone);
-      throw new ApiError(400, "OTP has expired");
-    }
-
-    if (record.otp !== otp) {
-      throw new ApiError(400, "Invalid OTP");
-    }
-
-    // Password validation: min 8 chars, uppercase, lowercase, numbers, symbols
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{}|\\:;"'<>,.?/~`]).{8,}$/;
-    if (!passwordRegex.test(newPassword)) {
-      throw new ApiError(400, "Password must be at least 8 characters long, incorporating uppercase, lowercase, numbers, and symbols");
+    if (!userId || !newPassword) {
+      throw new ApiError(400, "Missing required fields");
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const success = await updatePassword(record.userId, hashedPassword);
 
-    if (!success) {
-      throw new ApiError(500, "Failed to update password");
-    }
+    await db.query(
+      "UPDATE users SET password = ?, isFirstLogin = FALSE WHERE user_id = ?",
+      [hashedPassword, userId]
+    );
 
-    otpStore.delete(phone); // Clear OTP after success
     res.json({ message: "Password reset successful" });
   } catch (error) {
     next(error);

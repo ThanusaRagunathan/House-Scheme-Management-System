@@ -69,17 +69,13 @@ function TreasurerDocuments() {
   return (
     <DashboardLayout
       role="treasurer"
-      title="Financial Archive"
-      userName="Aravinth"
-      userInitials="AR"
-      userRoleLabel="Chief Treasurer"
-    >
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
-        <Button variant="primary" onClick={() => navigate("/treasurer/uploaddocument")} disabled={actionLoading}>
-          <i className="bi bi-cloud-upload"></i> Upload Document
+      title={`Document Management ${!loading ? `(${documents.length})` : ''}`}
+      headerAction={
+        <Button variant="primary" onClick={() => navigate("/treasurer/addDocument")} disabled={actionLoading}>
+          <i className="bi bi-plus-circle"></i> Add Document
         </Button>
-      </div>
-
+      }
+    >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "40px" }}>
         <SummaryCard title="Total Files" value={loading ? "..." : documents.length} icon="bi-files" color="var(--primary)" />
         <SummaryCard title="Agreements" value={loading ? "..." : agreementCount} icon="bi-file-earmark-check" color="#3498db" />
@@ -96,6 +92,7 @@ function TreasurerDocuments() {
               <thead>
                 <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Name</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>House / Facility</th>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Type</th>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Uploaded By</th>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
@@ -106,7 +103,11 @@ function TreasurerDocuments() {
               <tbody>
                 {documents.map((d, i) => (
                   <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>{d.document_name}</td>
+                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "500", color: "#1a4d2e" }}>
+                      <i className="bi bi-file-earmark-text" style={{ marginRight: "10px", color: "var(--text-muted)" }}></i>
+                      {d.document_name}
+                    </td>
+                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "500", color: "var(--primary)" }}>{d.house_code ? d.house_code : (d.facility || 'General')}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{d.document_type}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{d.uploadedBy || 'System'}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{new Date(d.upload_date).toLocaleDateString()}</td>
@@ -121,7 +122,7 @@ function TreasurerDocuments() {
                             <i className="bi bi-download"></i>
                           </button>
                           <button 
-                            onClick={() => handleDelete(d.id)}
+                            onClick={() => handleDelete(d.document_id || d.id)}
                             style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
                             title="Delete"
                             disabled={actionLoading}

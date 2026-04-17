@@ -54,9 +54,9 @@ function TenantMaintenance() {
 
   return (
     <DashboardLayout
-      role="tenant"
+      role="Tenant"
       title="Maintenance Schedule"
-      userName={profile?.username || "Resident"}
+      userName={profile?.username || "Tenant"}
       userInitials={profile?.username?.charAt(0) || "R"}
       userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
     >
@@ -87,7 +87,7 @@ function TenantMaintenance() {
                     <td style={{ padding: "15px 10px", fontSize: "14px", color: "#555" }}>{m.description}</td>
                     <td style={{ padding: "15px 10px", fontSize: "14px" }}>{new Date(m.date).toLocaleDateString()}</td>
                     <td style={{ padding: "15px 10px" }}>
-                      <span style={{ 
+                      <span style={{
                         padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
                         backgroundColor: m.status === 'Completed' ? "#e2f2e5" : (m.status === 'Scheduled' ? "#e3f2fd" : "#fff8e1"),
                         color: m.status === 'Completed' ? "#1a4d2e" : (m.status === 'Scheduled' ? "#1976d2" : "#f57c00"),
@@ -120,8 +120,8 @@ function TenantMaintenance() {
             <div style={{ fontSize: "14px", fontWeight: "700" }}>Notice an issue within your unit?</div>
             <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>Individual house maintenance should be requested via the Complaints portal.</div>
           </div>
-          <button 
-            onClick={() => navigate('/tenant/addcomplaint')}
+          <button
+            onClick={() => navigate('/Tenant/addcomplaint')}
             style={{ marginLeft: "auto", padding: "8px 16px", borderRadius: "8px", border: "1px solid #ddd", background: "white", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}
           >
             Go to Complaints

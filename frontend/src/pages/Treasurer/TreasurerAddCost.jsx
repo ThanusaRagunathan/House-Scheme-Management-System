@@ -1,222 +1,113 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Input, Button, Card, Select } from "../../components/FormElements";
+import { createMaintenance } from "../../services/api";
 
 function TreasurerAddCost() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  
+  const [formData, setFormData] = useState({
+    facility: "",
+    description: "",
+    cost: "",
+    date: new Date().toISOString().split('T')[0],
+    status: "Completed"
+  });
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#111",
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      await createMaintenance({
+        ...formData,
+        cost: parseFloat(formData.cost)
+      });
+      navigate("/treasurer/maintenance");
+    } catch (err) {
+      setError(err.message || "Failed to record expense");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "42px",
-          fontWeight: 600,
-        }}
-      >
-        Add cost
-      </header>
-
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "240px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          {/* Sidebar header */}
-          <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-currency-dollar"></i>
-            </div>
-            <div>
-              <div style={{ fontWeight: 600 }}>Financial manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Treasurer Portal
-              </div>
-            </div>
+    <DashboardLayout role="treasurer" title="Record Household Cost">
+      <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+        {error && (
+          <div style={{ backgroundColor: "#fff5f5", color: "#e03131", padding: "15px", borderRadius: "10px", marginBottom: "20px", border: "1px solid #ffc9c9" }}>
+            {error}
           </div>
+        )}
 
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/overview")}>
-              <i className="bi bi-map"></i> Overview
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/houses")}>
-              <i className="bi bi-house"></i> Houses
-            </div>
-            <div style={menuItemStyle}>
-              <i className="bi bi-people"></i> Tenants
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/payments")}>
-              <i className="bi bi-currency-dollar"></i> Payments
-            </div>
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 600,
-              }}
-            >
-              <i className="bi bi-wrench-adjustable"></i> Maintenance
-            </div>
-            <div style={menuItemStyle}>
-              <i className="bi bi-journal-text"></i> Complaints
-            </div>
-            <div style={menuItemStyle}>
-              <i className="bi bi-file-earmark-text"></i> Document
-            </div>
-            <div style={menuItemStyle}>
-              <i className="bi bi-bell"></i> Notification
-            </div>
-            <div style={menuItemStyle}>
-              <i className="bi bi-bar-chart"></i> Report
-            </div>
-          </div>
-        </div>
-
-        {/* Main content */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
+        <Card 
+          title="Expense Entry" 
+          subtitle="Record maintenance, utility, or other common costs paid by the treasury."
         >
-          {/* Form Card */}
-          <div
-            style={{
-              backgroundColor: "#ccffcc",
-              padding: "30px",
-              borderRadius: "18px",
-              width: "460px",
-              border: "1px solid #6aa84f",
-            }}
-          >
-            {/* Facility + Description */}
-            <div style={{ display: "flex", gap: "16px" }}>
-              <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Facility</label>
-                <input style={inputStyle} />
-              </div>
-              <div style={{ flex: 2 }}>
-                <label style={labelStyle}>Description</label>
-                <input style={inputStyle} />
-              </div>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+              <Input
+                label="Facility / Item"
+                placeholder="e.g. Community Gate"
+                value={formData.facility}
+                onChange={(e) => setFormData({ ...formData, facility: e.target.value })}
+                required
+              />
+              <Input
+                label="Amount (Rs.)"
+                type="number"
+                placeholder="0.00"
+                value={formData.cost}
+                onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
+                required
+              />
             </div>
 
-            {/* Amount */}
-            <label style={labelStyle}>Amount</label>
-            <input style={{ ...inputStyle, width: "100px" }} />
-
-            {/* Payment mode */}
-            <div style={{ display: "flex", gap: "12px", marginTop: "18px" }}>
-              <button style={activeToggle}>Offline payment</button>
-              <button style={toggle}>Online payment</button>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+              <Input
+                label="Date of Payment"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                required
+              />
+              <Select
+                label="Category Status"
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                options={[
+                  { label: "Completed", value: "Completed" },
+                  { label: "Pending", value: "Pending" },
+                  { label: "Planned", value: "Planned" }
+                ]}
+              />
             </div>
 
-            {/* Actions */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "12px",
-                marginTop: "24px",
-              }}
-            >
-              <button style={cancelBtn} onClick={() => navigate(-1)}>
+            <Input
+              label="Detailed Description"
+              placeholder="Provide more context about this expense..."
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              required
+            />
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "30px", paddingTop: "20px", borderTop: "1px solid #eee" }}>
+              <Button variant="secondary" onClick={() => navigate("/treasurer/maintenance")} disabled={loading}>
                 Cancel
-              </button>
-              <button style={saveBtn}>Continue</button>
+              </Button>
+              <Button variant="primary" type="submit" loading={loading}>
+                Save Expense
+              </Button>
             </div>
-          </div>
-        </div>
+          </form>
+        </Card>
       </div>
-
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+    </DashboardLayout>
   );
 }
-
-/* ---------- Styles ---------- */
-
-const labelStyle = {
-  display: "block",
-  fontWeight: 600,
-  marginTop: "14px",
-  marginBottom: "6px",
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "6px",
-  border: "1px solid #000",
-  backgroundColor: "#e0e0e0",
-};
-
-const toggle = {
-  padding: "6px 14px",
-  borderRadius: "6px",
-  border: "1px solid #000",
-  backgroundColor: "white",
-  cursor: "pointer",
-};
-
-const activeToggle = {
-  ...toggle,
-  backgroundColor: "black",
-  color: "white",
-};
-
-const cancelBtn = {
-  padding: "6px 14px",
-  borderRadius: "6px",
-  border: "1px solid #000",
-  backgroundColor: "white",
-  cursor: "pointer",
-};
-
-const saveBtn = {
-  padding: "6px 18px",
-  borderRadius: "6px",
-  border: "none",
-  backgroundColor: "#0b3d02",
-  color: "white",
-  cursor: "pointer",
-};
 
 export default TreasurerAddCost;

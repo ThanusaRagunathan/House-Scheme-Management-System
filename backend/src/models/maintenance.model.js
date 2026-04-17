@@ -1,22 +1,29 @@
 import db from "../config/db.js";
 
 export const getAllMaintenance = async (houseId = null) => {
-  let query = "SELECT * FROM maintenance_tasks";
+  let query = `
+    SELECT m.*, h.reference_code AS house_code
+    FROM maintenance_tasks m
+    LEFT JOIN houses h ON m.house_id = h.house_id
+  `;
   const params = [];
   
   if (houseId) {
-    query += " WHERE house_id = ?";
+    query += " WHERE m.house_id = ?";
     params.push(houseId);
   }
   
-  query += " ORDER BY scheduled_date DESC";
+  query += " ORDER BY m.scheduled_date DESC";
   const [rows] = await db.query(query, params);
   return rows;
 };
 
 export const getMaintenanceById = async (taskId) => {
   const [rows] = await db.query(
-    "SELECT * FROM maintenance_tasks WHERE task_id = ?",
+    `SELECT m.*, h.reference_code AS house_code 
+     FROM maintenance_tasks m 
+     LEFT JOIN houses h ON m.house_id = h.house_id 
+     WHERE m.task_id = ?`,
     [taskId]
   );
   return rows[0];

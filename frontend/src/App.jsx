@@ -22,6 +22,9 @@ import OwnerMaintenanceDetail from "./pages/Owner/OwnerMaintenanceDetail";
 import OwnerEditHouse from "./pages/Owner/OwnerEditHouse";
 import OwnerEditTenant from "./pages/Owner/OwnerEditTenant";
 import OwnerEditMaintenance from "./pages/Owner/OwnerEditMaintenance";
+import OwnerAddNotification from "./pages/Owner/OwnerAddNotification";
+import OwnerSendReminder from "./pages/Owner/OwnerSendReminder";
+import OwnerDrafts from "./pages/Owner/OwnerDrafts";
 import TenantOverview from "./pages/Tenant/TenantOverview";
 import TenantPayment from "./pages/Tenant/TenantPayments";
 import TenantMaintenance from "./pages/Tenant/TenantMaintenance";
@@ -50,60 +53,73 @@ import TreasurerComplaintDetail from "./pages/Treasurer/TreasurerComplaintDetail
 import TreasurerPaymentDetail from "./pages/Treasurer/TreasurerPaymentDetail";
 import TreasurerMaintenanceDetail from "./pages/Treasurer/TreasurerMaintenanceDetail";
 
+import Profile from "./pages/Profile";
+import TreasurerEditTenant from "./pages/Treasurer/TreasurerEditTenant";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/owner/overview" element={<OwnerOverview />} />
-      <Route path="/owner/houses" element={<OwnerHouses />} />
-      <Route path="/owner/tenants" element={<OwnerTenant />} />
-      <Route path="/owner/payments" element={<OwnerPayment />} />
-      <Route path="/owner/maintenance" element={<OwnerMaintenance />} />
-      <Route path="/owner/complaints" element={<OwnerComplaints />} />
-      <Route path="/owner/documents" element={<OwnerDocument />} />
-      <Route path="/owner/notification" element={<OwnerNotification />} />
-      <Route path="/owner/report" element={<OwnerReport />} />
-      <Route path="/owner/addtenant" element={<OwnerAddTenant />} />
-      <Route path="/owner/addhouse" element={<OwnerAddHouses />} />
-      <Route path="/owner/createtask" element={<OwnerCreateTask />} />
-      <Route path="/owner/uploaddocument" element={<OwnerUploadDocument />} />
-      <Route path="/owner/houses/:id" element={<OwnerHouseDetail />} />
-      <Route path="/owner/tenants/:id" element={<OwnerTenantDetail />} />
-      <Route path="/owner/complaints/:id" element={<OwnerComplaintDetail />} />
-      <Route path="/owner/maintenance/:id" element={<OwnerMaintenanceDetail />} />
-      <Route path="/owner/houses/edit/:id" element={<OwnerEditHouse />} />
-      <Route path="/owner/tenants/edit/:id" element={<OwnerEditTenant />} />
-      <Route path="/owner/maintenance/edit/:id" element={<OwnerEditMaintenance />} />
-      <Route path="/tenant/overview" element={<TenantOverview />} />
-      <Route path="/tenant/payments" element={<TenantPayment />} />
-      <Route path="/tenant/maintenance" element={<TenantMaintenance />} />
-      <Route path="/tenant/complaints" element={<TenantComplaints />} />
-      <Route path="/tenant/documents" element={<TenantDocument />} />
-      <Route path="/tenant/notification" element={<TenantNotification />} />
-      <Route path="/tenant/addpayment" element={<TenantAddPayment />} />
-      <Route path="/tenant/addcomplaint" element={<TenantAddComplaints />} />
-      <Route path="/tenant/complaints/:id" element={<TenantComplaintDetail />} />
-      <Route path="/treasurer/overview" element={<TreasurerOverview />} />
-      <Route path="/treasurer/payments" element={<TreasurerPayment />} />
-      <Route path="/treasurer/maintenance" element={<TreasurerMaintenance />} />
-      <Route path="/treasurer/complaints" element={<TreasurerComplaints />} />
-      <Route path="/treasurer/documents" element={<TreasurerDocument />} />
-      <Route path="/treasurer/notifications" element={<TreasurerNotification />} />
-      <Route path="/treasurer/addpayment" element={<TreasurerAddPayment />} />
-      <Route path="/treasurer/addcost" element={<TreasurerAddCost />} />
-      <Route path="/treasurer/addnotification" element={<TreasurerAddNotification />} />
-      <Route path="/treasurer/houses" element={<TreasurerHouses />} />
-      <Route path="/treasurer/reports" element={<TreasurerReports />} />
-      <Route path="/treasurer/tenants" element={<TreasurerTenants />} />
-      <Route path="/treasurer/uploaddocument" element={<TreasurerUploadDocuments />} />
-      <Route path="/treasurer/houses/:id" element={<TreasurerHouseDetail />} />
-      <Route path="/treasurer/tenants/:id" element={<TreasurerTenantDetail />} />
-      <Route path="/treasurer/complaints/:id" element={<TreasurerComplaintDetail />} />
-      <Route path="/treasurer/payments/:id" element={<TreasurerPaymentDetail />} />
-      <Route path="/treasurer/maintenance/:id" element={<TreasurerMaintenanceDetail />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+
+        <Route path="/owner/overview" element={<OwnerOverview />} />
+        <Route path="/owner/profile" element={<Profile />} />
+        <Route path="/owner/houses" element={<OwnerHouses />} />
+        <Route path="/owner/Tenants" element={<OwnerTenant />} />
+        <Route path="/owner/payments" element={<OwnerPayment />} />
+        <Route path="/owner/maintenance" element={<OwnerMaintenance />} />
+        <Route path="/owner/complaints" element={<OwnerComplaints />} />
+        <Route path="/owner/documents" element={<OwnerDocument />} />
+        <Route path="/owner/notification" element={<OwnerNotification />} />
+        <Route path="/owner/addnotification" element={<OwnerAddNotification />} />
+        <Route path="/owner/sendreminder" element={<OwnerSendReminder />} />
+        <Route path="/owner/drafts" element={<OwnerDrafts />} />
+        <Route path="/owner/report" element={<OwnerReport />} />
+        <Route path="/owner/addTenant" element={<OwnerAddTenant />} />
+        <Route path="/owner/addhouse" element={<OwnerAddHouses />} />
+        <Route path="/owner/createtask" element={<OwnerCreateTask />} />
+        <Route path="/owner/uploaddocument" element={<OwnerUploadDocument />} />
+        <Route path="/owner/houses/:id" element={<OwnerHouseDetail />} />
+        <Route path="/owner/Tenants/:id" element={<OwnerTenantDetail />} />
+        <Route path="/owner/complaints/:id" element={<OwnerComplaintDetail />} />
+        <Route path="/owner/maintenance/:id" element={<OwnerMaintenanceDetail />} />
+        <Route path="/owner/houses/edit/:id" element={<OwnerEditHouse />} />
+        <Route path="/owner/Tenants/edit/:id" element={<OwnerEditTenant />} />
+        <Route path="/owner/maintenance/edit/:id" element={<OwnerEditMaintenance />} />
+
+        <Route path="/Tenant/overview" element={<TenantOverview />} />
+        <Route path="/Tenant/profile" element={<Profile />} />
+        <Route path="/Tenant/payments" element={<TenantPayment />} />
+        <Route path="/Tenant/maintenance" element={<TenantMaintenance />} />
+        <Route path="/Tenant/complaints" element={<TenantComplaints />} />
+        <Route path="/Tenant/documents" element={<TenantDocument />} />
+        <Route path="/Tenant/notification" element={<TenantNotification />} />
+        <Route path="/Tenant/addpayment" element={<TenantAddPayment />} />
+        <Route path="/Tenant/addcomplaint" element={<TenantAddComplaints />} />
+        <Route path="/Tenant/complaints/:id" element={<TenantComplaintDetail />} />
+
+        <Route path="/treasurer/overview" element={<TreasurerOverview />} />
+        <Route path="/treasurer/profile" element={<Profile />} />
+        <Route path="/treasurer/payments" element={<TreasurerPayment />} />
+        <Route path="/treasurer/maintenance" element={<TreasurerMaintenance />} />
+        <Route path="/treasurer/complaints" element={<TreasurerComplaints />} />
+        <Route path="/treasurer/documents" element={<TreasurerDocument />} />
+        <Route path="/treasurer/notifications" element={<TreasurerNotification />} />
+        <Route path="/treasurer/addpayment" element={<TreasurerAddPayment />} />
+        <Route path="/treasurer/addcost" element={<TreasurerAddCost />} />
+        <Route path="/treasurer/addnotification" element={<TreasurerAddNotification />} />
+        <Route path="/treasurer/houses" element={<TreasurerHouses />} />
+        <Route path="/treasurer/reports" element={<TreasurerReports />} />
+        <Route path="/treasurer/Tenants" element={<TreasurerTenants />} />
+        <Route path="/treasurer/uploaddocument" element={<TreasurerUploadDocuments />} />
+        <Route path="/treasurer/houses/:id" element={<TreasurerHouseDetail />} />
+        <Route path="/treasurer/Tenants/:id" element={<TreasurerTenantDetail />} />
+        <Route path="/treasurer/Tenants/edit/:id" element={<TreasurerEditTenant />} />
+        <Route path="/treasurer/complaints/:id" element={<TreasurerComplaintDetail />} />
+        <Route path="/treasurer/payments/:id" element={<TreasurerPaymentDetail />} />
+        <Route path="/treasurer/maintenance/:id" element={<TreasurerMaintenanceDetail />} />
       </Routes>
     </BrowserRouter>
   );

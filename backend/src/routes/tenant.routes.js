@@ -1,14 +1,14 @@
 import express from "express";
-import * as tenantController from "../controllers/tenant.controller.js";
+import * as TenantController from "../controllers/Tenant.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.get("/", verifyToken, tenantController.getAllTenants);
-router.get("/profile", verifyToken, tenantController.getTenantProfile);
-router.get("/:id", verifyToken, tenantController.getTenantById);
-router.post("/", verifyToken, tenantController.createTenant);
-router.put("/:id", verifyToken, tenantController.updateTenant);
-router.delete("/:id", verifyToken, tenantController.deleteTenant);
+router.get("/", verifyToken, TenantController.getAllTenants);
+router.get("/profile", verifyToken, TenantController.getTenantProfile);
+router.get("/:id", verifyToken, TenantController.getTenantById);
+router.post("/", verifyToken, TenantController.createTenant);
+router.put("/:id", verifyToken, TenantController.updateTenant);
+router.delete("/:id", verifyToken, TenantController.deleteTenant);
 
 export default router;

@@ -1,22 +1,33 @@
 import db from "../config/db.js";
 
 export const getAllComplaints = async (tenancyId = null) => {
-  let query = "SELECT * FROM complaints";
+  let query = `
+    SELECT c.*, h.reference_code AS house_code, t.full_name AS tenant_name
+    FROM complaints c
+    LEFT JOIN tenancies tn ON c.tenancy_id = tn.tenancy_id
+    LEFT JOIN houses h ON tn.house_id = h.house_id
+    LEFT JOIN tenants t ON tn.tenant_id = t.tenant_id
+  `;
   const params = [];
   
   if (tenancyId) {
-    query += " WHERE tenancy_id = ?";
+    query += " WHERE c.tenancy_id = ?";
     params.push(tenancyId);
   }
   
-  query += " ORDER BY submitted_date DESC";
+  query += " ORDER BY c.submitted_date DESC";
   const [rows] = await db.query(query, params);
   return rows;
 };
 
 export const getComplaintById = async (complaintId) => {
   const [rows] = await db.query(
-    "SELECT * FROM complaints WHERE complaint_id = ?",
+    `SELECT c.*, h.reference_code AS house_code, t.full_name AS tenant_name
+     FROM complaints c
+     LEFT JOIN tenancies tn ON c.tenancy_id = tn.tenancy_id
+     LEFT JOIN houses h ON tn.house_id = h.house_id
+     LEFT JOIN tenants t ON tn.tenant_id = t.tenant_id
+     WHERE c.complaint_id = ?`,
     [complaintId]
   );
   return rows[0];

@@ -82,9 +82,9 @@ function TreasurerMaintenance() {
     <DashboardLayout
       role="treasurer"
       title="Maintenance Costs"
-      userName="Aravinth"
-      userInitials="AR"
-      userRoleLabel="Chief Treasurer"
+      
+      
+      
     >
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
         <Button variant="primary" onClick={() => navigate("/treasurer/addcost")} disabled={actionLoading}>

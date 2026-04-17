@@ -11,11 +11,11 @@ function OwnerEditMaintenance() {
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    facility: "",
+    houseId: "",
     description: "",
-    date: "",
+    scheduledDate: "",
     cost: "0",
-    status: "Pending"
+    taskStatus: "Pending"
   });
 
   useEffect(() => {
@@ -25,11 +25,11 @@ function OwnerEditMaintenance() {
         const task = tasks.find(t => String(t.id) === String(id));
         if (task) {
           setFormData({
-            facility: task.facility || "",
+            houseId: task.house_id || task.houseId || "",
             description: task.description || task.desc || "",
-            date: task.date ? task.date.split('T')[0] : "",
+            scheduledDate: task.scheduled_date ? task.scheduled_date.split('T')[0] : (task.scheduledDate ? task.scheduledDate.split('T')[0] : ""),
             cost: task.cost || "0",
-            status: task.status || "Pending"
+            taskStatus: task.task_status || task.taskStatus || task.status || "Pending"
           });
         } else {
           setError("Maintenance task not found.");
@@ -50,11 +50,10 @@ function OwnerEditMaintenance() {
 
     try {
       await updateMaintenance(id, {
-        facility: formData.facility,
         description: formData.description,
-        date: formData.date,
+        scheduledDate: formData.scheduledDate || null,
         cost: parseFloat(formData.cost) || 0,
-        status: formData.status
+        taskStatus: formData.taskStatus
       });
       navigate("/owner/maintenance");
     } catch (err) {
@@ -70,9 +69,9 @@ function OwnerEditMaintenance() {
     <DashboardLayout
       role="owner"
       title="Edit Maintenance Task"
-      userName="Suresh Kumar"
-      userInitials="SK"
-      userRoleLabel="Property Owner"
+      
+      
+      
     >
       <div style={{ maxWidth: "600px", margin: "0 auto" }}>
         {error && (
@@ -92,14 +91,6 @@ function OwnerEditMaintenance() {
           }
         >
           <form onSubmit={handleSubmit}>
-            <Input 
-              label="Affected Facility / House" 
-              placeholder="e.g. Swimming Pool or House H002" 
-              value={formData.facility}
-              onChange={(e) => setFormData({...formData, facility: e.target.value})}
-              required
-            />
-            
             <TextArea 
               label="Work Description" 
               placeholder="Describe the maintenance requirements in detail..." 
@@ -112,9 +103,8 @@ function OwnerEditMaintenance() {
               <Input 
                 label="Scheduled Date" 
                 type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({...formData, date: e.target.value})}
-                required
+                value={formData.scheduledDate}
+                onChange={(e) => setFormData({...formData, scheduledDate: e.target.value})}
               />
               
               <Input 
@@ -128,8 +118,8 @@ function OwnerEditMaintenance() {
 
             <Select 
               label="Current Status"
-              value={formData.status}
-              onChange={(e) => setFormData({...formData, status: e.target.value})}
+              value={formData.taskStatus}
+              onChange={(e) => setFormData({...formData, taskStatus: e.target.value})}
               options={[
                 { label: "Pending", value: "Pending" },
                 { label: "In Progress", value: "In Progress" },
