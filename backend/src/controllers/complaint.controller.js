@@ -47,8 +47,16 @@ export const getComplaintById = async (req, res) => {
 
 export const createComplaint = async (req, res) => {
   try {
-    const { tenancyId, title, description, status } = req.body;
-    
+    let { tenancyId, title, description, status } = req.body;
+
+    if (req.user.role === 'Tenant') {
+      const tenant = await getTenantByUserId(req.user.id);
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant record not found" });
+      }
+      tenancyId = tenant.tenancyId;
+    }
+
     if (!tenancyId || !title || !description) {
       return res.status(400).json({ message: "Missing required fields" });
     }
