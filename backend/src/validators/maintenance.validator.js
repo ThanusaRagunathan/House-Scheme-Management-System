@@ -5,5 +5,5 @@ export const maintenanceSchema = [
   body("description").trim().notEmpty().withMessage("Description is required"),
   body("scheduledDate").optional().isDate().withMessage("Valid scheduled date is required"),
   body("cost").optional().isFloat({ min: 0 }).withMessage("Cost must be a positive number"),
-  body("taskStatus").optional().isIn(["Pending", "In Progress", "Completed"]).withMessage("Invalid status")
+  body("taskStatus").optional().isIn(["Pending", "In Progress", "Completed", "Requested"]).withMessage("Invalid status")
 ];
