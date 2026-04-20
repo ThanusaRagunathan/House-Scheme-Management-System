@@ -12,8 +12,8 @@ router.get("/", verifyToken, authorize("Owner", "Treasurer", "Tenant"), maintena
 // Get specific task
 router.get("/:id", verifyToken, authorize("Owner", "Treasurer", "Tenant"), maintenanceController.getMaintenanceById);
 
-// Create task - Owners only
-router.post("/", verifyToken, authorize("Owner"), maintenanceSchema, validateRequest, maintenanceController.createMaintenance);
+// Create task - Owners and Tenants
+router.post("/", verifyToken, authorize("Owner", "Tenant"), maintenanceSchema, validateRequest, maintenanceController.createMaintenance);
 
 // Update task - Owners and Treasurers
 router.put("/:id", verifyToken, authorize("Owner", "Treasurer"), maintenanceSchema, validateRequest, maintenanceController.updateMaintenance);
