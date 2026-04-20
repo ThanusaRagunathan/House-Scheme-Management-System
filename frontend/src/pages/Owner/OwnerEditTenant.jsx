@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { Input, Button, Card, Select } from "../../components/FormElements";
-import { getTenants, updateTenant, getHouses } from "../../services/api";
+import { getTenant, updateTenant, getHouses } from "../../services/api";
 
 function OwnerEditTenant() {
   const navigate = useNavigate();
@@ -19,13 +19,14 @@ function OwnerEditTenant() {
     dob: "",
     email: ""
   });
+  const [fieldErrors, setFieldErrors] = useState({});
   const [houses, setHouses] = useState([]);
+  const [familyMembers, setFamilyMembers] = useState([]);
 
   useEffect(() => {
     const fetchTenant = async () => {
       try {
-        const Tenants = await getTenants();
-        const Tenant = Tenants.find(t => String(t.id) === String(id));
+        const Tenant = await getTenant(id);
         if (Tenant) {
           setFormData({
             fullName: Tenant.username || Tenant.name || "",
@@ -33,9 +34,19 @@ function OwnerEditTenant() {
             nic: Tenant.nic || "",
             phone: Tenant.phone || "",
             houseAllocated: Tenant.houseAddress || Tenant.houseCode || "",
-            dob: Tenant.dateOfBirth ? Tenant.dateOfBirth.split('T')[0] : "",
+            dob: Tenant.date_of_birth ? new Date(Tenant.date_of_birth).toISOString().split('T')[0] : "",
             email: Tenant.email || ""
           });
+
+          if (Tenant.familyMembers) {
+            setFamilyMembers(Tenant.familyMembers.map(m => ({
+               name: m.name || "",
+               relation: m.relation || "",
+               occupation: m.occupation || "",
+               nic: m.nic || "",
+               dob: m.date_of_birth ? m.date_of_birth.split('T')[0] : ""
+            })));
+          }
         } else {
           setError("Tenant record not found.");
         }
@@ -62,12 +73,52 @@ function OwnerEditTenant() {
     fetchHouses();
   }, [id]);
 
+  const validateForm = () => {
+    const errors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\d{10}$/;
+    const nicRegex = /^([0-9]{9}[vVxX]|[0-9]{12})$/;
+
+    if (!formData.email.trim()) errors.email = "Email is required";
+    else if (!emailRegex.test(formData.email)) errors.email = "Invalid email format";
+    
+    if (!formData.phone.trim()) errors.phone = "Phone number is required";
+    else if (!phoneRegex.test(formData.phone)) errors.phone = "Phone must be exactly 10 digits";
+
+    if (!formData.nic.trim()) errors.nic = "NIC is required";
+    else if (!nicRegex.test(formData.nic)) errors.nic = "Invalid NIC format (9 Digits + V/X or 12 Digits)";
+
+    if (!formData.dob) errors.dob = "Date of Birth is required";
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const addFamilyMember = () => {
+    setFamilyMembers([...familyMembers, { name: "", relation: "", occupation: "", nic: "", dob: "" }]);
+  };
+
+  const handleFamilyChange = (index, field, value) => {
+    const updated = [...familyMembers];
+    updated[index][field] = value;
+    setFamilyMembers(updated);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    
-    if (!/^\d{10}$/.test(formData.phone)) {
-      setError("Phone number must be exactly 10 digits (e.g. 0712345678).");
+    setFieldErrors({});
+
+    if (!validateForm()) {
+      setError("Please fix the validation errors below.");
+      // Scroll to first error
+      setTimeout(() => {
+        const firstError = document.querySelector('[aria-invalid="true"]');
+        if (firstError) {
+          firstError.focus();
+          firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
       return;
     }
 
@@ -80,7 +131,8 @@ function OwnerEditTenant() {
         houseCode: formData.houseAllocated,
         phone: formData.phone,
         nic: formData.nic,
-        email: formData.email
+        email: formData.email,
+        familyMembers: familyMembers
       };
 
       await updateTenant(id, TenantData);
@@ -130,11 +182,9 @@ function OwnerEditTenant() {
                 label="Phone Number"
                 placeholder="e.g. 0712345678"
                 value={formData.phone}
+                error={fieldErrors.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                pattern="[0-9]{10}"
                 maxLength="10"
-                minLength="10"
-                title="Phone number must be exactly 10 digits"
                 required
               />
             </div>
@@ -145,6 +195,7 @@ function OwnerEditTenant() {
                 type="email"
                 placeholder="john@example.com"
                 value={formData.email}
+                error={fieldErrors.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
               />
@@ -156,8 +207,9 @@ function OwnerEditTenant() {
               />
               <Input
                 label="NIC Number"
-                placeholder="199XXXXXXXXX"
+                placeholder="Old (901234567V) or New (199012345678)"
                 value={formData.nic}
+                error={fieldErrors.nic}
                 onChange={(e) => setFormData({ ...formData, nic: e.target.value })}
                 required
               />
@@ -182,9 +234,51 @@ function OwnerEditTenant() {
                 label="Date of Birth"
                 type="date"
                 value={formData.dob}
+                error={fieldErrors.dob}
                 onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
                 required
               />
+            </div>
+
+            <div style={{ marginTop: "30px", borderTop: "1px solid #eee", paddingTop: "20px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                <div>
+                  <h4 style={{ margin: "0", fontSize: "16px", color: "var(--text-dark)" }}>Family Members (Dependents)</h4>
+                  <p style={{ margin: "5px 0 0 0", fontSize: "13px", color: "var(--text-muted)" }}>Registered dependents living with the tenant.</p>
+                </div>
+                <Button variant="secondary" onClick={addFamilyMember} type="button" style={{ fontSize: "12px" }}>
+                  <i className="bi bi-plus-lg"></i> Add Member
+                </Button>
+              </div>
+
+              {familyMembers.length > 0 ? (
+                familyMembers.map((member, index) => (
+                  <div key={index} style={{
+                    backgroundColor: "white",
+                    padding: "15px",
+                    borderRadius: "10px",
+                    marginBottom: "10px",
+                    border: "1px solid #eee",
+                    display: "grid",
+                    gridTemplateColumns: "1.5fr 1fr 1fr 1.2fr 1fr auto",
+                    gap: "10px",
+                    alignItems: "end"
+                  }}>
+                    <Input label="Name" value={member.name} onChange={(e) => handleFamilyChange(index, 'name', e.target.value)} />
+                    <Input label="Relation" value={member.relation} onChange={(e) => handleFamilyChange(index, 'relation', e.target.value)} />
+                    <Input label="Occupation" value={member.occupation} onChange={(e) => handleFamilyChange(index, 'occupation', e.target.value)} />
+                    <Input label="NIC" value={member.nic} onChange={(e) => handleFamilyChange(index, 'nic', e.target.value)} />
+                    <Input label="DOB" type="date" value={member.dob} onChange={(e) => handleFamilyChange(index, 'dob', e.target.value)} />
+                    <Button variant="secondary" onClick={() => setFamilyMembers(familyMembers.filter((_, i) => i !== index))} type="button" style={{ padding: "8px", color: "#e03131" }}>
+                      <i className="bi bi-trash"></i>
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <div style={{ textAlign: "center", padding: "20px", backgroundColor: "#f9f9f9", borderRadius: "10px", color: "var(--text-muted)", fontSize: "14px" }}>
+                  No family members registered. Click "Add Member" to include dependents.
+                </div>
+              )}
             </div>
           </form>
         </Card>

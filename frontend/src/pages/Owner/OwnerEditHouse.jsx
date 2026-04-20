@@ -11,13 +11,24 @@ function OwnerEditHouse() {
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    code: "",
-    address: "",
-    rooms: "",
-    rent: "",
-    rentType: "Monthly",
     status: "Vacant"
   });
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.code.trim()) errors.code = "Reference code is required";
+    if (!formData.address.trim()) errors.address = "Physical address is required";
+    
+    const rooms = parseInt(formData.rooms);
+    if (isNaN(rooms) || rooms <= 0) errors.rooms = "Number of rooms must be greater than 0";
+
+    const rent = parseFloat(formData.rent);
+    if (isNaN(rent) || rent <= 0) errors.rent = "Monthly rent must be a positive amount";
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   useEffect(() => {
     const fetchHouse = async () => {
@@ -48,6 +59,13 @@ function OwnerEditHouse() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
+
+    if (!validateForm()) {
+      setError("Please fix the validation errors below.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -101,6 +119,7 @@ function OwnerEditHouse() {
               placeholder="001" 
               prefix="H - "
               value={formData.code}
+              error={fieldErrors.code}
               onChange={(e) => {
                 const value = e.target.value.replace(/\D/g, "");
                 setFormData({...formData, code: value});
@@ -112,6 +131,7 @@ function OwnerEditHouse() {
               label="Physical Address" 
               placeholder="Full street address" 
               value={formData.address}
+              error={fieldErrors.address}
               onChange={(e) => setFormData({...formData, address: e.target.value})}
               required
             />
@@ -122,8 +142,9 @@ function OwnerEditHouse() {
                 type="number"
                 placeholder="2" 
                 value={formData.rooms}
+                error={fieldErrors.rooms}
                 onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
+                  const value = e.target.value;
                   setFormData({...formData, rooms: value});
                 }}
                 required
@@ -134,8 +155,9 @@ function OwnerEditHouse() {
                 type="number"
                 placeholder="15000" 
                 value={formData.rent}
+                error={fieldErrors.rent}
                 onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
+                  const value = e.target.value;
                   setFormData({...formData, rent: value});
                 }}
                 required

@@ -45,18 +45,18 @@ function OwnerSendReminder() {
 
   useEffect(() => {
     if (selectAll) {
-      setSelectedTenants(new Set(overduePayments.map(p => p.id)));
+      setSelectedTenants(new Set(overduePayments.map(p => p.user_id)));
     } else {
       setSelectedTenants(new Set());
     }
   }, [selectAll]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleToggleSelect = (id) => {
+  const handleToggleSelect = (userId) => {
     const next = new Set(selectedTenants);
-    if (next.has(id)) {
-      next.delete(id);
+    if (next.has(userId)) {
+      next.delete(userId);
     } else {
-      next.add(id);
+      next.add(userId);
     }
     setSelectedTenants(next);
   };
@@ -72,16 +72,14 @@ function OwnerSendReminder() {
     setSuccess("");
 
     try {
-      // In a real application, you would send a bulk notification targeted at specific tenants.
-      // Here we simulate the process by creating notification records or sending an alert.
-      for (const pId of selectedTenants) {
-        // Assume createNotification supports targeted deliveries or simply general creation for the demo
+      // Send individual notifications to each selected user
+      for (const uId of selectedTenants) {
         await createNotification({
+          userId: uId,
           title: formData.title,
-          message: formData.message,
+          description: formData.message,
           type: "Reminder",
-          date: new Date().toISOString(),
-          // You could pass targetTenantId if your backend supports it
+          date: new Date().toISOString()
         });
       }
       
@@ -151,12 +149,12 @@ function OwnerSendReminder() {
                   </thead>
                   <tbody>
                     {overduePayments.map((p, i) => (
-                      <tr key={i} style={{ borderBottom: "1px solid #f0f0f0", backgroundColor: selectedTenants.has(p.id) ? "#f8fdf9" : "transparent" }}>
+                      <tr key={i} style={{ borderBottom: "1px solid #f0f0f0", backgroundColor: selectedTenants.has(p.user_id) ? "#f8fdf9" : "transparent" }}>
                         <td style={{ padding: "12px" }}>
                           <input 
                             type="checkbox" 
-                            checked={selectedTenants.has(p.id)}
-                            onChange={() => handleToggleSelect(p.id)}
+                            checked={selectedTenants.has(p.user_id)}
+                            onChange={() => handleToggleSelect(p.user_id)}
                             style={{ cursor: "pointer", width: "16px", height: "16px" }}
                           />
                         </td>

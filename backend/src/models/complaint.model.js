@@ -2,16 +2,17 @@ import db from "../config/db.js";
 
 export const getAllComplaints = async (tenancyId = null) => {
   let query = `
-    SELECT c.*, h.reference_code AS house_code, t.full_name AS tenant_name
+    SELECT c.*, c.complaint_id AS id, h.reference_code AS house_code, t.full_name AS tenant_name, h.address AS houseAddress
     FROM complaints c
     LEFT JOIN tenancies tn ON c.tenancy_id = tn.tenancy_id
     LEFT JOIN houses h ON tn.house_id = h.house_id
-    LEFT JOIN tenants t ON tn.tenant_id = t.tenant_id
+    LEFT JOIN Tenants t ON tn.Tenant_id = t.Tenant_id
+    WHERE c.is_deleted = 0
   `;
   const params = [];
   
   if (tenancyId) {
-    query += " WHERE c.tenancy_id = ?";
+    query += " AND c.tenancy_id = ?";
     params.push(tenancyId);
   }
   
@@ -20,23 +21,30 @@ export const getAllComplaints = async (tenancyId = null) => {
   return rows;
 };
 
-export const getComplaintById = async (complaintId) => {
-  const [rows] = await db.query(
-    `SELECT c.*, h.reference_code AS house_code, t.full_name AS tenant_name
-     FROM complaints c
-     LEFT JOIN tenancies tn ON c.tenancy_id = tn.tenancy_id
-     LEFT JOIN houses h ON tn.house_id = h.house_id
-     LEFT JOIN tenants t ON tn.tenant_id = t.tenant_id
-     WHERE c.complaint_id = ?`,
-    [complaintId]
-  );
+export const getComplaintById = async (complaintId, tenancyId = null) => {
+  let query = `
+    SELECT c.*, c.complaint_id AS id, h.reference_code AS house_code, t.full_name AS TenantName, h.address AS houseAddress
+    FROM complaints c
+    LEFT JOIN tenancies tn ON c.tenancy_id = tn.tenancy_id
+    LEFT JOIN houses h ON tn.house_id = h.house_id
+    LEFT JOIN Tenants t ON tn.Tenant_id = t.Tenant_id
+    WHERE c.complaint_id = ? AND c.is_deleted = 0
+  `;
+  const params = [complaintId];
+
+  if (tenancyId) {
+    query += " AND c.tenancy_id = ?";
+    params.push(tenancyId);
+  }
+
+  const [rows] = await db.query(query, params);
   return rows[0];
 };
 
-export const createComplaint = async (tenancyId, title, description, status) => {
+export const createComplaint = async (tenancyId, title, description, status, attachmentUrl = null) => {
   const [result] = await db.query(
-    "INSERT INTO complaints (tenancy_id, title, description, status) VALUES (?, ?, ?, ?)",
-    [tenancyId, title, description, status]
+    "INSERT INTO complaints (tenancy_id, title, description, status, attachment_url) VALUES (?, ?, ?, ?, ?)",
+    [tenancyId, title, description, status, attachmentUrl]
   );
   return result.insertId;
 };
@@ -51,7 +59,7 @@ export const updateComplaint = async (complaintId, status, response, resolvedDat
 
 export const deleteComplaint = async (complaintId) => {
   const [result] = await db.query(
-    "DELETE FROM complaints WHERE complaint_id = ?",
+    "UPDATE complaints SET is_deleted = 1 WHERE complaint_id = ?",
     [complaintId]
   );
   return result.affectedRows > 0;

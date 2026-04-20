@@ -2,7 +2,22 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { Card, Button } from "../../components/FormElements";
-import { getDocuments, deleteDocument } from "../../services/api";
+import { getDocuments, deleteDocument, downloadDocument } from "../../services/api";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+const TYPE_ICONS = {
+  "Maintenance Bill":  { icon: "bi-tools",               color: "#6a1b9a" },
+  "Utility Bill":      { icon: "bi-lightning-charge",    color: "#e65100" },
+  "Invoice":           { icon: "bi-receipt",             color: "#c62828" },
+  "Receipt":           { icon: "bi-file-earmark-ruled",  color: "#2e7d32" },
+  "Bank Statement":    { icon: "bi-bank",                color: "#1565c0" },
+  "Tax Document":      { icon: "bi-file-earmark-text",   color: "#795548" },
+  "Inspection Report": { icon: "bi-clipboard-check",    color: "#37474f" },
+  "Agreement":         { icon: "bi-file-earmark-person", color: "#1a4d2e" },
+  "Rental Agreement":  { icon: "bi-file-earmark-person", color: "#1a4d2e" },
+  "Other":             { icon: "bi-file-earmark",        color: "#888" },
+};
 
 function SummaryCard({ title, value, subtitle, icon, color }) {
   return (
@@ -63,8 +78,9 @@ function TreasurerDocuments() {
     }
   };
 
-  const agreementCount = documents.filter(d => d.document_type === 'Agreement').length;
-  const invoiceCount = documents.filter(d => d.document_type === 'Invoice').length;
+  const agreementCount = documents.filter(d => ['Agreement','Rental Agreement','Lease Extension'].includes(d.document_type)).length;
+  const invoiceCount = documents.filter(d => ['Invoice','Receipt'].includes(d.document_type)).length;
+  const billCount = documents.filter(d => ['Utility Bill','Maintenance Bill'].includes(d.document_type)).length;
 
   return (
     <DashboardLayout
@@ -79,8 +95,8 @@ function TreasurerDocuments() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "40px" }}>
         <SummaryCard title="Total Files" value={loading ? "..." : documents.length} icon="bi-files" color="var(--primary)" />
         <SummaryCard title="Agreements" value={loading ? "..." : agreementCount} icon="bi-file-earmark-check" color="#3498db" />
-        <SummaryCard title="Invoices" value={loading ? "..." : invoiceCount} icon="bi-receipt" color="#e67e22" />
-        <SummaryCard title="Reports" value={loading ? "..." : (documents.length - agreementCount - invoiceCount)} icon="bi-bar-chart" color="#1a4d2e" />
+        <SummaryCard title="Invoices / Receipts" value={loading ? "..." : invoiceCount} icon="bi-receipt" color="#e67e22" />
+        <SummaryCard title="Bills" value={loading ? "..." : billCount} icon="bi-lightning-charge" color="#e65100" />
       </div>
 
       <Card title="All Repository Documents" subtitle="Secure management of agreements, invoices, and system reports.">
@@ -96,7 +112,7 @@ function TreasurerDocuments() {
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Type</th>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Uploaded By</th>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
-                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Size</th>
+
                   <th style={{ padding: "12px", textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
@@ -104,18 +120,23 @@ function TreasurerDocuments() {
                 {documents.map((d, i) => (
                   <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
                     <td style={{ padding: "12px", fontSize: "14px", fontWeight: "500", color: "#1a4d2e" }}>
-                      <i className="bi bi-file-earmark-text" style={{ marginRight: "10px", color: "var(--text-muted)" }}></i>
-                      {d.document_name}
+                      {(() => {
+                        const s = TYPE_ICONS[d.document_type] || TYPE_ICONS["Other"];
+                        return <><i className={`bi ${s.icon}`} style={{ marginRight: "8px", color: s.color }}></i>{d.document_name}</>;
+                      })()}
                     </td>
                     <td style={{ padding: "12px", fontSize: "14px", fontWeight: "500", color: "var(--primary)" }}>{d.house_code ? d.house_code : (d.facility || 'General')}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{d.document_type}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{d.uploadedBy || 'System'}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{new Date(d.upload_date).toLocaleDateString()}</td>
-                    <td style={{ padding: "12px", fontSize: "14px" }}>{d.size || 'N/A'}</td>
+
                     <td style={{ padding: "12px", textAlign: "right" }}>
                        <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
                           <button 
-                            onClick={() => alert("Downloading " + d.document_name)}
+                            onClick={async () => {
+                              try { await downloadDocument(d.document_id || d.id); }
+                              catch(e) { alert("Download failed: " + e.message); }
+                            }}
                             style={{ background: "none", border: "none", cursor: "pointer", color: "var(--primary)" }}
                             title="Download"
                           >

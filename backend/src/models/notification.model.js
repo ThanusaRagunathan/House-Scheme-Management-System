@@ -1,11 +1,11 @@
 import db from "../config/db.js";
 
 export const getAllNotifications = async (userId = null) => {
-  let query = "SELECT * FROM notifications";
+  let query = "SELECT * FROM notifications WHERE is_deleted = 0";
   const params = [];
   
   if (userId) {
-    query += " WHERE user_id = ?";
+    query += " AND user_id = ?";
     params.push(userId);
   }
   
@@ -16,16 +16,16 @@ export const getAllNotifications = async (userId = null) => {
 
 export const getNotificationById = async (notificationId) => {
   const [rows] = await db.query(
-    "SELECT * FROM notifications WHERE notification_id = ?",
+    "SELECT * FROM notifications WHERE notification_id = ? AND is_deleted = 0",
     [notificationId]
   );
   return rows[0];
 };
 
-export const createNotification = async (userId, title, description, status = "New") => {
+export const createNotification = async (userId, title, description, status = "New", type = "General") => {
   const [result] = await db.query(
-    "INSERT INTO notifications (user_id, title, description, status) VALUES (?, ?, ?, ?)",
-    [userId, title, description, status]
+    "INSERT INTO notifications (user_id, title, description, status, type) VALUES (?, ?, ?, ?, ?)",
+    [userId, title, description, status, type]
   );
   return result.insertId;
 };
@@ -40,7 +40,7 @@ export const updateNotification = async (notificationId, status) => {
 
 export const deleteNotification = async (notificationId) => {
   const [result] = await db.query(
-    "DELETE FROM notifications WHERE notification_id = ?",
+    "UPDATE notifications SET is_deleted = 1 WHERE notification_id = ?",
     [notificationId]
   );
   return result.affectedRows > 0;

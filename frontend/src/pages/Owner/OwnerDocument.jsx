@@ -2,7 +2,22 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { Card, Button } from "../../components/FormElements";
-import { getDocuments, deleteDocument } from "../../services/api";
+import { getDocuments, deleteDocument, downloadDocument } from "../../services/api";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+const TYPE_ICONS = {
+  "Rental Agreement":  { icon: "bi-file-earmark-person",  color: "#1a4d2e" },
+  "Lease Extension":   { icon: "bi-file-earmark-check",   color: "#1565c0" },
+  "Utility Bill":      { icon: "bi-lightning-charge",      color: "#e65100" },
+  "Maintenance Bill":  { icon: "bi-tools",                color: "#6a1b9a" },
+  "Invoice":           { icon: "bi-receipt",              color: "#c62828" },
+  "Receipt":           { icon: "bi-file-earmark-ruled",   color: "#2e7d32" },
+  "Notice":            { icon: "bi-megaphone",            color: "#1565c0" },
+  "Inspection Report": { icon: "bi-clipboard-check",      color: "#6a1b9a" },
+  "Agreement":         { icon: "bi-file-earmark-person",  color: "#1a4d2e" },
+  "Other":             { icon: "bi-file-earmark",         color: "#888" },
+};
 
 function OwnerDocuments() {
   const navigate = useNavigate();
@@ -45,8 +60,9 @@ function OwnerDocuments() {
     }
   };
 
-  const agreementCount = documents.filter(d => d.document_type === 'Agreement').length;
-  const invoiceCount = documents.filter(d => d.document_type === 'Invoice').length;
+  const agreementCount = documents.filter(d => ['Agreement','Rental Agreement','Lease Extension'].includes(d.document_type)).length;
+  const invoiceCount = documents.filter(d => ['Invoice','Receipt'].includes(d.document_type)).length;
+  const billCount = documents.filter(d => ['Utility Bill','Maintenance Bill'].includes(d.document_type)).length;
 
   return (
     <DashboardLayout
@@ -73,8 +89,8 @@ function OwnerDocuments() {
           <div style={{ fontSize: "20px", fontWeight: "700", color: "#e67e22" }}>{invoiceCount}</div>
         </div>
         <div className="glass-card" style={{ padding: "15px", backgroundColor: "white", textAlign: "center" }}>
-          <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>Other</div>
-          <div style={{ fontSize: "20px", fontWeight: "700", color: "var(--text-muted)" }}>{documents.length - agreementCount - invoiceCount}</div>
+          <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>Bills</div>
+          <div style={{ fontSize: "20px", fontWeight: "700", color: "#e65100" }}>{billCount}</div>
         </div>
       </div>
 
@@ -97,8 +113,10 @@ function OwnerDocuments() {
                 {documents.map((d, i) => (
                   <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
                     <td style={{ padding: "12px", fontSize: "14px" }}>
-                      <i className="bi bi-file-earmark-text" style={{ marginRight: "10px", color: "var(--primary)" }}></i>
-                      {d.document_name}
+                      {(() => {
+                        const s = TYPE_ICONS[d.document_type] || TYPE_ICONS["Other"];
+                        return <><i className={`bi ${s.icon}`} style={{ marginRight: "8px", color: s.color }}></i>{d.document_name}</>;
+                      })()}
                     </td>
                     <td style={{ padding: "12px", fontSize: "14px", fontWeight: "500", color: "var(--primary)" }}>{d.house_code ? d.house_code : (d.facility || 'General')}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{d.document_type}</td>
@@ -106,7 +124,10 @@ function OwnerDocuments() {
                     <td style={{ padding: "12px", textAlign: "right" }}>
                       <div style={{ display: "flex", gap: "15px", justifyContent: "flex-end" }}>
                         <button 
-                          onClick={() => alert("Downloading " + d.document_name)}
+                         onClick={async () => {
+                            try { await downloadDocument(d.document_id || d.id); }
+                            catch(e) { alert("Download failed: " + e.message); }
+                          }}
                           style={{ background: "none", border: "none", cursor: "pointer", color: "var(--primary)" }}
                           title="Download"
                         >

@@ -48,9 +48,9 @@ function TenantMaintenance() {
     fetchData();
   }, []);
 
-  const completed = maintenance.filter(m => m.status === 'Completed').length;
-  const scheduled = maintenance.filter(m => m.status === 'Scheduled').length;
-  const pending = maintenance.length - completed - scheduled;
+  const completed = maintenance.filter(m => m.task_status === 'Completed').length;
+  const scheduled = maintenance.filter(m => m.task_status === 'Pending' || m.task_status === 'Scheduled').length;
+  const inProgress = maintenance.filter(m => m.task_status === 'In Progress').length;
 
   return (
     <DashboardLayout
@@ -59,9 +59,17 @@ function TenantMaintenance() {
       userName={profile?.username || "Tenant"}
       userInitials={profile?.username?.charAt(0) || "R"}
       userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
+      headerAction={
+        <button
+          onClick={() => navigate('/Tenant/request-maintenance')}
+          style={{ padding: "10px 20px", borderRadius: "10px", border: "none", backgroundColor: "var(--primary)", color: "white", fontSize: "14px", fontWeight: "600", cursor: "pointer", display: "flex", gap: "8px", alignItems: "center" }}
+        >
+          <i className="bi bi-plus-lg"></i> Request Repair
+        </button>
+      }
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "35px" }}>
-        <SummaryCard title="In Progress" value={pending} subtitle="Active work" icon="bi-tools" color="var(--primary)" />
+        <SummaryCard title="In Progress" value={inProgress} subtitle="Active work" icon="bi-tools" color="var(--primary)" />
         <SummaryCard title="Scheduled" value={scheduled} subtitle="Upcoming tasks" icon="bi-calendar-event" color="#3498db" />
         <SummaryCard title="Completed" value={completed} subtitle="Last 30 days" icon="bi-check2-square" color="#1a4d2e" />
       </div>
@@ -83,17 +91,21 @@ function TenantMaintenance() {
               <tbody>
                 {maintenance.map((m, i) => (
                   <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                    <td style={{ padding: "15px 10px", fontSize: "14px", fontWeight: "600" }}>{m.facility}</td>
+                    <td style={{ padding: "15px 10px", fontSize: "14px", fontWeight: "600" }}>
+                      {m.facility || m.house_code || '-'}
+                    </td>
                     <td style={{ padding: "15px 10px", fontSize: "14px", color: "#555" }}>{m.description}</td>
-                    <td style={{ padding: "15px 10px", fontSize: "14px" }}>{new Date(m.date).toLocaleDateString()}</td>
+                    <td style={{ padding: "15px 10px", fontSize: "14px" }}>
+                      {m.scheduled_date ? new Date(m.scheduled_date).toLocaleDateString('en-GB') : '-'}
+                    </td>
                     <td style={{ padding: "15px 10px" }}>
                       <span style={{
                         padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
-                        backgroundColor: m.status === 'Completed' ? "#e2f2e5" : (m.status === 'Scheduled' ? "#e3f2fd" : "#fff8e1"),
-                        color: m.status === 'Completed' ? "#1a4d2e" : (m.status === 'Scheduled' ? "#1976d2" : "#f57c00"),
+                        backgroundColor: m.task_status === 'Completed' ? "#e2f2e5" : (m.task_status === 'Pending' ? "#e3f2fd" : "#fff8e1"),
+                        color: m.task_status === 'Completed' ? "#1a4d2e" : (m.task_status === 'Pending' ? "#1976d2" : "#f57c00"),
                         textTransform: "uppercase"
                       }}>
-                        {m.status}
+                        {m.task_status}
                       </span>
                     </td>
                   </tr>
@@ -113,18 +125,18 @@ function TenantMaintenance() {
 
       <div style={{ marginTop: "30px", backgroundColor: "white", padding: "20px", borderRadius: "12px", border: "1px dashed #ddd" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-          <div style={{ width: "40px", height: "40px", backgroundColor: "#fcf0f0", color: "#e03131", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <i className="bi bi-exclamation-triangle"></i>
+          <div style={{ width: "40px", height: "40px", backgroundColor: "#e8f5e9", color: "#2e7d32", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <i className="bi bi-tools"></i>
           </div>
           <div>
             <div style={{ fontSize: "14px", fontWeight: "700" }}>Notice an issue within your unit?</div>
-            <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>Individual house maintenance should be requested via the Complaints portal.</div>
+            <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>Submit a dedicated maintenance request and our team will schedule a repair for you.</div>
           </div>
           <button
-            onClick={() => navigate('/Tenant/addcomplaint')}
+            onClick={() => navigate('/Tenant/request-maintenance')}
             style={{ marginLeft: "auto", padding: "8px 16px", borderRadius: "8px", border: "1px solid #ddd", background: "white", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}
           >
-            Go to Complaints
+            Create Request
           </button>
         </div>
       </div>

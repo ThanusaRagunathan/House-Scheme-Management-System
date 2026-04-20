@@ -4,6 +4,7 @@ import DashboardLayout from "../../components/DashboardLayout";
 import { Card, Button } from "../../components/FormElements";
 import { getPayments, updatePayment, deletePayment } from "../../services/api";
 import { formatDate } from "../../utils/formatters";
+import { downloadInvoicePDF } from "../../utils/pdfGenerator";
 
 function SummaryCard({ title, value, subtitle, icon, color }) {
   return (
@@ -81,18 +82,14 @@ function TreasurerPayments() {
     <DashboardLayout
       role="treasurer"
       title="Payment Collections"
-
-
-
+      headerAction={
+        <div style={{ display: "flex", gap: "15px" }}>
+          <Button variant="primary" onClick={() => navigate("/treasurer/addpayment")} disabled={actionLoading}>
+            <i className="bi bi-plus-lg"></i> Record Payment
+          </Button>
+        </div>
+      }
     >
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: "15px", marginBottom: "25px" }}>
-        <Button variant="secondary" onClick={() => navigate("/treasurer/generateinvoice")} disabled={actionLoading}>
-          <i className="bi bi-file-earmark-plus"></i> Draft Invoice
-        </Button>
-        <Button variant="primary" onClick={() => navigate("/treasurer/addpayment")} disabled={actionLoading}>
-          <i className="bi bi-plus-lg"></i> Record Payment
-        </Button>
-      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "35px" }}>
         <SummaryCard title="Total Collected" value={`Rs. ${totalCollected.toLocaleString()}`} subtitle={`${collectionsCount} verified payments`} icon="bi-cash-coin" color="#1a4d2e" />
@@ -148,19 +145,20 @@ function TreasurerPayments() {
                           </button>
                         )}
                         <button
+                          onClick={() => downloadInvoicePDF(p)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--primary)" }}
+                          title="Download Invoice PDF"
+                        >
+                          <i className="bi bi-file-earmark-pdf-fill"></i>
+                        </button>
+                        <button
                           onClick={() => navigate(`/treasurer/payments/${p.id}`)}
                           style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
                           title="View"
                         >
                           <i className="bi bi-eye-fill"></i>
                         </button>
-                        <button
-                          onClick={() => navigate(`/treasurer/payments/edit/${p.id}`)}
-                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
-                          title="Edit"
-                        >
-                          <i className="bi bi-pencil-square"></i>
-                        </button>
+
                         <button
                           onClick={() => handleDelete(p.id)}
                           style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}

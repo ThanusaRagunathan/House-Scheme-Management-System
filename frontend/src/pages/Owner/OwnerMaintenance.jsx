@@ -108,6 +108,7 @@ function OwnerMaintenance() {
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Cost</th>
                   <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Status</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Category</th>
                   <th style={{ padding: "12px", textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
@@ -120,24 +121,52 @@ function OwnerMaintenance() {
                      <td style={{ padding: "12px", fontSize: "14px" }}>{t.scheduled_date ? new Date(t.scheduled_date).toLocaleDateString() : (t.date ? new Date(t.date).toLocaleDateString() : 'N/A')}</td>
                      <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>Rs. {parseFloat(t.cost || 0).toLocaleString()}</td>
                      <td style={{ padding: "12px" }}>
-                       <span style={{ 
-                         padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
-                         backgroundColor: (t.task_status || t.status) === "Paid" ? "#e2f2e5" : "#fff5f5",
-                         color: (t.task_status || t.status) === "Paid" ? "#1a4d2e" : "#e03131",
-                         textTransform: "uppercase"
-                       }}>
-                         {t.task_status || t.status}
-                       </span>
+                        <span style={{ 
+                          padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
+                          backgroundColor: (t.task_status || t.status) === "Paid" ? "#e2f2e5" : 
+                                          (t.task_status || t.status) === "Requested" ? "#fff8e1" : "#fff5f5",
+                          color: (t.task_status || t.status) === "Paid" ? "#1a4d2e" : 
+                                 (t.task_status || t.status) === "Requested" ? "#f57c00" : "#e03131",
+                          textTransform: "uppercase"
+                        }}>
+                          {t.task_status || t.status}
+                        </span>
+                     </td>
+                     <td style={{ padding: "12px" }}>
+                       <div style={{ fontSize: "11px", fontWeight: "700", color: "#666", backgroundColor: "#f0f0f0", padding: "4px 10px", borderRadius: "10px", display: "inline-block", textTransform: "uppercase" }}>
+                         {t.category || "Maintenance"}
+                       </div>
                      </td>
                      <td style={{ padding: "12px", textAlign: "right" }}>
                         <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                           {(t.task_status || t.status) === "Requested" && (
+                            <button 
+                              onClick={() => handleStatusChange(t.task_id || t.id, "Pending")}
+                              style={{ background: "#e3f2fd", border: "1px solid #bbdefb", padding: "4px 8px", borderRadius: "6px", cursor: "pointer", color: "#1976d2", fontSize: "11px", fontWeight: "600" }}
+                              title="Acknowledge Request"
+                              disabled={actionLoading}
+                            >
+                              Acknowledge
+                            </button>
+                          )}
                            {(t.task_status || t.status) === "Pending" && (
                             <button 
-                              onClick={() => handleStatusChange(t.task_id || t.id, "Paid")}
-                              style={{ background: "none", border: "none", cursor: "pointer", color: "#1a4d2e" }}
-                              title="Mark as Paid"
+                              onClick={() => handleStatusChange(t.task_id || t.id, "In Progress")}
+                              style={{ background: "#fff8e1", border: "1px solid #ffecb3", padding: "4px 8px", borderRadius: "6px", cursor: "pointer", color: "#f57c00", fontSize: "11px", fontWeight: "600" }}
+                              title="Start Maintenance Work"
+                              disabled={actionLoading}
                             >
-                              <i className="bi bi-check-circle-fill"></i>
+                              Start Work
+                            </button>
+                          )}
+                           {(t.task_status || t.status) === "In Progress" && (
+                            <button 
+                              onClick={() => handleStatusChange(t.task_id || t.id, "Completed")}
+                              style={{ background: "#e2f2e5", border: "1px solid #c8e6c9", padding: "4px 8px", borderRadius: "6px", cursor: "pointer", color: "#1a4d2e", fontSize: "11px", fontWeight: "600" }}
+                              title="Mark as Finished"
+                              disabled={actionLoading}
+                            >
+                              Mark Done
                             </button>
                           )}
                           <button 

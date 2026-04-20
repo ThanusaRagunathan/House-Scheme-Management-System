@@ -14,7 +14,8 @@ function TreasurerAddCost() {
     description: "",
     cost: "",
     date: new Date().toISOString().split('T')[0],
-    status: "Completed"
+    status: "Completed",
+    category: "Utility Bill"
   });
 
   const handleSubmit = async (e) => {
@@ -46,7 +47,7 @@ function TreasurerAddCost() {
 
         <Card 
           title="Expense Entry" 
-          subtitle="Record maintenance, utility, or other common costs paid by the treasury."
+          subtitle="Record utility bills, maintenance costs, and service expenses paid by the treasury."
         >
           <form onSubmit={handleSubmit}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
@@ -85,6 +86,21 @@ function TreasurerAddCost() {
                   { label: "Planned", value: "Planned" }
                 ]}
               />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+              <Select
+                label="Expense Type"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                options={[
+                  { label: "Utility Bill", value: "Utility Bill" },
+                  { label: "Maintenance", value: "Maintenance" },
+                  { label: "Service Expense", value: "Service Expense" },
+                  { label: "Other", value: "Other" }
+                ]}
+              />
+              <div /> {/* Spacer */}
             </div>
 
             <Input

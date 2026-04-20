@@ -23,6 +23,7 @@ function OwnerAddNotification() {
     try {
       await createNotification({
         ...formData,
+        userId: "all", // Target all users for broadcast
         date: new Date().toISOString()
       });
       navigate("/owner/notification");
@@ -73,6 +74,7 @@ function OwnerAddNotification() {
                   <option value="General">General Announcement</option>
                   <option value="Maintenance">Maintenance Log</option>
                   <option value="Urgent">Urgent Warning</option>
+                  <option value="Facility Closure">Facility Closure</option>
                 </select>
               </div>
             </div>

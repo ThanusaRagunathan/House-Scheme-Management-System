@@ -108,7 +108,9 @@ function TenantNotification() {
                     <span style={{ fontWeight: "700", color: n.status === 'unread' ? "var(--primary)" : "var(--text-dark)" }}>{n.title}</span>
                     <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>{new Date(n.date).toLocaleDateString()}</span>
                   </div>
-                  <div style={{ fontSize: "14px", color: "#555", lineHeight: "1.4" }}>{n.description}</div>
+                  <div style={{ fontSize: "14px", color: "#555", lineHeight: "1.4" }}>
+                    {n.description.replace(/\.?\s*Estimated cost:?.*$/i, '.')}
+                  </div>
                 </div>
                 <div style={{ marginLeft: "20px", display: "flex", gap: "10px", alignItems: "center" }}>
                   {n.status === 'unread' ? (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
+import { Button } from "../../components/FormElements";
 import { getHouses, getTenants, getPayments, getMaintenances } from "../../services/api";
 
 function StatCard({ title, subtitle, value, icon, color }) {
@@ -74,7 +75,11 @@ function OwnerOverview() {
   }, []);
 
   return (
-    <DashboardLayout role="owner" title="Dashboard Overview">
+    <DashboardLayout 
+      role="owner" 
+      title="Dashboard Overview"
+      headerAction={<Button variant="secondary" onClick={() => navigate("/owner/calendar")}><i className="bi bi-calendar3"></i> View Calendar</Button>}
+    >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "25px", marginBottom: "40px" }}>
         <StatCard title="Total Houses" value={loading ? "..." : stats.totalHouses} subtitle={`${stats.occupied} occupied, ${stats.vacant} vacant`} icon="bi-buildings" color="#1a4d2e" />
         <StatCard title="Total Tenants" value={loading ? "..." : stats.occupied} subtitle="Active leases" icon="bi-people" color="#3498db" />

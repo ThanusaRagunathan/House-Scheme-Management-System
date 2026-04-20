@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { getHouses, deleteHouse } from "../../services/api";
+import { sortHousesByReference } from "../../utils/formatters";
 
 function HouseCard({ house, onDelete }) {
   const navigate = useNavigate();
@@ -99,7 +100,7 @@ function OwnerHouses() {
     try {
       const data = await getHouses();
       console.log("Frontend: Houses fetched successfully:", data);
-      setHouses(data);
+      setHouses(sortHousesByReference(data));
     } catch (err) {
       console.error("Frontend: Failed to fetch houses:", err);
       setError("Failed to load houses from server. Showing demo data for preview.");

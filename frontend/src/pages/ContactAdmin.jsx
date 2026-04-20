@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Background from "../assets/bgimg.jpg";
 
-function ForgotPassword() {
+function ContactAdmin() {
   const navigate = useNavigate();
 
   return (
@@ -35,9 +35,9 @@ function ForgotPassword() {
           }}>
             <i className="fas fa-user-shield"></i>
           </div>
-          <h2 style={{ fontSize: "28px", color: "var(--primary)", marginBottom: "15px" }}>Forgot Password?</h2>
+          <h2 style={{ fontSize: "28px", color: "var(--primary)", marginBottom: "15px" }}>Forgor password or Don't have an account?</h2>
           <p style={{ color: "var(--text-muted)", fontSize: "16px", lineHeight: "1.6" }}>
-            For security reasons, password resets are handled by the system administrator.
+            Please contact the system administrator.
           </p>
         </div>
 
@@ -49,10 +49,10 @@ function ForgotPassword() {
           border: "1px solid #eee"
         }}>
           <p style={{ fontWeight: "600", color: "var(--primary)", marginBottom: "10px" }}>
-            Please contact the Admin
+            Contact Details
           </p>
           <p style={{ color: "#666", fontSize: "14px" }}>
-            Visit the main office or contact your supervisor to initiate a password reset request.
+            Visit the main office or contact your supervisor to initiate a request.
           </p>
         </div>
 
@@ -78,5 +78,4 @@ function ForgotPassword() {
   );
 }
 
-export default ForgotPassword;
-
+export default ContactAdmin;

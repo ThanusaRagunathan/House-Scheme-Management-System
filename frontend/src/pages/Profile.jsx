@@ -18,7 +18,9 @@ function Profile() {
     setFormData({ username: data?.username || "", phone: data?.phone || "" });
 
     if (data?.role?.toLowerCase() === 'tenant') {
-      getTenantProfile().then(setTenantInfo).catch(console.error).finally(() => setLoading(false));
+      getTenantProfile().then(res => {
+        setTenantInfo({ ...res, fullName: res.full_name || res.name || res.fullName });
+      }).catch(console.error).finally(() => setLoading(false));
     } else {
       setLoading(false);
     }
@@ -49,7 +51,12 @@ function Profile() {
     }
   };
 
-  const displayDisplayName = (user?.role?.toLowerCase() === 'tenant' && TenantInfo?.fullName) ? TenantInfo.fullName : (user?.username || "User");
+  const formatUsername = (name) => {
+    if (!name) return "User";
+    return name.split(/[._]/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+
+  const displayDisplayName = (user?.role?.toLowerCase() === 'tenant' && TenantInfo?.fullName) ? TenantInfo.fullName : formatUsername(user?.username);
   const displayInitials = (user?.role?.toLowerCase() === 'tenant' && TenantInfo?.fullName) ?
     TenantInfo.fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) :
     (user?.initials || (user?.username ? user.username.split(/[._\s]/).map(n => n[0]).join('').toUpperCase().substring(0, 2) : "U"));
@@ -59,7 +66,7 @@ function Profile() {
   return (
     <DashboardLayout
       role={user?.role || "user"}
-      title={`${(user?.role || "User").charAt(0).toUpperCase() + (user?.role || "User").slice(1)} Profile`}
+      title="Profile"
       userName={displayDisplayName}
       userInitials={displayInitials}
     >
@@ -150,6 +157,9 @@ function Profile() {
                 </form>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                  {user?.role?.toLowerCase() !== 'tenant' && (
+                    <InfoItem label="Full Name" value={formatUsername(user?.username)} />
+                  )}
                   <InfoItem label="Username" value={user?.username} />
                   <InfoItem label="Account Role" value={user?.role} />
                   <InfoItem label="Status" value="Active" color="#1a4d2e" />

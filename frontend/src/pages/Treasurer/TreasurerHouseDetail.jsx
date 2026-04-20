@@ -51,22 +51,15 @@ function TreasurerHouseDetail() {
     <DashboardLayout
       role="treasurer"
       title={`Inventory Detail - ${house.houseCode || house.id}`}
-
-
-
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "25px" }}>
-        <Button variant="secondary" onClick={() => navigate("/treasurer/houses")}>
-          <i className="bi bi-arrow-left"></i> Back to Inventory
-        </Button>
+      headerAction={
         <div style={{ display: "flex", gap: "10px" }}>
           <Button variant="primary" onClick={() => navigate(`/treasurer/houses/edit/${id}`)}>
             <i className="bi bi-pencil"></i> Edit Unit
           </Button>
         </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "25px" }}>
+      }
+    >
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "25px", marginTop: "20px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
           <Card title="Unit Information">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>

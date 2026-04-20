@@ -15,7 +15,8 @@ function OwnerEditMaintenance() {
     description: "",
     scheduledDate: "",
     cost: "0",
-    taskStatus: "Pending"
+    taskStatus: "Pending",
+    category: "Maintenance"
   });
 
   useEffect(() => {
@@ -29,7 +30,8 @@ function OwnerEditMaintenance() {
             description: task.description || task.desc || "",
             scheduledDate: task.scheduled_date ? task.scheduled_date.split('T')[0] : (task.scheduledDate ? task.scheduledDate.split('T')[0] : ""),
             cost: task.cost || "0",
-            taskStatus: task.task_status || task.taskStatus || task.status || "Pending"
+            taskStatus: task.task_status || task.taskStatus || task.status || "Pending",
+            category: task.category || "Maintenance"
           });
         } else {
           setError("Maintenance task not found.");
@@ -43,17 +45,47 @@ function OwnerEditMaintenance() {
     fetchTask();
   }, [id]);
 
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.description.trim()) errors.description = "Description is required";
+    
+    if (formData.scheduledDate) {
+      const today = new Date().toISOString().split('T')[0];
+      if (formData.scheduledDate < today && formData.taskStatus === "Pending") {
+        errors.scheduledDate = "Scheduled date cannot be in the past for pending tasks";
+      }
+    }
+
+    const costNum = parseFloat(formData.cost);
+    if (isNaN(costNum) || costNum < 0) {
+      errors.cost = "Cost must be a positive number";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setFieldErrors({});
+
+    if (!validateForm()) {
+      setError("Please fix the validation errors below.");
+      setLoading(false);
+      return;
+    }
 
     try {
       await updateMaintenance(id, {
         description: formData.description,
         scheduledDate: formData.scheduledDate || null,
         cost: parseFloat(formData.cost) || 0,
-        taskStatus: formData.taskStatus
+        taskStatus: formData.taskStatus,
+        category: formData.category
       });
       navigate("/owner/maintenance");
     } catch (err) {
@@ -95,6 +127,7 @@ function OwnerEditMaintenance() {
               label="Work Description" 
               placeholder="Describe the maintenance requirements in detail..." 
               value={formData.description}
+              error={fieldErrors.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
               required
             />
@@ -104,6 +137,7 @@ function OwnerEditMaintenance() {
                 label="Scheduled Date" 
                 type="date"
                 value={formData.scheduledDate}
+                error={fieldErrors.scheduledDate}
                 onChange={(e) => setFormData({...formData, scheduledDate: e.target.value})}
               />
               
@@ -112,6 +146,7 @@ function OwnerEditMaintenance() {
                 type="number"
                 placeholder="0" 
                 value={formData.cost}
+                error={fieldErrors.cost}
                 onChange={(e) => setFormData({...formData, cost: e.target.value})}
               />
             </div>
@@ -121,10 +156,23 @@ function OwnerEditMaintenance() {
               value={formData.taskStatus}
               onChange={(e) => setFormData({...formData, taskStatus: e.target.value})}
               options={[
-                { label: "Pending", value: "Pending" },
+                { label: "Requested (by Tenant)", value: "Requested" },
+                { label: "Pending (Acknowledged)", value: "Pending" },
                 { label: "In Progress", value: "In Progress" },
                 { label: "Completed", value: "Completed" },
                 { label: "Paid", value: "Paid" }
+              ]}
+            />
+
+            <Select 
+              label="Expense Category"
+              value={formData.category}
+              onChange={(e) => setFormData({...formData, category: e.target.value})}
+              options={[
+                { label: "Maintenance / Repair", value: "Maintenance" },
+                { label: "Utility Bill", value: "Utility Bill" },
+                { label: "Service Expense", value: "Service Expense" },
+                { label: "Other", value: "Other" }
               ]}
             />
           </form>

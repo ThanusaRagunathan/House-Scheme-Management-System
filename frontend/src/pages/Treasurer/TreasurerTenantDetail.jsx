@@ -84,7 +84,12 @@ function TreasurerTenantDetail() {
                         <span style={{ color: "var(--text-muted)" }}>NIC:</span>
                         <span style={{ fontWeight: "600" }}>{Tenant.nic || "N/A"}</span>
                      </div>
+                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
+                        <span style={{ color: "var(--text-muted)" }}>Date of Birth:</span>
+                        <span style={{ fontWeight: "600" }}>{Tenant.date_of_birth ? formatDate(Tenant.date_of_birth) : "N/A"}</span>
+                     </div>
                   </div>
+
                </Card>
 
                <Card title="Unit Info">
@@ -95,6 +100,27 @@ function TreasurerTenantDetail() {
                      </div>
                      <Button variant="secondary" size="sm" onClick={() => navigate(`/treasurer/houses`)}>View House</Button>
                   </div>
+               </Card>
+
+               <Card title="Family Members">
+                  {Tenant.familyMembers && Tenant.familyMembers.length > 0 ? (
+                     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                        {Tenant.familyMembers.map((member, idx) => (
+                           <div key={idx} style={{ backgroundColor: "#f9f9f9", padding: "10px", borderRadius: "8px", fontSize: "13px" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
+                                 <strong style={{ color: "var(--primary)" }}>{member.name}</strong>
+                                 <span style={{ fontSize: "11px", backgroundColor: "#e2f2e5", color: "#1a4d2e", padding: "2px 6px", borderRadius: "4px" }}>{member.relation || "Dependent"}</span>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)", fontSize: "12px" }}>
+                                 <span>{member.occupation || "N/A"}</span>
+                                 <span>NIC: {member.nic || "N/A"}</span>
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+                  ) : (
+                     <p style={{ color: "var(--text-muted)", fontSize: "13px", textAlign: "center", margin: "10px 0" }}>No registered dependents.</p>
+                  )}
                </Card>
             </div>
 

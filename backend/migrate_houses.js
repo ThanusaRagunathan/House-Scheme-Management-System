@@ -31,7 +31,7 @@ async function migrate() {
 
     // 2. Update status enum to include Maintenance
     console.log("Updating status enum...");
-    await connection.query("ALTER TABLE houses MODIFY COLUMN status ENUM('Occupied','Vacant','Maintenance') NOT NULL");
+    await connection.query("ALTER TABLE houses MODIFY COLUMN status VARCHAR(20) NOT NULL");
 
     // 3. Find correct Owner ID (either Suresh or suresh.owner if they are Owner)
     const [owners] = await connection.query("SELECT user_id FROM users WHERE role = 'Owner' LIMIT 1");

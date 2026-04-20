@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login as loginAPI } from "../services/api.js";
 import Background from "../assets/bgimg.jpg";
+import { Input } from "../components/FormElements.jsx";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -62,8 +63,7 @@ function Login() {
         }}
       >
         <div style={{ textAlign: "center", marginBottom: "30px" }}>
-          <h2 style={{ fontSize: "28px", color: "var(--primary)" }}>Welcome Back</h2>
-          <p style={{ color: "var(--text-muted)" }}>Please enter your details to sign in</p>
+          <h2 style={{ fontSize: "28px", color: "var(--primary)" }}>Welcome</h2>
         </div>
 
         {error && (
@@ -82,54 +82,22 @@ function Login() {
         )}
 
         <form onSubmit={handleLogin}>
-          <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "var(--primary)" }}>Username</label>
-            <input
-              type="text"
-              placeholder="e.g. suresh.owner"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "12px 15px",
-                borderRadius: "10px",
-                border: "1px solid #ddd",
-                outline: "none",
-                fontSize: "16px",
-                transition: "var(--transition)"
-              }}
-              required
-            />
-          </div>
+          <Input
+            label="Username"
+            placeholder="e.g. suresh.owner"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
 
-          <div style={{ marginBottom: "15px" }}>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "var(--primary)" }}>Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "12px 15px",
-                borderRadius: "10px",
-                border: "1px solid #ddd",
-                outline: "none",
-                fontSize: "16px",
-                transition: "var(--transition)"
-              }}
-              required
-            />
-          </div>
-
-          <div style={{ textAlign: "right", marginBottom: "25px" }}>
-            <span
-              onClick={() => navigate('/forgot-password')}
-              style={{ fontSize: "14px", color: "var(--primary)", fontWeight: "500", cursor: "pointer" }}
-            >
-              Forgot password? Contact Admin
-            </span>
-          </div>
+          <Input
+            label="Password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
           <button
             type="submit"
@@ -148,7 +116,13 @@ function Login() {
         </form>
 
         <div style={{ marginTop: "30px", textAlign: "center", color: "var(--text-muted)", fontSize: "14px" }}>
-          Don't have an account? <a href="#" style={{ color: "var(--primary)", fontWeight: "600" }}>Contact Admin</a>
+          Forgot password or don't have an account?{" "}
+          <span
+            onClick={() => navigate('/contact-admin')}
+            style={{ color: "var(--primary)", fontWeight: "600", cursor: "pointer" }}
+          >
+            Contact Admin
+          </span>
         </div>
       </div>
 

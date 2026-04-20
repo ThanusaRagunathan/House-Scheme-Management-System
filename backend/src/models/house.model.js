@@ -14,11 +14,12 @@ export const getAllHouses = async (ownerId = null) => {
       u.username as owner
     FROM houses h
     JOIN users u ON h.owner_id = u.user_id
+    WHERE h.is_deleted = 0
   `;
   const params = [];
 
   if (ownerId) {
-    query += " WHERE h.owner_id = ?";
+    query += " AND h.owner_id = ?";
     params.push(ownerId);
   }
 
@@ -40,7 +41,7 @@ export const getHouseById = async (houseId) => {
       u.username as owner
     FROM houses h
     JOIN users u ON h.owner_id = u.user_id
-    WHERE h.house_id = ?`,
+    WHERE h.house_id = ? AND h.is_deleted = 0`,
     [houseId]
   );
 
@@ -53,7 +54,7 @@ export const getHouseById = async (houseId) => {
      FROM tenancies t 
      JOIN Tenants tn ON t.Tenant_id = tn.Tenant_id
      JOIN users u ON tn.user_id = u.user_id
-     WHERE t.house_id = ? AND (t.end_date IS NULL OR t.end_date > CURDATE())
+     WHERE t.house_id = ? AND (t.end_date IS NULL OR t.end_date > CURDATE()) AND t.is_deleted = 0
      LIMIT 1`,
     [houseId]
   );
@@ -92,8 +93,35 @@ export const updateHouse = async (houseId, referenceCode, address, rooms, rentAm
 
 export const deleteHouse = async (houseId) => {
   const [result] = await db.query(
-    "DELETE FROM houses WHERE house_id = ?",
-    [houseId]
+    "UPDATE houses SET is_deleted = 1, reference_code = CONCAT(reference_code, '_del_', ?) WHERE house_id = ?",
+    [Date.now(), houseId]
   );
   return result.affectedRows > 0;
+};
+
+export const getHouseUsers = async (houseId) => {
+  // Returns specifically the owner's user_id and active tenant's user_id 
+  const users = [];
+
+  // 1. Get Owner user_id
+  const [houseRows] = await db.query("SELECT owner_id, reference_code FROM houses WHERE house_id = ? AND is_deleted = 0", [houseId]);
+  if (houseRows.length === 0) return { users, houseCode: null };
+  const houseCode = houseRows[0].reference_code;
+  if (houseRows[0].owner_id) users.push(houseRows[0].owner_id);
+
+  // 2. Get active Tenant user_id
+  const [tenantRows] = await db.query(
+    `SELECT u.user_id 
+     FROM tenancies t 
+     JOIN Tenants tn ON t.Tenant_id = tn.Tenant_id
+     JOIN users u ON tn.user_id = u.user_id
+     WHERE t.house_id = ? AND (t.end_date IS NULL OR t.end_date > CURDATE()) AND t.is_deleted = 0`,
+    [houseId]
+  );
+  if (tenantRows.length > 0 && tenantRows[0].user_id) {
+    users.push(tenantRows[0].user_id);
+  }
+
+  // Ensure unique values
+  return { users: [...new Set(users)], houseCode };
 };

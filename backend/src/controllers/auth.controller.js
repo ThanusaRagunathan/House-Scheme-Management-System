@@ -125,7 +125,7 @@ export const resetPassword = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     await db.query(
-      "UPDATE users SET password = ?, isFirstLogin = FALSE WHERE user_id = ?",
+      "UPDATE users SET password = ?, isFirstLogin = FALSE WHERE user_id = ? AND is_deleted = 0",
       [hashedPassword, userId]
     );
 

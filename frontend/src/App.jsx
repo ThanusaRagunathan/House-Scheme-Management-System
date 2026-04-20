@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import ForgotPassword from "./pages/ForgotPassword";
+import ContactAdmin from "./pages/ContactAdmin";
 import OwnerOverview from "./pages/Owner/OwnerOverview";
 import OwnerHouses from "./pages/Owner/OwnerHouses";
 import OwnerTenant from "./pages/Owner/OwnerTenant";
@@ -34,6 +34,7 @@ import TenantNotification from "./pages/Tenant/TenantNotification";
 import TenantAddPayment from "./pages/Tenant/TenantAddPayment";
 import TenantAddComplaints from "./pages/Tenant/TenantAddComplaints";
 import TenantComplaintDetail from "./pages/Tenant/TenantComplaintDetail";
+import TenantRequestMaintenance from "./pages/Tenant/TenantRequestMaintenance";
 import TreasurerOverview from "./pages/Treasurer/TreasurerOverview";
 import TreasurerPayment from "./pages/Treasurer/TreasurerPayments";
 import TreasurerMaintenance from "./pages/Treasurer/TreasurerMaintenance";
@@ -56,15 +57,20 @@ import TreasurerMaintenanceDetail from "./pages/Treasurer/TreasurerMaintenanceDe
 import Profile from "./pages/Profile";
 import TreasurerEditTenant from "./pages/Treasurer/TreasurerEditTenant";
 
+import TenantCalendar from "./pages/Tenant/TenantCalendar";
+import OwnerCalendar from "./pages/Owner/OwnerCalendar";
+import TreasurerCalendar from "./pages/Treasurer/TreasurerCalendar";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/contact-admin" element={<ContactAdmin />} />
 
         <Route path="/owner/overview" element={<OwnerOverview />} />
+        <Route path="/owner/calendar" element={<OwnerCalendar />} />
         <Route path="/owner/profile" element={<Profile />} />
         <Route path="/owner/houses" element={<OwnerHouses />} />
         <Route path="/owner/Tenants" element={<OwnerTenant />} />
@@ -90,6 +96,7 @@ function App() {
         <Route path="/owner/maintenance/edit/:id" element={<OwnerEditMaintenance />} />
 
         <Route path="/Tenant/overview" element={<TenantOverview />} />
+        <Route path="/Tenant/calendar" element={<TenantCalendar />} />
         <Route path="/Tenant/profile" element={<Profile />} />
         <Route path="/Tenant/payments" element={<TenantPayment />} />
         <Route path="/Tenant/maintenance" element={<TenantMaintenance />} />
@@ -99,8 +106,10 @@ function App() {
         <Route path="/Tenant/addpayment" element={<TenantAddPayment />} />
         <Route path="/Tenant/addcomplaint" element={<TenantAddComplaints />} />
         <Route path="/Tenant/complaints/:id" element={<TenantComplaintDetail />} />
+        <Route path="/Tenant/request-maintenance" element={<TenantRequestMaintenance />} />
 
         <Route path="/treasurer/overview" element={<TreasurerOverview />} />
+        <Route path="/treasurer/calendar" element={<TreasurerCalendar />} />
         <Route path="/treasurer/profile" element={<Profile />} />
         <Route path="/treasurer/payments" element={<TreasurerPayment />} />
         <Route path="/treasurer/maintenance" element={<TreasurerMaintenance />} />

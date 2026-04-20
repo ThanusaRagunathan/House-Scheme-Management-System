@@ -19,6 +19,7 @@ function TreasurerEditTenant() {
     dob: "",
     email: ""
   });
+  const [fieldErrors, setFieldErrors] = useState({});
   const [houses, setHouses] = useState([]);
 
   useEffect(() => {
@@ -33,7 +34,7 @@ function TreasurerEditTenant() {
             nic: Tenant.nic || "",
             phone: Tenant.phone || "",
             houseAllocated: Tenant.houseAddress || Tenant.houseCode || "",
-            dob: Tenant.dateOfBirth ? Tenant.dateOfBirth.split('T')[0] : "",
+            dob: Tenant.date_of_birth ? new Date(Tenant.date_of_birth).toISOString().split('T')[0] : "",
             email: Tenant.email || ""
           });
         } else {
@@ -62,12 +63,42 @@ function TreasurerEditTenant() {
     fetchHouses();
   }, [id]);
 
+  const validateForm = () => {
+    const errors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\d{10}$/;
+    const nicRegex = /^([0-9]{9}[vVxX]|[0-9]{12})$/;
+
+    if (!formData.email.trim()) errors.email = "Email is required";
+    else if (!emailRegex.test(formData.email)) errors.email = "Invalid email format";
+    
+    if (!formData.phone.trim()) errors.phone = "Phone number is required";
+    else if (!phoneRegex.test(formData.phone)) errors.phone = "Phone must be exactly 10 digits";
+
+    if (!formData.nic.trim()) errors.nic = "NIC is required";
+    else if (!nicRegex.test(formData.nic)) errors.nic = "Invalid NIC format (9 Digits + V/X or 12 Digits)";
+
+    if (!formData.dob) errors.dob = "Date of Birth is required";
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    
-    if (!/^\d{10}$/.test(formData.phone)) {
-      setError("Phone number must be exactly 10 digits (e.g. 0712345678).");
+    setFieldErrors({});
+
+    if (!validateForm()) {
+      setError("Please fix the validation errors below.");
+      // Scroll to first error
+      setTimeout(() => {
+        const firstError = document.querySelector('[aria-invalid="true"]');
+        if (firstError) {
+          firstError.focus();
+          firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
       return;
     }
 
@@ -127,11 +158,9 @@ function TreasurerEditTenant() {
                 label="Phone Number"
                 placeholder="e.g. 0712345678"
                 value={formData.phone}
+                error={fieldErrors.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                pattern="[0-9]{10}"
                 maxLength="10"
-                minLength="10"
-                title="Phone number must be exactly 10 digits"
                 required
               />
             </div>
@@ -142,6 +171,7 @@ function TreasurerEditTenant() {
                 type="email"
                 placeholder="john@example.com"
                 value={formData.email}
+                error={fieldErrors.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
               />
@@ -153,8 +183,9 @@ function TreasurerEditTenant() {
               />
               <Input
                 label="NIC Number"
-                placeholder="199XXXXXXXXX"
+                placeholder="Old (901234567V) or New (199012345678)"
                 value={formData.nic}
+                error={fieldErrors.nic}
                 onChange={(e) => setFormData({ ...formData, nic: e.target.value })}
                 required
               />
@@ -179,6 +210,7 @@ function TreasurerEditTenant() {
                 label="Date of Birth"
                 type="date"
                 value={formData.dob}
+                error={fieldErrors.dob}
                 onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
                 required
               />

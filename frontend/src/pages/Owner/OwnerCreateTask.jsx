@@ -11,12 +11,34 @@ function OwnerCreateTask() {
   const [error, setError] = useState("");
   const [houses, setHouses] = useState([]);
   const [formData, setFormData] = useState({
-    houseId: "",
-    description: "",
-    scheduledDate: "",
-    cost: "0",
-    taskStatus: "Pending"
+    taskStatus: "Pending",
+    type: "House", // "House" or "Facility"
+    facility: "",
+    category: "Maintenance"
   });
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const validateForm = () => {
+    const errors = {};
+    if (formData.type === "House" && !formData.houseId) errors.houseId = "Please select a house / unit";
+    if (formData.type === "Facility" && !formData.facility) errors.facility = "Please select a facility";
+    if (!formData.description.trim()) errors.description = "Work description is required";
+    
+    if (formData.scheduledDate) {
+      const today = new Date().toISOString().split('T')[0];
+      if (formData.scheduledDate < today) {
+        errors.scheduledDate = "Scheduled date cannot be in the past";
+      }
+    }
+
+    const costNum = parseFloat(formData.cost);
+    if (isNaN(costNum) || costNum < 0) {
+      errors.cost = "Estimated cost must be a positive number";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   useEffect(() => {
     const fetchHouses = async () => {
@@ -39,24 +61,33 @@ function OwnerCreateTask() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.houseId) {
-      setError("Please select a house for this maintenance task.");
-      return;
-    }
-    if (!formData.description.trim()) {
-      setError("Please provide a work description.");
-      return;
-    }
-    setLoading(true);
     setError("");
+    setFieldErrors({});
+
+    if (!validateForm()) {
+      setError("Please fix the validation errors below.");
+      // Scroll to first error
+      setTimeout(() => {
+        const firstError = document.querySelector('[aria-invalid="true"]');
+        if (firstError) {
+          firstError.focus();
+          firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+      return;
+    }
+
+    setLoading(true);
 
     try {
       await createMaintenance({
-        houseId: parseInt(formData.houseId),
+        houseId: formData.type === "House" ? parseInt(formData.houseId) : null,
+        facility: formData.type === "Facility" ? formData.facility : null,
         description: formData.description,
         scheduledDate: formData.scheduledDate || null,
         cost: parseFloat(formData.cost) || 0,
-        taskStatus: formData.taskStatus
+        taskStatus: formData.taskStatus,
+        category: formData.category
       });
       navigate("/owner/maintenance");
     } catch (err) {
@@ -89,24 +120,67 @@ function OwnerCreateTask() {
           }
         >
           <form onSubmit={handleSubmit}>
-            <Select
-              label="Select House / Unit"
-              value={formData.houseId}
-              onChange={(e) => setFormData({ ...formData, houseId: e.target.value })}
-              required
-              options={[
-                { label: loadingHouses ? "Loading houses..." : "Select a house...", value: "" },
-                ...houses.map(h => ({
-                  label: `${h.houseCode || h.referenceCode} — ${h.address || ""}`,
-                  value: h.id || h.house_id
-                }))
-              ]}
-            />
+            {/* Type Toggle */}
+            <div style={{ display: "flex", gap: "10px", marginBottom: "25px", backgroundColor: "#f8f9fa", padding: "5px", borderRadius: "10px" }}>
+              {["House", "Facility"].map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, type: t })}
+                  style={{
+                    flex: 1, padding: "10px", borderRadius: "8px", border: "none", cursor: "pointer",
+                    fontSize: "14px", fontWeight: "600",
+                    backgroundColor: formData.type === t ? "white" : "transparent",
+                    color: formData.type === t ? "var(--primary)" : "var(--text-muted)",
+                    boxShadow: formData.type === t ? "0 2px 5px rgba(0,0,0,0.05)" : "none",
+                    transition: "all 0.2s"
+                  }}
+                >
+                  {t === "House" ? <><i className="bi bi-house-door" style={{ marginRight: "5px" }}></i> Housing Unit</> : <><i className="bi bi-water" style={{ marginRight: "5px" }}></i> Shared Facility</>}
+                </button>
+              ))}
+            </div>
+
+            {formData.type === "House" ? (
+              <Select
+                label="Select House / Unit"
+                value={formData.houseId}
+                error={fieldErrors.houseId}
+                onChange={(e) => setFormData({ ...formData, houseId: e.target.value })}
+                required
+                options={[
+                  { label: loadingHouses ? "Loading houses..." : "Select a house...", value: "" },
+                  ...houses.map(h => ({
+                    label: `${h.houseCode || h.referenceCode} — ${h.address || ""}`,
+                    value: h.id || h.house_id
+                  }))
+                ]}
+              />
+            ) : (
+              <Select
+                label="Select Facility"
+                value={formData.facility}
+                error={fieldErrors.facility}
+                onChange={(e) => setFormData({ ...formData, facility: e.target.value })}
+                required
+                options={[
+                  { label: "Select a facility...", value: "" },
+                  { label: "Swimming Pool", value: "Swimming Pool" },
+                  { label: "Fitness Gym", value: "Gym" },
+                  { label: "Garden / Landscape", value: "Garden" },
+                  { label: "Community Center", value: "Community Center" },
+                  { label: "Kids Playground", value: "Playground" },
+                  { label: "Security Gate", value: "Security Gate" },
+                  { label: "Other / Common Area", value: "Other" },
+                ]}
+              />
+            )}
 
             <TextArea
               label="Work Description"
               placeholder="Describe the maintenance requirements in detail..."
               value={formData.description}
+              error={fieldErrors.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
             />
@@ -116,6 +190,7 @@ function OwnerCreateTask() {
                 label="Scheduled Date"
                 type="date"
                 value={formData.scheduledDate}
+                error={fieldErrors.scheduledDate}
                 onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
               />
 
@@ -124,6 +199,7 @@ function OwnerCreateTask() {
                 type="number"
                 placeholder="0"
                 value={formData.cost}
+                error={fieldErrors.cost}
                 onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
               />
             </div>
@@ -133,11 +209,23 @@ function OwnerCreateTask() {
               value={formData.taskStatus}
               onChange={(e) => setFormData({ ...formData, taskStatus: e.target.value })}
               options={[
-                { label: "Pending", value: "Pending" },
-                { label: "In Progress", value: "In Progress" },
-                { label: "Completed", value: "Completed" },
-              ]}
-            />
+              { label: "Pending", value: "Pending" },
+              { label: "In Progress", value: "In Progress" },
+              { label: "Completed", value: "Completed" },
+            ]}
+          />
+
+          <Select
+            label="Expense Category"
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            options={[
+              { label: "Maintenance / Repair", value: "Maintenance" },
+              { label: "Utility Bill", value: "Utility Bill" },
+              { label: "Service Expense", value: "Service Expense" },
+              { label: "Other", value: "Other" }
+            ]}
+          />
           </form>
         </Card>
       </div>

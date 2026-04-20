@@ -113,7 +113,29 @@ function OwnerComplaints() {
                   <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
                     <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>C{String(c.complaint_id || c.id || i + 1).padStart(3, '0')}</td>
                     <td style={{ padding: "12px", fontSize: "14px", fontWeight: "500", color: "var(--primary)" }}>{c.house_code ? c.house_code : (c.facility || 'General')}</td>
-                    <td style={{ padding: "12px", fontSize: "14px" }}>{c.title}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>
+                      {(() => {
+                        const match = c.title?.match(/^\[(.*?)\]\s*(.*)$/);
+                        if (match) {
+                          const tag = match[1];
+                          const text = match[2];
+                          return (
+                            <>
+                              <span style={{ 
+                                fontSize: "11px", fontWeight: "600", padding: "2px 8px", 
+                                backgroundColor: tag.includes("Feedback") ? "#e3f2fd" : "#f1f3f5", 
+                                color: tag.includes("Feedback") ? "#1976d2" : "#495057", 
+                                borderRadius: "12px", marginRight: "8px", verticalAlign: "middle" 
+                              }}>
+                                {tag}
+                              </span>
+                              {text}
+                            </>
+                          );
+                        }
+                        return c.title;
+                      })()}
+                    </td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{new Date(c.submitted_date).toLocaleDateString()}</td>
                     <td style={{ padding: "12px" }}>
                       <span style={{

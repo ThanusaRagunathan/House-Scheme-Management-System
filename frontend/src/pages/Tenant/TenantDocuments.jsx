@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { Card, Button } from "../../components/FormElements";
-import { getDocuments, getTenantProfile, deleteDocument } from "../../services/api";
+import { getDocuments, getTenantProfile, deleteDocument, downloadDocument } from "../../services/api";
 
 function TenantDocuments() {
   const navigate = useNavigate();
@@ -61,10 +61,10 @@ function TenantDocuments() {
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "35px" }}>
         {[
-          { title: "Agreements", count: documents.filter(d => d.type === 'Rent Agreement').length, color: "#1a4d2e" },
-          { title: "Invoices", count: documents.filter(d => d.type === 'Invoice').length, color: "#e67e22" },
-          { title: "Policies", count: documents.filter(d => d.type === 'Policy').length, color: "#3498db" },
-          { title: "Others", count: documents.filter(d => !['Rent Agreement', 'Invoice', 'Policy'].includes(d.type)).length, color: "var(--text-muted)" },
+          { title: "Agreements", count: documents.filter(d => (d.document_type || d.type) === 'Agreement').length, color: "#1a4d2e" },
+          { title: "Invoices", count: documents.filter(d => (d.document_type || d.type) === 'Invoice').length, color: "#e67e22" },
+          { title: "Reports", count: documents.filter(d => (d.document_type || d.type) === 'Report').length, color: "#3498db" },
+          { title: "Others", count: documents.filter(d => !['Agreement', 'Invoice', 'Report'].includes(d.document_type || d.type)).length, color: "var(--text-muted)" },
         ].map((stat, i) => (
           <div key={i} className="glass-card" style={{ padding: "18px", backgroundColor: "white", textAlign: "center" }}>
             <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "5px" }}>{stat.title}</div>
@@ -82,17 +82,23 @@ function TenantDocuments() {
               <div key={i} className="glass-card" style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#fcfcfc" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
                   <div style={{ width: "45px", height: "45px", backgroundColor: "#f0f0f0", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", color: "var(--primary)" }}>
-                    <i className={`bi ${doc.type === 'Invoice' ? 'bi-file-earmark-spreadsheet' : 'bi-file-earmark-text'}`}></i>
+                    <i className={`bi ${(doc.document_type || doc.type) === 'Invoice' ? 'bi-file-earmark-spreadsheet' : 'bi-file-earmark-text'}`}></i>
                   </div>
                   <div>
-                    <div style={{ fontWeight: "700", fontSize: "15px" }}>{doc.title}</div>
+                    <div style={{ fontWeight: "700", fontSize: "15px" }}>{doc.document_name || doc.title}</div>
                     <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-                      {doc.type} • {new Date(doc.date).toLocaleDateString()} • {doc.size}
+                      {doc.document_type || doc.type} • {doc.upload_date ? new Date(doc.upload_date).toLocaleDateString('en-GB') : '-'}
                     </div>
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                  <Button variant="secondary" onClick={() => alert("Downloading " + doc.title)}>
+                  <Button 
+                    variant="secondary" 
+                    onClick={async () => {
+                      try { await downloadDocument(doc.document_id || doc.id); }
+                      catch(e) { alert("Download failed: " + e.message); }
+                    }}
+                  >
                     <i className="bi bi-download"></i> Download
                   </Button>
                   <button

@@ -76,13 +76,12 @@ function TenantComplaints() {
       userName={profile?.username || "Tenant"}
       userInitials={profile?.username?.charAt(0) || "R"}
       userRoleLabel={`${profile?.houseAddress || "Loading..."} - Tenant`}
-    >
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
+      headerAction={
         <Button variant="primary" onClick={() => navigate("/Tenant/addcomplaint")} disabled={actionLoading}>
           <i className="bi bi-plus-lg"></i> File New Complaint
         </Button>
-      </div>
-
+      }
+    >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "35px" }}>
         <SummaryCard title="Total Filed" value={total} icon="bi-journal-text" color="var(--primary)" />
         <SummaryCard title="Resolved" value={resolved} icon="bi-check-circle" color="#1a4d2e" />
@@ -98,8 +97,30 @@ function TenantComplaints() {
               <div key={i} className="glass-card" style={{ padding: "20px", backgroundColor: "#fcfcfc", border: "1px solid #f0f0f0" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
                   <div>
-                    <h4 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "4px" }}>{c.title}</h4>
-                    <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Submitted on {new Date(c.created_at).toLocaleDateString()}</span>
+                    <h4 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "4px" }}>
+                      {(() => {
+                        const match = c.title?.match(/^\[(.*?)\]\s*(.*)$/);
+                        if (match) {
+                          const tag = match[1];
+                          const text = match[2];
+                          return (
+                            <>
+                              <span style={{ 
+                                fontSize: "11px", fontWeight: "600", padding: "2px 8px", 
+                                backgroundColor: tag.includes("Feedback") ? "#e3f2fd" : "#f1f3f5", 
+                                color: tag.includes("Feedback") ? "#1976d2" : "#495057", 
+                                borderRadius: "12px", marginRight: "8px", verticalAlign: "middle" 
+                              }}>
+                                {tag}
+                              </span>
+                              {text}
+                            </>
+                          );
+                        }
+                        return c.title;
+                      })()}
+                    </h4>
+                    <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Submitted on {new Date(c.submitted_date).toLocaleDateString()}</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <span style={{
@@ -134,11 +155,11 @@ function TenantComplaints() {
 
                 <p style={{ fontSize: "14px", color: "#555", lineHeight: "1.5", marginBottom: "15px" }}>{c.description}</p>
 
-                {c.resolution_note && (
+                {c.response && (
                   <div style={{ backgroundColor: "#f0f7f2", padding: "12px", borderRadius: "8px", borderLeft: "4px solid #1a4d2e", marginBottom: "15px" }}>
-                    <div style={{ fontSize: "12px", fontWeight: "700", color: "#1a4d2e", marginBottom: "4px" }}>Resolution Update</div>
-                    <div style={{ fontSize: "13px", color: "#444" }}>{c.resolution_note}</div>
-                    <div style={{ fontSize: "11px", color: "#888", marginTop: "5px" }}>Solved on {new Date(c.resolved_at).toLocaleDateString()}</div>
+                    <div style={{ fontSize: "12px", fontWeight: "700", color: "#1a4d2e", marginBottom: "4px" }}>Management Response</div>
+                    <div style={{ fontSize: "13px", color: "#444" }}>{c.response}</div>
+                    {c.resolved_date && <div style={{ fontSize: "11px", color: "#888", marginTop: "5px" }}>Resolved on {new Date(c.resolved_date).toLocaleDateString()}</div>}
                   </div>
                 )}
 

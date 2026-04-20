@@ -4,6 +4,7 @@ import DashboardLayout from "../../components/DashboardLayout";
 import { Button, Card } from "../../components/FormElements";
 import { getPayments, updatePayment, deletePayment } from "../../services/api";
 import { formatDate } from "../../utils/formatters";
+import { downloadInvoicePDF } from "../../utils/pdfGenerator";
 
 function StatCard({ title, subtitle, value, icon, color }) {
   return (
@@ -69,11 +70,6 @@ function OwnerPayment() {
       setPayments(data);
     } catch (error) {
       console.error("Failed to fetch payments:", error);
-      // Fallback for demo
-      setPayments([
-        { id: 1, invoice_no: "INV-2026-001", TenantName: "Karthik", houseAddress: "H001", paid_date: "2026-09-01", amount: 10000, status: "Paid", payment_method: "Online" },
-        { id: 2, invoice_no: "INV-2026-002", TenantName: "Jack Brown", houseAddress: "H002", paid_date: null, amount: 17000, status: "Pending", payment_method: "-" },
-      ]);
     } finally {
       setLoading(false);
     }
@@ -185,12 +181,13 @@ function OwnerPayment() {
                             </button>
                           )}
                           <button
-                            onClick={() => navigate(`/owner/payments/edit/${p.id}`)}
-                            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
-                            title="Edit"
+                            onClick={() => downloadInvoicePDF(p)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--primary)" }}
+                            title="Download Invoice PDF"
                           >
-                            <i className="bi bi-pencil-square"></i>
+                            <i className="bi bi-file-earmark-pdf-fill"></i>
                           </button>
+
                           <button
                             onClick={() => handleDelete(p.id)}
                             style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}

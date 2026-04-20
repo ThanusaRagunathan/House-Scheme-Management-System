@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { Card, Button } from "../../components/FormElements";
 import { getPayments, getTenantProfile } from "../../services/api";
+import { downloadInvoicePDF } from "../../utils/pdfGenerator";
 
 function SummaryCard({ title, value, subtitle, icon, color }) {
   return (
@@ -24,6 +25,7 @@ function TenantPayments() {
   const [payments, setPayments] = useState([]);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,13 +36,9 @@ function TenantPayments() {
         ]);
         setPayments(paymentsData);
         setProfile(profileData);
-      } catch (error) {
-        console.error("Failed to fetch payments:", error);
-        // Fallback for demo
-        setPayments([
-          { invoice_no: "INV-2026-001", paid_date: "2026-09-01", amount: 10000, status: "Paid", payment_method: "Online" },
-          { invoice_no: "INV-2026-002", paid_date: null, amount: 10000, status: "Pending", payment_method: "-" },
-        ]);
+      } catch (err) {
+        console.error("Failed to fetch payments:", err);
+        setError("Could not load payment records. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -74,24 +72,35 @@ function TenantPayments() {
       <Card title="Detailed Payment History" subtitle="A complete record of your rent and facility payments.">
         {loading ? (
           <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading records...</p>
+        ) : error ? (
+          <div style={{ textAlign: "center", padding: "40px", color: "#e03131" }}>
+            <i className="bi bi-exclamation-circle" style={{ fontSize: "30px", display: "block", marginBottom: "10px" }}></i>
+            {error}
+          </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
                   <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Invoice No.</th>
-                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Due Date</th>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Paid Date</th>
                   <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Amount</th>
                   <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Status</th>
                   <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Method</th>
-                  <th style={{ padding: "15px 10px" }}></th>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)", textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {payments.map((p, i) => (
                   <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
                     <td style={{ padding: "15px 10px", fontSize: "14px", fontWeight: "600" }}>{p.invoice_no}</td>
-                    <td style={{ padding: "15px 10px", fontSize: "14px" }}>{p.paid_date ? new Date(p.paid_date).toLocaleDateString() : 'Awaiting Payment'}</td>
+                    <td style={{ padding: "15px 10px", fontSize: "14px", color: "#555" }}>
+                      {p.due_date ? new Date(p.due_date).toLocaleDateString('en-GB') : '-'}
+                    </td>
+                    <td style={{ padding: "15px 10px", fontSize: "14px" }}>
+                      {p.paid_date ? new Date(p.paid_date).toLocaleDateString('en-GB') : <span style={{ color: "#e67e22", fontStyle: "italic" }}>Awaiting Payment</span>}
+                    </td>
                     <td style={{ padding: "15px 10px", fontSize: "14px", fontWeight: "600" }}>Rs. {parseFloat(p.amount).toLocaleString()}</td>
                     <td style={{ padding: "15px 10px" }}>
                       <span style={{
@@ -105,15 +114,20 @@ function TenantPayments() {
                     </td>
                     <td style={{ padding: "15px 10px", fontSize: "14px", color: "#555" }}>{p.payment_method || '-'}</td>
                     <td style={{ padding: "15px 10px", textAlign: "right" }}>
-                      <Button variant="secondary" onClick={() => alert("Downloading receipt for " + p.invoice_no)}>
-                        <i className="bi bi-download"></i> Receipt
-                      </Button>
+                      <button
+                        onClick={() => downloadInvoicePDF(p)}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--primary)", fontSize: "18px" }}
+                        title="Download Invoice PDF"
+                      >
+                        <i className="bi bi-file-earmark-pdf-fill"></i>
+                      </button>
                     </td>
                   </tr>
                 ))}
                 {payments.length === 0 && (
                   <tr>
                     <td colSpan="6" style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)" }}>
+                      <i className="bi bi-receipt" style={{ fontSize: "40px", display: "block", marginBottom: "10px", opacity: 0.3 }}></i>
                       No payment history found.
                     </td>
                   </tr>

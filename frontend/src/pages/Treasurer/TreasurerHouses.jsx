@@ -3,15 +3,10 @@ import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { Card, Button } from "../../components/FormElements";
 import { getHouses, deleteHouse } from "../../services/api";
+import { sortHousesByReference } from "../../utils/formatters";
 
-function HouseCard({ house, onDelete }) {
+function HouseCard({ house }) {
   const navigate = useNavigate();
-  
-  const handleDelete = async () => {
-    if (window.confirm(`Are you sure you want to delete house ${house.houseCode || house.code}?`)) {
-      await onDelete(house.id);
-    }
-  };
 
   return (
     <div className="glass-card" style={{ padding: "20px", backgroundColor: "white", display: "flex", flexDirection: "column", gap: "15px" }}>
@@ -19,14 +14,6 @@ function HouseCard({ house, onDelete }) {
         <div>
           <div style={{ fontSize: "12px", color: "var(--primary)", fontWeight: "600" }}>{house.referenceCode}</div>
           <div style={{ fontSize: "16px", fontWeight: "700" }}>{house.address || house.location}</div>
-        </div>
-        <div style={{ display: "flex", gap: "10px" }}>
-            <button onClick={() => navigate(`/treasurer/houses/edit/${house.id}`)} style={{ border: "none", background: "none", cursor: "pointer", color: "var(--text-muted)" }}>
-                <i className="bi bi-pencil-square"></i>
-            </button>
-            <button onClick={handleDelete} style={{ border: "none", background: "none", cursor: "pointer", color: "#e03131" }}>
-                <i className="bi bi-trash"></i>
-            </button>
         </div>
       </div>
 
@@ -66,7 +53,7 @@ function TreasurerHouses() {
         setLoading(true);
         try {
             const data = await getHouses();
-            setHouses(data);
+            setHouses(sortHousesByReference(data));
         } catch (error) {
             console.error("Failed to fetch houses:", error);
             // Fallback for demo
@@ -80,30 +67,13 @@ function TreasurerHouses() {
         }
     };
 
-    const handleDeleteHouse = async (id) => {
-        try {
-            await deleteHouse(id);
-            setHouses(houses.filter(h => h.id !== id));
-            alert("House deleted successfully");
-        } catch (error) {
-            console.error("Delete failed:", error);
-            alert("Delete failed: " + error.message);
-        }
-    };
-
     return (
         <DashboardLayout
             role="treasurer"
             title="House Portfolio"
-            
-            
-            
         >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
+            <div style={{ marginBottom: "20px" }}>
                 <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "700" }}>Housing Units ({houses.length})</h3>
-                <Button variant="primary" onClick={() => navigate("/treasurer/houses/add")}>
-                    <i className="bi bi-plus-lg"></i> Add New House
-                </Button>
             </div>
 
             {loading ? (
@@ -111,7 +81,7 @@ function TreasurerHouses() {
             ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "25px" }}>
                     {houses.map(house => (
-                        <HouseCard key={house.id} house={house} onDelete={handleDeleteHouse} />
+                        <HouseCard key={house.id} house={house} />
                     ))}
                     {houses.length === 0 && (
                         <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px", backgroundColor: "#f9f9f9", borderRadius: "15px" }}>

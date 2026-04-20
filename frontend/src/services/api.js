@@ -1,10 +1,15 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const apiCall = async (endpoint, options = {}) => {
+  const isFormData = options.body instanceof FormData;
+  
   const headers = {
-    "Content-Type": "application/json",
     ...options.headers,
   };
+
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
 
   const token = localStorage.getItem("token");
   if (token) {
@@ -50,18 +55,25 @@ export const deleteHouse = (id) => apiCall(`/houses/${id}`, { method: "DELETE" }
 // Tenant Services
 export const getTenants = () => apiCall("/Tenants");
 export const getTenantProfile = () => apiCall("/Tenants/profile");
+export const getTenant = (id) => apiCall(`/Tenants/${id}`);
 export const createTenant = (data) => apiCall("/Tenants", { method: "POST", body: JSON.stringify(data) });
 export const updateTenant = (id, data) => apiCall(`/Tenants/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const deleteTenant = (id) => apiCall(`/Tenants/${id}`, { method: "DELETE" });
 
 // Payment Services
-export const getPayments = () => apiCall("/payments");
+export const getPayments = (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  return apiCall(`/payments${query ? `?${query}` : ""}`);
+};
 export const createPayment = (data) => apiCall("/payments", { method: "POST", body: JSON.stringify(data) });
 export const updatePayment = (id, data) => apiCall(`/payments/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const deletePayment = (id) => apiCall(`/payments/${id}`, { method: "DELETE" });
 
 // Maintenance Services
-export const getMaintenances = () => apiCall("/maintenance");
+export const getMaintenances = (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  return apiCall(`/maintenance${query ? `?${query}` : ""}`);
+};
 export const createMaintenance = (data) => apiCall("/maintenance", { method: "POST", body: JSON.stringify(data) });
 export const updateMaintenance = (id, data) => apiCall(`/maintenance/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const deleteMaintenance = (id) => apiCall(`/maintenance/${id}`, { method: "DELETE" });
@@ -74,8 +86,31 @@ export const deleteComplaint = (id) => apiCall(`/complaints/${id}`, { method: "D
 
 // Document Services
 export const getDocuments = () => apiCall("/documents");
-export const createDocument = (data) => apiCall("/documents", { method: "POST", body: JSON.stringify(data) });
+export const createDocument = (data) => apiCall("/documents", { 
+  method: "POST", 
+  body: data instanceof FormData ? data : JSON.stringify(data) 
+});
 export const deleteDocument = (id) => apiCall(`/documents/${id}`, { method: "DELETE" });
+
+// Authenticated download — fetches the decrypted file via JWT-protected endpoint
+export const downloadDocument = async (id) => {
+  const token = localStorage.getItem("token");
+  const response = await fetch(`${API_URL}/documents/${id}/download`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error("Failed to download document.");
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank");
+  // Revoke the object URL after a short delay
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+};
+
+// Reporting Services (Dynamic)
+export const getReportData = (type, params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  return apiCall(`/reports/generate/${type}${query ? `?${query}` : ""}`);
+};
 
 // Notification Services
 export const getNotifications = () => apiCall("/notifications");

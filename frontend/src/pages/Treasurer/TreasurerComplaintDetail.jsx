@@ -68,11 +68,7 @@ function TreasurerComplaintDetail() {
 
 
     >
-      <div style={{ marginBottom: "25px" }}>
-        <Button variant="secondary" onClick={() => navigate("/treasurer/complaints")}>
-          <i className="bi bi-arrow-left"></i> Back to All Complaints
-        </Button>
-      </div>
+
 
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "25px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
@@ -92,7 +88,20 @@ function TreasurerComplaintDetail() {
 
             <div style={{ backgroundColor: "#f9f9f9", padding: "18px", borderRadius: "10px", marginBottom: "20px" }}>
               <div style={{ fontWeight: "700", marginBottom: "8px", fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase" }}>Complaint Content</div>
-              <p style={{ margin: 0, fontSize: "14px", lineHeight: "1.6" }}>{complaint.description}</p>
+              <p style={{ margin: 0, fontSize: "14px", lineHeight: "1.6", marginBottom: complaint.attachment_url ? "15px" : "0" }}>{complaint.description}</p>
+              
+              {complaint.attachment_url && (
+                <div style={{ marginTop: "15px" }}>
+                  <div style={{ fontWeight: "700", marginBottom: "10px", fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase" }}>Attachment Found</div>
+                  <img 
+                    src={`${import.meta.env.VITE_API_URL}${complaint.attachment_url}`} 
+                    alt="Complaint Attachment" 
+                    style={{ maxWidth: "100%", borderRadius: "8px", border: "1px solid #ddd", cursor: "pointer" }}
+                    onClick={() => window.open(`${import.meta.env.VITE_API_URL}${complaint.attachment_url}`, '_blank')}
+                  />
+                  <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "5px" }}>Click to view full image</div>
+                </div>
+              )}
             </div>
 
             <div>
@@ -106,7 +115,7 @@ function TreasurerComplaintDetail() {
                 <Button variant="primary" onClick={() => handleUpdate("In Progress")} disabled={updating || complaint.status === "In Progress"}>
                   Move to In Progress
                 </Button>
-                <Button variant="primary" onClick={() => handleUpdate("Resolved")} disabled={updating || complaint.status === "Resolved"} style={{ backgroundColor: "#1a4d2e" }}>
+                <Button variant="primary" onClick={() => handleUpdate("Resolved")} disabled={updating || complaint.status === "Resolved"}>
                   Resolve Issue
                 </Button>
               </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
+import { Button } from "../../components/FormElements";
 import { getPayments, getMaintenances, getTenants } from "../../services/api";
 
 function StatCard({ title, subtitle, value, icon, color }) {
@@ -82,6 +83,7 @@ function TreasurerOverview() {
     <DashboardLayout
       role="treasurer"
       title="Financial Overview"
+      headerAction={<Button variant="secondary" onClick={() => navigate("/treasurer/calendar")}><i className="bi bi-calendar3"></i> View Calendar</Button>}
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "25px", marginBottom: "40px" }}>
         <StatCard title="Total Revenue" value={loading ? "..." : `Rs. ${stats.totalRevenue.toLocaleString()}`} subtitle="Current Fiscal Year" icon="bi-currency-dollar" color="#1a4d2e" />

@@ -52,23 +52,19 @@ function OwnerHouseDetail() {
   return (
     <DashboardLayout
       role="owner"
-      title={`House Details - ${house.houseCode || house.id}`}
-
-
-
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "25px" }}>
-        <Button variant="secondary" onClick={() => navigate("/owner/houses")}>
-          <i className="bi bi-arrow-left"></i> Back to List
-        </Button>
+      title={`House Details (${(house.referenceCode || house.houseCode || house.id).toString().replace(/\s+/g, '')})`}
+      headerAction={
         <div style={{ display: "flex", gap: "10px" }}>
+          <Button variant="secondary" onClick={() => navigate("/owner/houses")}>
+            <i className="bi bi-arrow-left"></i> Back
+          </Button>
           <Button variant="primary" onClick={() => navigate(`/owner/addhouse?edit=${id}`)}>
             <i className="bi bi-pencil"></i> Edit House
           </Button>
         </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "25px" }}>
+      }
+    >
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "25px", marginTop: "20px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
           <Card title="House Information">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>

@@ -72,11 +72,7 @@ function OwnerComplaintDetail() {
 
 
     >
-      <div style={{ marginBottom: "25px" }}>
-        <Button variant="secondary" onClick={() => navigate("/owner/complaints")}>
-          <i className="bi bi-arrow-left"></i> Back to Complaints
-        </Button>
-      </div>
+
 
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "25px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
@@ -101,7 +97,20 @@ function OwnerComplaintDetail() {
 
             <div style={{ backgroundColor: "#f9f9f9", padding: "20px", borderRadius: "12px", marginBottom: "25px" }}>
               <div style={{ fontWeight: "700", marginBottom: "10px", fontSize: "13px", color: "var(--text-muted)", textTransform: "uppercase" }}>Description</div>
-              <p style={{ margin: 0, lineHeight: "1.6", color: "#444" }}>{complaint.description}</p>
+              <p style={{ margin: 0, lineHeight: "1.6", color: "#444", marginBottom: complaint.attachment_url ? "15px" : "0" }}>{complaint.description}</p>
+              
+              {complaint.attachment_url && (
+                <div style={{ marginTop: "15px" }}>
+                  <div style={{ fontWeight: "700", marginBottom: "10px", fontSize: "13px", color: "var(--text-muted)", textTransform: "uppercase" }}>Attachment</div>
+                  <img 
+                    src={`${import.meta.env.VITE_API_URL}${complaint.attachment_url}`} 
+                    alt="Complaint Attachment" 
+                    style={{ maxWidth: "100%", borderRadius: "8px", border: "1px solid #ddd", cursor: "pointer" }}
+                    onClick={() => window.open(`${import.meta.env.VITE_API_URL}${complaint.attachment_url}`, '_blank')}
+                  />
+                  <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "5px" }}>Click image to open in full size</div>
+                </div>
+              )}
             </div>
 
             <div>
@@ -126,7 +135,6 @@ function OwnerComplaintDetail() {
                       variant="primary"
                       onClick={() => handleUpdateStatus("Resolved")}
                       disabled={updating}
-                      style={{ backgroundColor: "#1a4d2e" }}
                     >
                       Mark as Resolved
                     </Button>

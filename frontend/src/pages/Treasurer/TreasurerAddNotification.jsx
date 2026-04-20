@@ -73,6 +73,7 @@ function TreasurerAddNotification() {
                   <option value="Financial">Financial Alert</option>
                   <option value="General">General Announcement</option>
                   <option value="Urgent">Urgent Warning</option>
+                  <option value="Facility Closure">Facility Closure</option>
                 </select>
               </div>
             </div>

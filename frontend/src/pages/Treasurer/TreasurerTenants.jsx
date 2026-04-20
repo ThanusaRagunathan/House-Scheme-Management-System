@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { Card, Button } from "../../components/FormElements";
 import { getTenants, deleteTenant } from "../../services/api";
+import { formatDate } from "../../utils/formatters";
 
 function TreasurerTenants() {
   const navigate = useNavigate();
@@ -55,7 +56,7 @@ function TreasurerTenants() {
 
 
     >
-      <Card title="Tenant Management" subtitle="Manage and view contact information for all registered Tenants.">
+      <Card>
         {loading ? (
           <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading records...</p>
         ) : (
@@ -84,8 +85,10 @@ function TreasurerTenants() {
                     <td style={{ padding: "12px", fontSize: "14px" }}>{t.houseCode || t.houseAddress || 'N/A'}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{t.nic || 'N/A'}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{t.occupation || 'N/A'}</td>
-                    <td style={{ padding: "12px", fontSize: "14px" }}>{t.dob || 'N/A'}</td>
-                    <td style={{ padding: "12px", fontSize: "14px" }}>{t.tenancyPeriod || 'N/A'}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{t.date_of_birth ? formatDate(t.date_of_birth) : (t.dob || 'N/A')}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>
+                      {t.startDate ? `${formatDate(t.startDate)} - ${formatDate(t.endDate)}` : (t.tenancyPeriod || 'N/A')}
+                    </td>
                     <td style={{ padding: "12px", textAlign: "right" }}>
                       <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
                         <Button variant="secondary" onClick={() => navigate(`/treasurer/Tenants/${t.id}`)}>

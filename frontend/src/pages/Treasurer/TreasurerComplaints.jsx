@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
 import { Card, Button } from "../../components/FormElements";
 import { getComplaints, updateComplaint, deleteComplaint } from "../../services/api";
+import { formatDate } from "../../utils/formatters";
 
 function SummaryCard({ title, value, subtitle, icon, color }) {
   return (
@@ -82,9 +83,7 @@ function TreasurerComplaints() {
     <DashboardLayout
       role="treasurer"
       title="Complaints Management"
-
-
-
+      headerAction={<Button variant="secondary" onClick={() => navigate("/treasurer/calendar")}><i className="bi bi-calendar3"></i> View Calendar</Button>}
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "40px" }}>
         <SummaryCard title="Open Complaints" value={loading ? "..." : openCount} subtitle="Requires attention" icon="bi-exclamation-circle" color="#e03131" />
@@ -113,8 +112,30 @@ function TreasurerComplaints() {
                   <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
                     <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>C{String(c.id || i + 1).padStart(3, '0')}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{c.houseAddress || 'N/A'}</td>
-                    <td style={{ padding: "12px", fontSize: "14px" }}>{c.title}</td>
-                    <td style={{ padding: "12px", fontSize: "14px" }}>{new Date(c.submitted_date).toLocaleDateString()}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>
+                      {(() => {
+                        const match = c.title?.match(/^\[(.*?)\]\s*(.*)$/);
+                        if (match) {
+                          const tag = match[1];
+                          const text = match[2];
+                          return (
+                            <>
+                              <span style={{ 
+                                fontSize: "11px", fontWeight: "600", padding: "2px 8px", 
+                                backgroundColor: tag.includes("Feedback") ? "#e3f2fd" : "#f1f3f5", 
+                                color: tag.includes("Feedback") ? "#1976d2" : "#495057", 
+                                borderRadius: "12px", marginRight: "8px", verticalAlign: "middle" 
+                              }}>
+                                {tag}
+                              </span>
+                              {text}
+                            </>
+                          );
+                        }
+                        return c.title;
+                      })()}
+                    </td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{formatDate(c.submitted_date || c.created_at)}</td>
                     <td style={{ padding: "12px" }}>
                       <span style={{
                         padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
