@@ -87,7 +87,7 @@ function TreasurerDocuments() {
       role="treasurer"
       title={`Document Management ${!loading ? `(${documents.length})` : ''}`}
       headerAction={
-        <Button variant="primary" onClick={() => navigate("/treasurer/addDocument")} disabled={actionLoading}>
+        <Button variant="primary" onClick={() => navigate("/treasurer/uploaddocument")} disabled={actionLoading}>
           <i className="bi bi-plus-circle"></i> Add Document
         </Button>
       }
