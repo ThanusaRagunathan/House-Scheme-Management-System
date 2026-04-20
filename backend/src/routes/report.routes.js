@@ -1,13 +1,13 @@
 import express from "express";
 import * as reportController from "../controllers/report.controller.js";
-import { verifyToken } from "../middleware/auth.middleware.js";
+import { verifyToken, authorize } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.get("/", verifyToken, reportController.getAllReports);
-router.get("/:id", verifyToken, reportController.getReportById);
-router.post("/", verifyToken, reportController.createReport);
-router.put("/:id", verifyToken, reportController.updateReport);
-router.delete("/:id", verifyToken, reportController.deleteReport);
+// Dynamic Report Generation - Owners and Treasurers only
+router.get("/generate/:type", verifyToken, authorize("Owner", "Treasurer"), reportController.generateReport);
+
+// All reports metadata
+router.get("/", verifyToken, authorize("Owner", "Treasurer"), reportController.getAllReports);
 
 export default router;

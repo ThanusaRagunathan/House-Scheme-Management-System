@@ -1,267 +1,194 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Input, Select, Button, Card } from "../../components/FormElements";
+import { createHouse, getHouses } from "../../services/api";
 
 function OwnerAddHouse() {
   const navigate = useNavigate();
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    color: "#111",
-    cursor: "pointer",
-    fontSize: "14px",
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    code: "",
+    address: "",
+    rooms: "",
+    rent: "",
+    status: "Vacant"
+  });
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  useEffect(() => {
+    const fetchNextCode = async () => {
+      try {
+        const houses = await getHouses();
+        // Extract numbers from "H - 001", "H-001", "H001", etc.
+        const codes = houses.map(h => {
+          const match = (h.houseCode || h.referenceCode || "").match(/\d+/);
+          return match ? parseInt(match[0], 10) : null;
+        }).filter(n => n !== null);
+
+        let nextNum = 1;
+        if (codes.length > 0) {
+          const sorted = [...new Set(codes)].sort((a, b) => a - b);
+          for (let i = 0; i < sorted.length; i++) {
+            if (sorted[i] === nextNum) {
+              nextNum++;
+            } else if (sorted[i] > nextNum) {
+              break;
+            }
+          }
+        }
+        setFormData(prev => ({ ...prev, code: nextNum.toString().padStart(3, "0") }));
+      } catch (err) {
+        console.error("Failed to fetch houses for auto-code:", err);
+      }
+    };
+    fetchNextCode();
+  }, []);
+
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.code.trim()) errors.code = "Reference code is required";
+    if (!formData.address.trim()) errors.address = "Physical address is required";
+    
+    const rooms = parseInt(formData.rooms);
+    if (isNaN(rooms) || rooms <= 0) errors.rooms = "Number of rooms must be greater than 0";
+
+    const rent = parseFloat(formData.rent);
+    if (isNaN(rent) || rent <= 0) errors.rent = "Monthly rent must be a positive amount";
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setFieldErrors({});
+
+    if (!validateForm()) {
+      setError("Please fix the validation errors below.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Get ownerId from token
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Authentication required");
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      
+      const houseData = {
+        referenceCode: `H - ${formData.code}`,
+        address: formData.address,
+        rooms: parseInt(formData.rooms),
+        rentAmount: parseFloat(formData.rent),
+        status: formData.status,
+        ownerId: payload.id
+      };
+
+      await createHouse(houseData);
+      navigate("/owner/houses");
+    } catch (err) {
+      setError(err.message || "Failed to add house. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="owner"
+      title="Add New House"
+      
+      
+      
     >
-      {/* Top Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Add houses
-      </header>
-
-      {/* Body */}
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
+      <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+        {error && (
+            <div style={{ backgroundColor: "#fff5f5", color: "#e03131", padding: "15px", borderRadius: "10px", marginBottom: "20px", border: "1px solid #ffc9c9" }}>
+                {error}
+            </div>
+        )}
+        
+        <Card 
+          title="House Details" 
+          subtitle="Enter the information for the new housing unit."
         >
-          {/* Sidebar header */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
+          <form onSubmit={handleSubmit}>
+            <Input 
+              label="House Reference Code" 
+              placeholder="001" 
+              prefix="H - "
+              value={formData.code}
+              error={fieldErrors.code}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                setFormData({...formData, code: value});
               }}
-            >
-              <i className="bi bi-buildings"></i>
+              required
+            />
+            
+            <Input 
+              label="Physical Address" 
+              placeholder="Full street address" 
+              value={formData.address}
+              error={fieldErrors.address}
+              onChange={(e) => setFormData({...formData, address: e.target.value})}
+              required
+            />
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+              <Input 
+                label="Number of Rooms" 
+                type="number"
+                placeholder="2" 
+                value={formData.rooms}
+                error={fieldErrors.rooms}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({...formData, rooms: value});
+                }}
+                required
+              />
+              
+              <Input 
+                label="Monthly Rent (Rs.)" 
+                type="number"
+                placeholder="15000" 
+                value={formData.rent}
+                error={fieldErrors.rent}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({...formData, rent: value});
+                }}
+                required
+              />
             </div>
 
-            <div>
-              <div style={{ fontWeight: 600 }}>Property Manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Owner Portal
-              </div>
+            <Select 
+              label="Initial Status"
+              value={formData.status}
+              onChange={(e) => setFormData({...formData, status: e.target.value})}
+              options={[
+                { label: "Vacant", value: "Vacant" },
+                { label: "Occupied", value: "Occupied" },
+                { label: "Maintenance", value: "Maintenance" }
+              ]}
+            />
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "30px", paddingTop: "20px", borderTop: "1px solid #eee" }}>
+              <Button variant="secondary" type="button" onClick={() => navigate("/owner/houses")} disabled={loading}>Cancel</Button>
+              <Button variant="primary" type="submit" loading={loading}>Save House</Button>
             </div>
-          </div>
-
-          {/* Menu */}
-<div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-  <div style={menuItemStyle} onClick={() => navigate("/owner/overview")}>
-    <i className="bi bi-house"></i>
-    Overview
-  </div>
-
-  {/* Active */}
-  <div
-    style={{
-      ...menuItemStyle,
-      color: "#1d4ed8",
-      fontWeight: 500,
-    }}
-  >
-    <i className="bi bi-map"></i>
-    Houses
-  </div>
-
-  <div style={menuItemStyle} onClick={() => navigate("/owner/tenants")}>
-    <i className="bi bi-people"></i>
-    Tenants
-  </div>
-
-  <div style={menuItemStyle} onClick={() => navigate("/owner/payments")}>
-    <i className="bi bi-currency-dollar"></i>
-    Payments
-  </div>
-
-  <div style={menuItemStyle} onClick={() => navigate("/owner/maintenance")}>
-    <i className="bi bi-wrench-adjustable"></i>
-    Maintenance
-  </div>
-
-  <div style={menuItemStyle} onClick={() => navigate("/owner/complaints")}>
-    <i className="bi bi-journal-text"></i>
-    Complaints
-  </div>
-
-  <div style={menuItemStyle} onClick={() => navigate("/owner/documents")}>
-    <i className="bi bi-file-earmark-text"></i>
-    Document
-  </div>
-
-  <div style={menuItemStyle} onClick={() => navigate("/owner/notification")}>
-    <i className="bi bi-bell"></i>
-    Notification
-  </div>
-
-  <div style={menuItemStyle} onClick={() => navigate("/owner/report")}>
-    <i className="bi bi-bar-chart"></i>
-    Report
-  </div>
-</div>
-</div>
-
-        {/* Main content */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          {/* Form card */}
-          <div
-            style={{
-              backgroundColor: "#ccffcc",
-              padding: "30px",
-              borderRadius: "18px",
-              width: "460px",
-              border: "1px solid #6aa84f",
-            }}
-          >
-            {/* Address */}
-            <label style={labelStyle}>Address</label>
-            <input style={inputStyle} />
-
-            {/* Rooms */}
-            <label style={labelStyle}>Number of rooms</label>
-            <input style={{ ...inputStyle, width: "80px" }} />
-
-            {/* Rent */}
-            <label style={labelStyle}>Rent</label>
-            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              <input style={{ ...inputStyle, width: "140px" }} />
-
-              <button style={activeToggle}>Monthly</button>
-              <button style={toggle}>Yearly</button>
-            </div>
-
-            {/* Actions */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "12px",
-                marginTop: "24px",
-              }}
-            >
-              <button
-                style={cancelBtn}
-                onClick={() => navigate("/owner/houses")}
-              >
-                Cancel
-              </button>
-              <button style={saveBtn}>Save</button>
-            </div>
-          </div>
-        </div>
+          </form>
+        </Card>
       </div>
-
-      {/* Footer */}
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+    </DashboardLayout>
   );
 }
-
-/* -------- helper components & styles -------- */
-
-function MenuItem({ label, active, onClick }) {
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-        cursor: "pointer",
-        color: active ? "#1d4ed8" : "#000",
-        fontWeight: active ? 600 : 400,
-      }}
-    >
-      <i className="bi bi-house"></i>
-      {label}
-    </div>
-  );
-}
-
-const labelStyle = {
-  display: "block",
-  fontWeight: 600,
-  marginTop: "14px",
-  marginBottom: "6px",
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "6px",
-  border: "1px solid #000",
-  backgroundColor: "#e0e0e0",
-};
-
-const toggle = {
-  padding: "6px 12px",
-  borderRadius: "6px",
-  border: "1px solid #000",
-  backgroundColor: "white",
-  cursor: "pointer",
-};
-
-const activeToggle = {
-  ...toggle,
-  backgroundColor: "black",
-  color: "white",
-};
-
-const cancelBtn = {
-  padding: "6px 14px",
-  borderRadius: "6px",
-  border: "1px solid #000",
-  backgroundColor: "white",
-  cursor: "pointer",
-};
-
-const saveBtn = {
-  padding: "6px 18px",
-  borderRadius: "6px",
-  border: "none",
-  backgroundColor: "#0b3d02",
-  color: "white",
-  cursor: "pointer",
-};
 
 export default OwnerAddHouse;
+
+

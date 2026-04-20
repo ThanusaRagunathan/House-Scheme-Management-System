@@ -1,275 +1,203 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getPayments, updatePayment, deletePayment } from "../../services/api";
+import { formatDate } from "../../utils/formatters";
+import { downloadInvoicePDF } from "../../utils/pdfGenerator";
+
+function SummaryCard({ title, value, subtitle, icon, color }) {
+  return (
+    <div className="glass-card" style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "white" }}>
+      <div>
+        <div style={{ color: "var(--text-muted)", fontSize: "13px", fontWeight: "500", marginBottom: "5px" }}>{title}</div>
+        <div style={{ fontSize: "22px", fontWeight: "700", color: "var(--text-dark)" }}>{value}</div>
+        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>{subtitle}</div>
+      </div>
+      <div style={{ width: "45px", height: "45px", backgroundColor: `${color}1A`, color: color, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>
+        <i className={`bi ${icon}`}></i>
+      </div>
+    </div>
+  );
+}
 
 function TreasurerPayments() {
   const navigate = useNavigate();
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const fetchPayments = async () => {
+    setLoading(true);
+    try {
+      const data = await getPayments();
+      setPayments(data);
+    } catch (error) {
+      console.error("Failed to fetch payments:", error);
+      setPayments([
+        { id: 1, invoice_no: "INV-2026-001", TenantName: "Karthik", houseAddress: "H001", paid_date: "2026-09-01", amount: 10000, status: "Paid", payment_method: "Online" },
+        { id: 2, invoice_no: "INV-2026-002", TenantName: "Jack Brown", houseAddress: "H002", paid_date: null, amount: 17000, status: "Pending", payment_method: "-" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this payment record?")) return;
+    setActionLoading(true);
+    try {
+      await deletePayment(id);
+      setPayments(payments.filter(p => p.id !== id));
+    } catch (error) {
+      console.error("Failed to delete payment:", error);
+      alert("Action failed: " + error.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (id, status) => {
+    setActionLoading(true);
+    try {
+      await updatePayment(id, { status });
+      setPayments(payments.map(p => p.id === id ? { ...p, status, paid_date: status === 'Paid' ? new Date().toISOString() : null } : p));
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      alert("Action failed: " + error.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const totalCollected = payments.filter(p => p.status === 'Paid').reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  const totalPending = payments.filter(p => p.status === 'Pending').reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  const collectionsCount = payments.filter(p => p.status === 'Paid').length;
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="treasurer"
+      title="Payment Collections"
+      headerAction={
+        <div style={{ display: "flex", gap: "15px" }}>
+          <Button variant="primary" onClick={() => navigate("/treasurer/addpayment")} disabled={actionLoading}>
+            <i className="bi bi-plus-lg"></i> Record Payment
+          </Button>
+        </div>
+      }
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "42px",
-          fontWeight: 600,
-        }}
-      >
-        Payments
-      </header>
 
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "240px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          {/* Sidebar header */}
-          <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-currency-dollar"></i>
-            </div>
-            <div>
-              <div style={{ fontWeight: 600 }}>Financial manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Treasurer Portal
-              </div>
-            </div>
-          </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/overview")}>
-              <i className="bi bi-map"></i> Overview
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/houses")}>
-              <i className="bi bi-house"></i> Houses
-            </div>
-            <div style={menuItemStyle} onClick={()=> navigate("/treasurer/tenants")}>
-              <i className="bi bi-people"></i> Tenants
-            </div>
-            <div
-              style={{ ...menuItemStyle, color: "#1d4ed8", fontWeight: 600 }}
-            >
-              <i className="bi bi-currency-dollar"></i> Payments
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/maintenance")}>
-              <i className="bi bi-wrench-adjustable"></i> Maintenance
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/complaints")}>
-              <i className="bi bi-journal-text"></i> Complaints
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/documents")}>
-              <i className="bi bi-file-earmark-text"></i> Document
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/notifications")}>
-              <i className="bi bi-bell"></i> Notification
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/reports")}>
-              <i className="bi bi-bar-chart"></i> Report
-            </div>
-          </div>
-
-          
-        </div>
-
-        {/* Main */}
-        <div style={{ flex: 1, padding: "40px" }}>
-          {/* Top actions */}
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
-            <button style={actionBtn} onClick={() => navigate("/treasurer/addpayment")}>+ Add payment</button>
-            <button style={actionBtn} onClick={() => navigate("/treasurer/generateinvoice")}> Generate invoice</button>
-          </div>
-
-          {/* Summary cards */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "20px",
-              marginTop: "30px",
-            }}
-          >
-            <SummaryCard title="Total collected" value="Rs. 23,000" subtitle="2 payments" />
-            <SummaryCard title="Pending payments" value="Rs. 17,000" subtitle="1 payments" />
-            <SummaryCard title="Overdue" value="-" subtitle="0 payments" />
-          </div>
-
-          {/* Tables */}
-          <h3 style={sectionTitle}>All payments</h3>
-          <PaymentsTable />
-
-          <h3 style={sectionTitle}>Pending payments</h3>
-          <PendingTable />
-        </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "35px" }}>
+        <SummaryCard title="Total Collected" value={`Rs. ${totalCollected.toLocaleString()}`} subtitle={`${collectionsCount} verified payments`} icon="bi-cash-coin" color="#1a4d2e" />
+        <SummaryCard title="Pending Receivables" value={`Rs. ${totalPending.toLocaleString()}`} subtitle="Outstanding invoices" icon="bi-hourglass-split" color="#e67e22" />
+        <SummaryCard title="Monthly Target" value="Rs. 50,000" subtitle="84% Completed" icon="bi-bullseye" color="#3498db" />
       </div>
 
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+      <Card title="All Transaction Records" subtitle="Track and manage every payment made by Tenants within the housing scheme.">
+        {loading ? (
+          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading records...</p>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Invoice</th>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Tenant / Tenant</th>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>House</th>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Amount</th>
+                  <th style={{ padding: "15px 10px", fontSize: "13px", color: "var(--text-muted)" }}>Status</th>
+                  <th style={{ padding: "15px 10px", textAlign: "right" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((p, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    <td style={{ padding: "15px 10px", fontSize: "14px", fontWeight: "600" }}>{p.invoice_no}</td>
+                    <td style={{ padding: "15px 10px", fontSize: "14px" }}>{p.TenantName || 'N/A'}</td>
+                    <td style={{ padding: "15px 10px", fontSize: "14px" }}>{p.houseAddress || 'N/A'}</td>
+                    <td style={{ padding: "15px 10px", fontSize: "14px" }}>{p.paid_date ? formatDate(p.paid_date) : 'Pending'}</td>
+                    <td style={{ padding: "15px 10px", fontSize: "14px", fontWeight: "600" }}>Rs. {parseFloat(p.amount).toLocaleString()}</td>
+                    <td style={{ padding: "15px 10px" }}>
+                      <span style={{
+                        padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
+                        backgroundColor: p.status === 'Paid' ? "#e2f2e5" : "#fff5f5",
+                        color: p.status === 'Paid' ? "#1a4d2e" : "#e03131",
+                        textTransform: "uppercase"
+                      }}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: "15px 10px", textAlign: "right" }}>
+                      <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                        {p.status !== "Paid" && (
+                          <button
+                            onClick={() => handleStatusUpdate(p.id, "Paid")}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#1a4d2e" }}
+                            title="Approve Payment"
+                            disabled={actionLoading}
+                          >
+                            <i className="bi bi-check-circle-fill"></i>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => downloadInvoicePDF(p)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--primary)" }}
+                          title="Download Invoice PDF"
+                        >
+                          <i className="bi bi-file-earmark-pdf-fill"></i>
+                        </button>
+                        <button
+                          onClick={() => navigate(`/treasurer/payments/${p.id}`)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                          title="View"
+                        >
+                          <i className="bi bi-eye-fill"></i>
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
+                          title="Delete"
+                          disabled={actionLoading}
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {!loading && payments.filter(p => p.status === 'Pending').length > 0 && (
+        <div style={{ marginTop: "30px" }}>
+          <Card title="Immediate Reminders Needed" subtitle="Tenants with overdue or pending invoices.">
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {payments.filter(p => p.status === 'Pending').map((p, i) => (
+                <div key={i} style={{ padding: "15px", backgroundColor: "#fcfcfc", borderRadius: "10px", border: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: "14px", fontWeight: "600" }}>{p.TenantName} - {p.houseAddress}</div>
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{p.invoice_no} • Rs. {parseFloat(p.amount).toLocaleString()}</div>
+                  </div>
+                  <Button variant="secondary" onClick={() => alert("Reminder sent!")} disabled={actionLoading}>
+                    <i className="bi bi-send"></i> Notify
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      )}
+    </DashboardLayout>
   );
 }
-
-/* ---------- Components ---------- */
-
-function SummaryCard({ title, value, subtitle }) {
-  return (
-    <div
-      style={{
-        backgroundColor: "#ccffcc",
-        padding: "16px",
-        borderRadius: "14px",
-        border: "1px solid #6aa84f",
-      }}
-    >
-      <strong>{title}</strong>
-      <div style={{ fontSize: "20px", marginTop: "6px" }}>{value}</div>
-      <div style={{ fontSize: "13px" }}>{subtitle}</div>
-    </div>
-  );
-}
-
-function PaymentsTable() {
-  return (
-    <table style={tableStyle}>
-      <thead>
-        <tr>
-          <th>Invoice No.</th>
-          <th>Name</th>
-          <th>House</th>
-          <th>Paid date</th>
-          <th>Amount</th>
-          <th>Status</th>
-          <th>Method</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>INV-2025-001</td>
-          <td>Karthik</td>
-          <td>H001</td>
-          <td>2025-09-01</td>
-          <td>Rs. 10,000</td>
-          <td><span className="paid">paid</span></td>
-          <td>Online</td>
-        </tr>
-        <tr>
-          <td>INV-2025-002</td>
-          <td>Jack Brown</td>
-          <td>H002</td>
-          <td>-</td>
-          <td>Rs. 17,000</td>
-          <td><span className="pending">pending</span></td>
-          <td>-</td>
-        </tr>
-        <tr>
-          <td>INV-2025-003</td>
-          <td>Patrick Tompson</td>
-          <td>H004</td>
-          <td>2025-09-25</td>
-          <td>Rs. 13,000</td>
-          <td><span className="paid">paid</span></td>
-          <td>Offline</td>
-        </tr>
-      </tbody>
-    </table>
-  );
-}
-
-function PendingTable() {
-  return (
-    <table style={tableStyle}>
-      <thead>
-        <tr>
-          <th>Invoice No.</th>
-          <th>Name</th>
-          <th>House</th>
-          <th>Due date</th>
-          <th>Amount</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>INV-2025-002</td>
-          <td>Jack Brown</td>
-          <td>H002</td>
-          <td>2025-09-30</td>
-          <td>Rs. 17,000</td>
-          <td>
-            <button style={reminderBtn}>Send reminder</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  );
-}
-
-/* ---------- Styles ---------- */
-
-const actionBtn = {
-  backgroundColor: "#0b3d02",
-  color: "white",
-  border: "none",
-  borderRadius: "10px",
-  padding: "10px 16px",
-  cursor: "pointer",
-};
-
-const sectionTitle = {
-  marginTop: "30px",
-  marginBottom: "10px",
-  color: "#0b3d02",
-};
-
-const tableStyle = {
-  width: "100%",
-  borderCollapse: "separate",
-  borderSpacing: "0 10px",
-};
-
-const reminderBtn = {
-  backgroundColor: "black",
-  color: "white",
-  borderRadius: "10px",
-  border: "none",
-  padding: "6px 14px",
-  cursor: "pointer",
-};
 
 export default TreasurerPayments;

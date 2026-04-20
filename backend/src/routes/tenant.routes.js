@@ -1,13 +1,27 @@
 import express from "express";
-import * as tenantController from "../controllers/tenant.controller.js";
-import { verifyToken } from "../middleware/auth.middleware.js";
+import * as TenantController from "../controllers/Tenant.controller.js";
+import { verifyToken, authorize } from "../middleware/auth.middleware.js";
+import { validateRequest } from "../middleware/validate.middleware.js";
+import { tenantSchema } from "../validators/tenant.validator.js";
 
 const router = express.Router();
 
-router.get("/", verifyToken, tenantController.getAllTenants);
-router.get("/:id", verifyToken, tenantController.getTenantById);
-router.post("/", verifyToken, tenantController.createTenant);
-router.put("/:id", verifyToken, tenantController.updateTenant);
-router.delete("/:id", verifyToken, tenantController.deleteTenant);
+// Get all tenants - Owners and Treasurers only
+router.get("/", verifyToken, authorize("Owner", "Treasurer"), TenantController.getAllTenants);
+
+// Get tenant profile - Tenant self access
+router.get("/profile", verifyToken, authorize("Tenant"), TenantController.getTenantProfile);
+
+// Get specific tenant - Owners and Treasurers
+router.get("/:id", verifyToken, authorize("Owner", "Treasurer"), TenantController.getTenantById);
+
+// Create tenant - Owners only
+router.post("/", verifyToken, authorize("Owner"), tenantSchema, validateRequest, TenantController.createTenant);
+
+// Update tenant - Owners and Treasurers
+router.put("/:id", verifyToken, authorize("Owner", "Treasurer"), tenantSchema, validateRequest, TenantController.updateTenant);
+
+// Delete tenant - Owners and Treasurers
+router.delete("/:id", verifyToken, authorize("Owner", "Treasurer"), TenantController.deleteTenant);
 
 export default router;

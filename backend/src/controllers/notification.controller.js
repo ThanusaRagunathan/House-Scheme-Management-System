@@ -1,4 +1,5 @@
 import * as notificationModel from "../models/notification.model.js";
+import { getAllUserIds } from "../models/user.model.js";
 
 export const getAllNotifications = async (req, res) => {
   try {
@@ -27,14 +28,29 @@ export const getNotificationById = async (req, res) => {
 
 export const createNotification = async (req, res) => {
   try {
-    const { userId, title, description, status } = req.body;
+    const { userId, title, description, status, message, type } = req.body;
     
-    if (!userId || !description) {
-      return res.status(400).json({ message: "Missing required fields" });
+    // Support 'message' as an alias for 'description'
+    const finalDescription = description || message;
+    
+    if (!finalDescription) {
+      return res.status(400).json({ message: "Description/Message is required" });
+    }
+
+    const finalType = type || "General";
+
+    // Broadcast logic
+    if (userId === "all" || !userId) {
+      const userIds = await getAllUserIds();
+      const createPromises = userIds.map(id => 
+        notificationModel.createNotification(id, title, finalDescription, status || "New", finalType)
+      );
+      await Promise.all(createPromises);
+      return res.status(201).json({ message: "Broadcast notifications created" });
     }
     
     const notificationId = await notificationModel.createNotification(
-      userId, title, description, status || "New"
+      userId, title, finalDescription, status || "New", finalType
     );
     res.status(201).json({ message: "Notification created", notificationId });
   } catch (error) {

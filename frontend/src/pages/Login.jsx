@@ -2,14 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login as loginAPI } from "../services/api.js";
 import Background from "../assets/bgimg.jpg";
-
-const inputStyle = {
-  width: "100%",
-  padding: "10px",
-  margin: "8px 0 15px 0",
-  borderRadius: "6px",
-  border: "1px solid black",
-};
+import { Input } from "../components/FormElements.jsx";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -25,27 +18,21 @@ function Login() {
 
     try {
       const data = await loginAPI(username, password);
-
-      // Store token in localStorage
       localStorage.setItem("token", data.token);
-      
-      // Decode token to get role (JWT format: header.payload.signature)
       const payload = JSON.parse(atob(data.token.split('.')[1]));
       const role = payload.role.toLowerCase();
 
-      // Redirect based on role
       if (role === "owner") {
         navigate("/owner/overview");
       } else if (role === "treasurer") {
         navigate("/treasurer/overview");
       } else if (role === "tenant") {
-        navigate("/tenant/overview");
+        navigate("/Tenant/overview");
       } else {
         setError("Unknown user role");
       }
     } catch (err) {
       setError(err.message || "Login failed");
-      console.error("Login error:", err);
     } finally {
       setLoading(false);
     }
@@ -55,95 +42,96 @@ function Login() {
     <div
       style={{
         minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${Background})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         display: "flex",
         flexDirection: "column",
-        
+        justifyContent: "center",
+        alignItems: "center",
+        fontFamily: "'Outfit', sans-serif",
       }}
     >
-      <header style={{ padding: "70px", backgroundColor: "#0b3d02" }} />
-      <div
+
+
+      <div className="glass-card"
         style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          padding: "40px",
+          width: "100%",
+          maxWidth: "400px",
+          backgroundColor: "rgba(255, 255, 255, 0.9)"
         }}
       >
-        <div
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.2)",
-            padding: "30px",
-            width: "350px",
-            borderRadius: "10px",
-            boxShadow: "0 4px 10px white",
-            border: "1px solid black",
-          }}
-        >
-          <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-            Login
-          </h2>
-          {error && (
-            <div style={{ color: "red", marginBottom: "15px", fontSize: "14px" }}>
-              {error}
-            </div>
-          )}
-          <form onSubmit={handleLogin}>
-            <label>Enter Username</label>
-            <input
-              type="text"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              style={inputStyle}
-              required
-            />
-            <label>Enter Password</label>
-            <input
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={inputStyle}
-              required
-            />
-            <div style={{ textAlign: "right", marginBottom: "15px" }}>
-              <a href="#" style={{ fontSize: "14px", color: "gray" }}>
-                Forgot password?
-              </a>
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: "100%",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: loading ? "not-allowed" : "pointer",
-                fontSize: "16px",
-                opacity: loading ? 0.6 : 1,
-              }}
-            >
-              {loading ? "Logging in..." : "Log In"}
-            </button>
-          </form>
+        <div style={{ textAlign: "center", marginBottom: "30px" }}>
+          <h2 style={{ fontSize: "28px", color: "var(--primary)" }}>Welcome</h2>
+        </div>
+
+        {error && (
+          <div style={{
+            backgroundColor: "#ffe3e3",
+            color: "#d63031",
+            padding: "12px",
+            borderRadius: "8px",
+            marginBottom: "20px",
+            fontSize: "14px",
+            textAlign: "center",
+            border: "1px solid #fab1a0"
+          }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin}>
+          <Input
+            label="Username"
+            placeholder="e.g. suresh.owner"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+
+          <Input
+            label="Password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary"
+            style={{
+              width: "100%",
+              padding: "14px",
+              fontSize: "16px",
+              opacity: loading ? 0.7 : 1,
+              borderRadius: "10px"
+            }}
+          >
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+
+        <div style={{ marginTop: "30px", textAlign: "center", color: "var(--text-muted)", fontSize: "14px" }}>
+          Forgot password or don't have an account?{" "}
+          <span
+            onClick={() => navigate('/contact-admin')}
+            style={{ color: "var(--primary)", fontWeight: "600", cursor: "pointer" }}
+          >
+            Contact Admin
+          </span>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer
-        style={{
-          height: "30px",
-          backgroundColor: "#0b3d02",
-        }}
-      />
+      <div style={{ position: "absolute", bottom: "30px", color: "rgba(255,255,255,0.6)", fontSize: "14px" }}>
+        © 2026 House Scheme Management System
       </div>
+    </div>
   );
 }
 
 export default Login;
+

@@ -1,189 +1,105 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Input, Button, Card, TextArea } from "../../components/FormElements";
+import { createNotification } from "../../services/api";
 
 function TreasurerAddNotification() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  
+  const [formData, setFormData] = useState({
+    title: "",
+    message: "",
+    type: "Financial"
+  });
 
-  const menuItem = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    cursor: "pointer",
-    fontSize: "14px",
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      await createNotification({
+        ...formData,
+        date: new Date().toISOString()
+      });
+      navigate("/treasurer/notifications");
+    } catch (err) {
+      setError(err.message || "Failed to broadcast notification");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "42px",
-          fontWeight: 600,
-        }}
-      >
-        Notification
-      </header>
+    <DashboardLayout role="treasurer" title="Broadcast Notification">
+      <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+        {error && (
+          <div style={{ backgroundColor: "#fff5f5", color: "#e03131", padding: "15px", borderRadius: "10px", marginBottom: "20px", border: "1px solid #ffc9c9" }}>
+            {error}
+          </div>
+        )}
 
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "240px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
+        <Card 
+          title="Create New Announcement" 
+          subtitle="Send a notification or alert to all residents of the housing scheme."
         >
-          {/* Sidebar header */}
-          <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              $
-            </div>
-            <div>
-              <div style={{ fontWeight: 600 }}>Financial manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Treasurer Portal
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "20px" }}>
+              <Input
+                label="Notification Title"
+                placeholder="e.g. Urgent: Utility Maintenance Check"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                required
+              />
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ display: "block", fontSize: "14px", fontWeight: "500", color: "var(--text-muted)", marginBottom: "8px" }}>Type</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    borderRadius: "10px",
+                    border: "1px solid #e0e0e0",
+                    fontSize: "15px",
+                    backgroundColor: "white",
+                    outline: "none"
+                  }}
+                >
+                  <option value="Financial">Financial Alert</option>
+                  <option value="General">General Announcement</option>
+                  <option value="Urgent">Urgent Warning</option>
+                  <option value="Facility Closure">Facility Closure</option>
+                </select>
               </div>
             </div>
-          </div>
 
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            <div style={menuItem} onClick={() => navigate("/treasurer/overview")}>
-              Overview
-            </div>
-            <div style={menuItem}>Houses</div>
-            <div style={menuItem}>Tenants</div>
-            <div style={menuItem}>Payments</div>
-            <div style={menuItem}>Maintenance</div>
-            <div style={menuItem}>Complaints</div>
-            <div style={menuItem}>Document</div>
+            <TextArea
+              label="Notification Message"
+              rows={6}
+              placeholder="Provide a clear and detailed announcement for the tenants..."
+              value={formData.message}
+              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              required
+            />
 
-            <div
-              style={{
-                ...menuItem,
-                color: "#1d4ed8",
-                fontWeight: 600,
-              }}
-            >
-              Notification
-            </div>
-
-            <div style={menuItem}>Report</div>
-          </div>
-
-          
-        </div>
-
-        {/* Main content */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: "#ccffcc",
-              padding: "30px",
-              borderRadius: "18px",
-              width: "520px",
-              border: "1px solid #6aa84f",
-            }}
-          >
-            <label style={label}>Title</label>
-            <input style={inputSmall} />
-
-            <label style={label}>Message</label>
-            <textarea style={textarea} />
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "12px",
-                marginTop: "24px",
-              }}
-            >
-              <button style={cancelBtn} onClick={() => navigate(-1)}>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "30px", paddingTop: "20px", borderTop: "1px solid #eee" }}>
+              <Button variant="secondary" onClick={() => navigate("/treasurer/notifications")} disabled={loading}>
                 Cancel
-              </button>
-              <button style={saveBtn}>Save</button>
+              </Button>
+              <Button variant="primary" type="submit" loading={loading}>
+                Send Notification
+              </Button>
             </div>
-          </div>
-        </div>
+          </form>
+        </Card>
       </div>
-
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+    </DashboardLayout>
   );
 }
-
-/* styles */
-
-const label = {
-  display: "block",
-  fontWeight: 600,
-  marginBottom: "6px",
-  marginTop: "14px",
-};
-
-const inputSmall = {
-  width: "120px",
-  padding: "6px",
-  border: "1px solid #000",
-  backgroundColor: "#e0e0e0",
-  display: "block",
-};
-
-const textarea = {
-  width: "100%",
-  height: "90px",
-  padding: "6px",
-  border: "1px solid #000",
-  backgroundColor: "#e0e0e0",
-  resize: "none",
-};
-
-const cancelBtn = {
-  padding: "6px 16px",
-  borderRadius: "6px",
-  border: "1px solid #000",
-  backgroundColor: "white",
-  cursor: "pointer",
-};
-
-const saveBtn = {
-  padding: "6px 18px",
-  borderRadius: "6px",
-  border: "none",
-  backgroundColor: "#0b3d02",
-  color: "white",
-  cursor: "pointer",
-};
 
 export default TreasurerAddNotification;

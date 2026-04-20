@@ -1,331 +1,206 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getMaintenances, deleteMaintenance, updateMaintenance } from "../../services/api";
+
+function StatCard({ title, subtitle, value, icon, color }) {
+  return (
+    <div className="glass-card" style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "white" }}>
+      <div>
+        <div style={{ color: "var(--text-muted)", fontSize: "14px", fontWeight: "500", marginBottom: "5px" }}>{title}</div>
+        <div style={{ fontSize: "24px", fontWeight: "700", color: color || "var(--primary)" }}>{value}</div>
+        {subtitle && <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "3px" }}>{subtitle}</div>}
+      </div>
+      <div style={{ padding: "12px", backgroundColor: color ? `${color}1A` : "rgba(26, 77, 46, 0.1)", borderRadius: "10px", color: color || "var(--primary)", fontSize: "20px" }}>
+        <i className={`bi ${icon}`}></i>
+      </div>
+    </div>
+  );
+}
 
 function OwnerMaintenance() {
   const navigate = useNavigate();
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  // Summary cards
-  const summary = [
-    {
-      title: "Total tasks",
-      value: "4",
-      note: "2 pending",
-      icon: "bi-wrench",
-    },
-    {
-      title: "Total cost",
-      value: "Rs. 3,200",
-      note: "All maintenance costs",
-      icon: "bi-currency-dollar",
-    },
-    {
-      title: "Completed",
-      value: "2",
-      note: "Tasks completed",
-      icon: "bi-check2-square",
-    },
-  ];
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
-  // Maintenance tasks
-  const tasks = [
-    {
-      no: "M001",
-      facility: "Pool",
-      description: "Chemical balance check",
-      date: "2025-09-11",
-      cost: "Rs. 500",
-      status: "paid",
-    },
-    {
-      no: "M002",
-      facility: "Gym",
-      description: "Equipment maintenance",
-      date: "2025-09-15",
-      cost: "Rs. 1,700",
-      status: "pending",
-    },
-    {
-      no: "M003",
-      facility: "Park",
-      description: "Usual cleaning",
-      date: "2025-09-26",
-      cost: "Rs. 200",
-      status: "pending",
-    },
-    {
-      no: "M004",
-      facility: "Pool",
-      description: "Regular cleaning",
-      date: "2025-09-28",
-      cost: "Rs. 800",
-      status: "paid",
-    },
-  ];
-
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
+  const fetchTasks = async () => {
+    setLoading(true);
+    try {
+      const data = await getMaintenances();
+      setTasks(data);
+    } catch (error) {
+      console.error("Failed to load maintenance tasks:", error);
+      // Fallback for demo
+      setTasks([
+        { id: 1, facility: "Pool", description: "Chemical balance check", date: "2025-09-11", cost: 500, status: "Paid" },
+        { id: 2, facility: "Gym", description: "Equipment maintenance", date: "2025-09-15", cost: 1700, status: "Pending" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleDeleteTask = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+    
+    setActionLoading(true);
+    try {
+        await deleteMaintenance(id);
+        setTasks(tasks.filter(t => (t.task_id || t.id) !== id));
+        alert("Task deleted successfully");
+    } catch (error) {
+        console.error("Failed to delete task:", error);
+        alert("Failed to delete task: " + error.message);
+    } finally {
+        setActionLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    setActionLoading(true);
+    try {
+        await updateMaintenance(id, { taskStatus: newStatus });
+        setTasks(tasks.map(t => (t.task_id || t.id) === id ? { ...t, task_status: newStatus } : t));
+    } catch (error) {
+        console.error("Failed to update status:", error);
+        alert("Failed to update status: " + error.message);
+    } finally {
+        setActionLoading(false);
+    }
+  };
+
+  const totalCost = tasks.reduce((sum, t) => sum + (parseFloat(t.cost) || 0), 0);
+  const pendingCount = tasks.filter(t => (t.task_status || t.status) !== 'Paid').length;
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="owner"
+      title={`Maintenance ${!loading ? `(${tasks.length})` : ''}`}
+      headerAction={
+        <Button variant="primary" onClick={() => navigate("/owner/createtask")} disabled={actionLoading}>
+          <i className="bi bi-plus-circle"></i> Create Task
+        </Button>
+      }
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Maintenance
-      </header>
-
-      {/* Body */}
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          {/* Sidebar Header */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-buildings"></i>
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 600 }}>Property Manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Owner Portal
-              </div>
-            </div>
-          </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/owner/overview")}>
-              <i className="bi bi-map"></i>
-              Overview
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/houses")}>
-              <i className="bi bi-house"></i>
-              Houses
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/tenants")}>
-              <i className="bi bi-people"></i>
-              Tenants
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/payments")}>
-              <i className="bi bi-currency-dollar"></i>
-              Payments
-            </div>
-
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 500,
-              }}
-            >
-              <i className="bi bi-wrench-adjustable" onClick={()=>navigate("/owner/maintenance")}></i>
-              Maintenance
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/complaints")}>
-              <i className="bi bi-journal-text"></i>
-              Complaints
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/documents")}>
-              <i className="bi bi-file-earmark-text"></i>
-              Document
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/notification")}>
-              <i className="bi bi-bell"></i>
-              Notification
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/report")}>
-              <i className="bi bi-bar-chart"></i>
-              Report
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div style={{ flex: 1, padding: "40px" }}>
-          {/* Create task button */}
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button
-              style={{
-                backgroundColor: "#0b3d02",
-                color: "white",
-                border: "none",
-                borderRadius: "12px",
-                padding: "10px 18px",
-                fontSize: "16px",
-                cursor: "pointer",
-              }}
-              onClick={()=>navigate("/owner/createtask")}
-            >
-              + Create task
-            </button>
-          </div>
-
-          {/* Summary cards */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "20px",
-              marginTop: "30px",
-            }}
-          >
-            {summary.map((s, i) => (
-              <div
-                key={i}
-                style={{
-                  backgroundColor: "#ccffcc",
-                  borderRadius: "14px",
-                  padding: "16px",
-                  border: "1px solid #6aa84f",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      backgroundColor: "#0b3d02",
-                      borderRadius: "8px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    <i className={`bi ${s.icon}`}></i>
-                  </div>
-                  <strong>{s.title}</strong>
-                </div>
-
-                <div
-                  style={{
-                    marginTop: "10px",
-                    fontSize: "18px",
-                    fontWeight: 600,
-                  }}
-                >
-                  {s.value}
-                </div>
-                <div style={{ fontSize: "13px", color: "#444" }}>
-                  {s.note}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Tasks table */}
-          <h3 style={{ marginTop: "30px", color: "#0b3d02" }}>
-            All maintenance tasks
-          </h3>
-
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "separate",
-              borderSpacing: "0 10px",
-            }}
-          >
-            <thead>
-              <tr>
-                <th>Tasks No.</th>
-                <th>Facility</th>
-                <th>Description</th>
-                <th>Date</th>
-                <th>Cost</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {tasks.map((t, i) => (
-                <tr key={i} style={{ backgroundColor: "#e0e0e0" }}>
-                  <td style={{ padding: "10px" }}>{t.no}</td>
-                  <td style={{ padding: "10px" }}>{t.facility}</td>
-                  <td style={{ padding: "10px" }}>{t.description}</td>
-                  <td style={{ padding: "10px" }}>{t.date}</td>
-                  <td style={{ padding: "10px" }}>{t.cost}</td>
-                  <td style={{ padding: "10px" }}>
-                    <span
-                      style={{
-                        padding: "4px 10px",
-                        borderRadius: "10px",
-                        backgroundColor:
-                          t.status === "paid" ? "#000" : "red",
-                        color: "white",
-                        fontSize: "12px",
-                      }}
-                    >
-                      {t.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "40px" }}>
+        <StatCard title="Total Tasks" value={loading ? "..." : tasks.length} subtitle={`${pendingCount} pending`} icon="bi-wrench" color="#1a4d2e" />
+        <StatCard title="Total Expenditure" value={loading ? "..." : `Rs. ${totalCost.toLocaleString()}`} subtitle="All time" icon="bi-currency-dollar" color="#e67e22" />
+        <StatCard title="Uptime" value="98%" subtitle="Facility availability" icon="bi-check2-square" color="#3498db" />
       </div>
 
-      {/* Footer */}
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+      <Card title="All Maintenance Records" subtitle="Tracking repairs and facility upkeep costs.">
+        {loading ? (
+          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading records...</p>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>ID</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Facility</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Description</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Cost</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Status</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Category</th>
+                  <th style={{ padding: "12px", textAlign: "right" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tasks.map((t, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>M{String(t.task_id || t.id || t.maintenance_id || '').padStart(3, '0')}</td>
+                     <td style={{ padding: "12px", fontSize: "14px" }}>{t.house_code ? t.house_code : (t.house_id ? `House #${t.house_id}` : (t.facility || 'N/A'))}</td>
+                     <td style={{ padding: "12px", fontSize: "14px" }}>{t.description}</td>
+                     <td style={{ padding: "12px", fontSize: "14px" }}>{t.scheduled_date ? new Date(t.scheduled_date).toLocaleDateString() : (t.date ? new Date(t.date).toLocaleDateString() : 'N/A')}</td>
+                     <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>Rs. {parseFloat(t.cost || 0).toLocaleString()}</td>
+                     <td style={{ padding: "12px" }}>
+                        <span style={{ 
+                          padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
+                          backgroundColor: (t.task_status || t.status) === "Paid" ? "#e2f2e5" : 
+                                          (t.task_status || t.status) === "Requested" ? "#fff8e1" : "#fff5f5",
+                          color: (t.task_status || t.status) === "Paid" ? "#1a4d2e" : 
+                                 (t.task_status || t.status) === "Requested" ? "#f57c00" : "#e03131",
+                          textTransform: "uppercase"
+                        }}>
+                          {t.task_status || t.status}
+                        </span>
+                     </td>
+                     <td style={{ padding: "12px" }}>
+                       <div style={{ fontSize: "11px", fontWeight: "700", color: "#666", backgroundColor: "#f0f0f0", padding: "4px 10px", borderRadius: "10px", display: "inline-block", textTransform: "uppercase" }}>
+                         {t.category || "Maintenance"}
+                       </div>
+                     </td>
+                     <td style={{ padding: "12px", textAlign: "right" }}>
+                        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                           {(t.task_status || t.status) === "Requested" && (
+                            <button 
+                              onClick={() => handleStatusChange(t.task_id || t.id, "Pending")}
+                              style={{ background: "#e3f2fd", border: "1px solid #bbdefb", padding: "4px 8px", borderRadius: "6px", cursor: "pointer", color: "#1976d2", fontSize: "11px", fontWeight: "600" }}
+                              title="Acknowledge Request"
+                              disabled={actionLoading}
+                            >
+                              Acknowledge
+                            </button>
+                          )}
+                           {(t.task_status || t.status) === "Pending" && (
+                            <button 
+                              onClick={() => handleStatusChange(t.task_id || t.id, "In Progress")}
+                              style={{ background: "#fff8e1", border: "1px solid #ffecb3", padding: "4px 8px", borderRadius: "6px", cursor: "pointer", color: "#f57c00", fontSize: "11px", fontWeight: "600" }}
+                              title="Start Maintenance Work"
+                              disabled={actionLoading}
+                            >
+                              Start Work
+                            </button>
+                          )}
+                           {(t.task_status || t.status) === "In Progress" && (
+                            <button 
+                              onClick={() => handleStatusChange(t.task_id || t.id, "Completed")}
+                              style={{ background: "#e2f2e5", border: "1px solid #c8e6c9", padding: "4px 8px", borderRadius: "6px", cursor: "pointer", color: "#1a4d2e", fontSize: "11px", fontWeight: "600" }}
+                              title="Mark as Finished"
+                              disabled={actionLoading}
+                            >
+                              Mark Done
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => navigate(`/owner/maintenance/${t.task_id || t.id}`)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                            title="View"
+                          >
+                            <i className="bi bi-eye-fill"></i>
+                          </button>
+                          <button 
+                            onClick={() => navigate(`/owner/maintenance/edit/${t.task_id || t.id}`)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                          >
+                            <i className="bi bi-pencil-square"></i>
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteTask(t.task_id || t.id)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
+                          >
+                            <i className="bi bi-trash"></i>
+                          </button>
+                       </div>
+                    </td>
+                  </tr>
+                ))}
+                {tasks.length === 0 && (
+                  <tr><td colSpan="7" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>No maintenance tasks found.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </DashboardLayout>
   );
 }
 

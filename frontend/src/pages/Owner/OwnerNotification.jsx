@@ -1,305 +1,138 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getNotifications, updateNotification, deleteNotification } from "../../services/api";
 
 function OwnerNotification() {
   const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  // Quick actions (cards)
-  const actions = [
-    {
-      title: "Facility closure",
-      subtitle: "Notify about closures",
-      icon: "bi-exclamation-circle",
-    },
-    {
-      title: "Payment reminder",
-      subtitle: "Send rent reminders",
-      icon: "bi-currency-dollar",
-    },
-    {
-      title: "Maintenance update",
-      subtitle: "Notify about maintenance",
-      icon: "bi-wrench",
-    },
-    {
-      title: "General notice",
-      subtitle: "Send announcements",
-      icon: "bi-bell",
-    },
-  ];
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
-  // Notifications table
-  const notifications = [
-    {
-      title: "Rent payment due",
-      description:
-        "Your rent payment for November 2025 is due on November 1st.",
-      date: "2025-09-11",
-      status: "new",
-    },
-    {
-      title: "Pool temporary closure",
-      description:
-        "The swimming pool will be closed for maintenance from Oct 22–24.",
-      date: "2025-09-15",
-      status: "new",
-    },
-    {
-      title: "Complaint update",
-      description:
-        "Your complaint about the leaking faucet has been updated.",
-      date: "2025-09-26",
-      status: "read",
-    },
-  ];
-
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
+  const fetchNotifications = async () => {
+    setLoading(true);
+    try {
+      const data = await getNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+      // Fallback for demo
+      setNotifications([
+        { id: 1, title: "Rent payment due", description: "Your rent payment for November 2025 is due on November 1st.", date: "2025-11-01", status: "unread" },
+        { id: 2, title: "Pool closure", description: "The swimming pool will be closed for maintenance Oct 22-24.", date: "2025-10-20", status: "unread" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const statusStyle = (status) => ({
-    padding: "4px 10px",
-    borderRadius: "10px",
-    fontSize: "12px",
-    backgroundColor: status === "new" ? "#000" : "#ccc",
-    color: "white",
-  });
+  const handleMarkAsRead = async (id) => {
+    setActionLoading(true);
+    try {
+      await updateNotification(id, { status: 'read' });
+      setNotifications(notifications.map(n => n.id === id ? { ...n, status: 'read' } : n));
+    } catch (error) {
+      console.error("Failed to update notification:", error);
+      alert("Action failed: " + error.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this notification?")) return;
+    setActionLoading(true);
+    try {
+      await deleteNotification(id);
+      setNotifications(notifications.filter(n => n.id !== id));
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+      alert("Action failed: " + error.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => n.status === 'unread').length;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="owner"
+      title="Notifications & Updates"
+
+
+
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "40px",
-          fontWeight: 600,
-        }}
-      >
-        Notification
-      </header>
-
-      {/* Body */}
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "230px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          {/* Sidebar Header */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-buildings"></i>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "35px" }}>
+        {[
+          { title: "Broadcast", sub: "Send to all", icon: "bi-megaphone", path: "/owner/addnotification" },
+          { title: "Rent Reminders", sub: "Send to debtors", icon: "bi-currency-dollar", path: "/owner/sendreminder" },
+          { title: "Maintenance", sub: "Notify Tenants", icon: "bi-wrench", path: "/owner/createtask" },
+          { title: "Draft", sub: "Saved notices", icon: "bi-file-earmark-text", path: "/owner/drafts" },
+        ].map((action, i) => (
+          <div key={i} onClick={() => action.path && navigate(action.path)} className="glass-card clickable" style={{ padding: "20px", backgroundColor: "#1a4d2e", color: "white", textAlign: "center", cursor: "pointer" }}>
+            <div style={{ width: "45px", height: "45px", backgroundColor: "rgba(255, 255, 255, 0.2)", color: "white", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 15px", fontSize: "20px" }}>
+              <i className={`bi ${action.icon}`}></i>
             </div>
-
-            <div>
-              <div style={{ fontWeight: 600 }}>Property Manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Owner Portal
-              </div>
-            </div>
+            <div style={{ fontWeight: "700", fontSize: "15px", marginBottom: "5px" }}>{action.title}</div>
+            <div style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.8)" }}>{action.sub}</div>
           </div>
+        ))}
+      </div>
 
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/owner/overview")}>
-              <i className="bi bi-map"></i>
-              Overview
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/houses")}>
-              <i className="bi bi-house"></i>
-              Houses
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/tenants")}>
-              <i className="bi bi-people"></i>
-              Tenants
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/owner/payments")}>
-              <i className="bi bi-currency-dollar"></i>
-              Payments
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/owner/maintenance")}
-            >
-              <i className="bi bi-wrench-adjustable"></i>
-              Maintenance
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/owner/complaints")}
-            >
-              <i className="bi bi-journal-text"></i>
-              Complaints
-            </div>
-
-            <div
-              style={menuItemStyle}
-              onClick={() => navigate("/owner/documents")}
-            >
-              <i className="bi bi-file-earmark-text"></i>
-              Document
-            </div>
-
-            <div
-              style={{
-                ...menuItemStyle,
-                color: "#1d4ed8",
-                fontWeight: 500,
-              }}
-            >
-              <i className="bi bi-bell"></i>
-              Notification
-            </div>
-
-            <div style={menuItemStyle} onClick={()=>navigate("/owner/report")}>
-              <i className="bi bi-bar-chart"></i>
-              Report
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div style={{ flex: 1, padding: "40px" }}>
-          {/* Action cards */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: "20px",
-              marginBottom: "30px",
-            }}
-          >
-            {actions.map((a, i) => (
-              <div
-                key={i}
-                style={{
-                  backgroundColor: "#ccffcc",
-                  borderRadius: "14px",
-                  padding: "16px",
-                  border: "1px solid #6aa84f",
-                }}
-              >
-                <div
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    backgroundColor: "#0b3d02",
-                    borderRadius: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "white",
-                    marginBottom: "10px",
-                  }}
-                >
-                  <i className={`bi ${a.icon}`}></i>
+      <Card title="System Notifications" subtitle={`You have ${unreadCount} unread announcements and alerts.`}>
+        {loading ? (
+          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading messages...</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+            {notifications.map((n, i) => (
+              <div key={i} style={{
+                padding: "16px", borderRadius: "12px", borderLeft: `4px solid ${n.status === 'unread' ? 'var(--primary)' : '#ccc'}`,
+                backgroundColor: n.status === 'unread' ? "#f8fdf9" : "white",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                boxShadow: "0 2px 5px rgba(0,0,0,0.02)"
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "5px" }}>
+                    <span style={{ fontWeight: "700", color: n.status === 'unread' ? "var(--primary)" : "var(--text-dark)" }}>{n.title}</span>
+                    <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>{new Date(n.date).toLocaleDateString()}</span>
+                  </div>
+                  <div style={{ fontSize: "14px", color: "var(--text-muted)", lineHeight: "1.4" }}>{n.description}</div>
                 </div>
-
-                <strong>{a.title}</strong>
-                <div style={{ fontSize: "13px", color: "#444" }}>
-                  {a.subtitle}
+                <div style={{ marginLeft: "20px", display: "flex", gap: "10px", alignItems: "center" }}>
+                  {n.status === 'unread' ? (
+                    <Button variant="secondary" onClick={() => handleMarkAsRead(n.id || n.notification_id)} disabled={actionLoading}>
+                      Mark as Read
+                    </Button>
+                  ) : (
+                    <span style={{ fontSize: "12px", color: "#ccc" }}><i className="bi bi-check-all"></i> Seen</span>
+                  )}
+                  <button
+                    onClick={() => handleDelete(n.id || n.notification_id)}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131", padding: "5px" }}
+                    title="Delete"
+                    disabled={actionLoading}
+                  >
+                    <i className="bi bi-trash"></i>
+                  </button>
                 </div>
               </div>
             ))}
+            {notifications.length === 0 && (
+              <div style={{ textAlign: "center", padding: "40px" }}>
+                <i className="bi bi-bell-slash" style={{ fontSize: "40px", color: "#eee", display: "block", marginBottom: "15px" }}></i>
+                <div style={{ color: "var(--text-muted)" }}>No notifications available.</div>
+              </div>
+            )}
           </div>
-
-          {/* Notifications table */}
-          <h3 style={{ color: "#0b3d02" }}>Recent notifications</h3>
-
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "separate",
-              borderSpacing: "0 10px",
-            }}
-          >
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {notifications.map((n, i) => (
-                <tr key={i} style={{ backgroundColor: "#e0e0e0" }}>
-                  <td style={{ padding: "10px" }}>{n.title}</td>
-                  <td style={{ padding: "10px" }}>{n.description}</td>
-                  <td style={{ padding: "10px" }}>{n.date}</td>
-                  <td style={{ padding: "10px" }}>
-                    <span style={statusStyle(n.status)}>{n.status}</span>
-                  </td>
-                  <td style={{ padding: "10px" }}>
-                    {n.status === "new" && (
-                      <button
-                        style={{
-                          backgroundColor: "#000",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "12px",
-                          padding: "6px 14px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Mark as read
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+        )}
+      </Card>
+    </DashboardLayout>
   );
 }
 

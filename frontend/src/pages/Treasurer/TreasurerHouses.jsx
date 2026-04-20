@@ -1,252 +1,98 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getHouses, deleteHouse } from "../../services/api";
+import { sortHousesByReference } from "../../utils/formatters";
 
-function TreasurerHouses() {
-    const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
-  };
+function HouseCard({ house }) {
   const navigate = useNavigate();
 
-  const houses = [
-    {
-      id: "H001",
-      status: "Occupied",
-      address: "123, Oak Street",
-      rooms: 2,
-      rent: "Rs. 10,000/mo",
-      tenants: ["Karthik (Tenant)", "Sarah John (Spouse)"],
-    },
-    {
-      id: "H002",
-      status: "Occupied",
-      address: "124, Oak Street",
-      rooms: 3,
-      rent: "Rs. 17,000/mo",
-      tenants: [
-        "Jack Brown (Tenant)",
-        "Emma Brown (Spouse)",
-        "Emma Brown (Spouse)",
-      ],
-    },
-    {
-      id: "H003",
-      status: "Vacant",
-      address: "125, Oak Street",
-      rooms: 1,
-      rent: "Rs. 48,000/yr",
-      tenants: [],
-    },
-    {
-      id: "H004",
-      status: "Occupied",
-      address: "54, Main Street",
-      rooms: 2,
-      rent: "Rs. 13,000/mo",
-      tenants: ["Patrick Tompson (Tenant)"],
-    },
-  ];
-
-  const menuItem = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-  };
-
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "42px",
-          fontWeight: 600,
-        }}
-      >
-        Houses
-      </header>
-
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "240px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          {/* Sidebar header */}
-          <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              <i className="bi bi-currency-dollar"></i>
-            </div>
-            <div>
-              <div style={{ fontWeight: 600 }}>Financial manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Treasurer Portal
-              </div>
-            </div>
-          </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            <div style={menuItem} onClick={() => navigate("/treasurer/overview")}>
-              <i className="bi bi-map"></i> Overview
-            </div>
-            <div style={{ ...menuItem, color: "#1d4ed8", fontWeight: 600 }}>
-              <i className="bi bi-house"></i> Houses
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/tenants")}>
-              <i className="bi bi-people"></i> Tenants
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/payments")}>
-              <i className="bi bi-currency-dollar"></i> Payments
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/maintenance")}>
-              <i className="bi bi-wrench-adjustable" ></i> Maintenance
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/complaints")}>
-              <i className="bi bi-journal-text"></i> Complaints
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/documents")}>
-              <i className="bi bi-file-earmark-text"></i> Document
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/notifications")}>
-              <i className="bi bi-bell"></i> Notification
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/reports")}>
-              <i className="bi bi-bar-chart"></i> Report
-            </div>
-          </div>
-
-         
-        </div>
-
-        {/* Main content */}
-        <div
-          style={{
-            flex: 1,
-            padding: "50px",
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "30px",
-          }}
-        >
-          {houses.map((h) => (
-            <div
-              key={h.id}
-              style={{
-                backgroundColor: "#ccffcc",
-                borderRadius: "16px",
-                padding: "16px",
-                border: "1px solid #6aa84f",
-              }}
-            >
-              {/* Top row */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <strong>{h.id}</strong>
-                  <div
-                    style={{
-                      backgroundColor:
-                        h.status === "Occupied" ? "black" : "gray",
-                      color: "white",
-                      borderRadius: "8px",
-                      padding: "2px 8px",
-                      fontSize: "12px",
-                      display: "inline-block",
-                      marginLeft: "8px",
-                    }}
-                  >
-                    {h.status}
-                  </div>
-                </div>
-                <div>
-                  <i
-                    className="bi bi-pencil-square"
-                    style={{ marginRight: "10px", cursor: "pointer" }}
-                  ></i>
-                  <i
-                    className="bi bi-trash"
-                    style={{ color: "red", cursor: "pointer" }}
-                  ></i>
-                </div>
-              </div>
-
-              <p>
-                <strong>Address</strong>
-                <br />
-                {h.address}
-              </p>
-
-              <p>
-                <strong>Rooms</strong> {h.rooms} <br />
-                <strong>Rent</strong> {h.rent}
-              </p>
-
-              <p>
-                <strong>Tenants({h.tenants.length})</strong>
-                <br />
-                {h.tenants.map((t, i) => (
-                  <div key={i}>{t}</div>
-                ))}
-              </p>
-
-              <button
-                style={{
-                  width: "100%",
-                  marginTop: "10px",
-                  padding: "6px",
-                  borderRadius: "6px",
-                  border: "1px solid #000",
-                  backgroundColor: "#e0e0e0",
-                  cursor: "pointer",
-                }}
-              >
-                View Details
-              </button>
-            </div>
-          ))}
+    <div className="glass-card" style={{ padding: "20px", backgroundColor: "white", display: "flex", flexDirection: "column", gap: "15px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <div style={{ fontSize: "12px", color: "var(--primary)", fontWeight: "600" }}>{house.referenceCode}</div>
+          <div style={{ fontSize: "16px", fontWeight: "700" }}>{house.address || house.location}</div>
         </div>
       </div>
 
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
+      <div style={{ fontSize: "14px", color: "var(--text-dark)" }}>
+        <i className="bi bi-geo-alt" style={{ marginRight: "8px" }}></i>
+        {house.address || house.location}
+      </div>
+
+      <div style={{ display: "flex", gap: "20px" }}>
+        <div>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>Monthly Rent</div>
+          <div style={{ fontWeight: "700" }}>Rs. {parseFloat(house.rent || 0).toLocaleString()}</div>
+        </div>
+        <div>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>Status</div>
+          <div style={{ color: house.status === 'Occupied' ? '#1a4d2e' : '#e67e22', fontWeight: "700" }}>{house.status}</div>
+        </div>
+      </div>
+
+      <Button variant="secondary" onClick={() => navigate(`/treasurer/houses/${house.id}`)}>
+        View Details
+      </Button>
     </div>
   );
+}
+
+function TreasurerHouses() {
+    const navigate = useNavigate();
+    const [houses, setHouses] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchHouses();
+    }, []);
+
+    const fetchHouses = async () => {
+        setLoading(true);
+        try {
+            const data = await getHouses();
+            setHouses(sortHousesByReference(data));
+        } catch (error) {
+            console.error("Failed to fetch houses:", error);
+            // Fallback for demo
+            setHouses([
+                { id: 1, houseCode: "H001", address: "123, Oak Street", houseType: "Apartment", rent: 10000, status: "Occupied" },
+                { id: 2, houseCode: "H002", address: "124, Oak Street", houseType: "Villa", rent: 17000, status: "Occupied" },
+                { id: 3, houseCode: "H003", address: "125, Oak Street", houseType: "Studio", rent: 8000, status: "Vacant" },
+            ]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <DashboardLayout
+            role="treasurer"
+            title="House Portfolio"
+        >
+            <div style={{ marginBottom: "20px" }}>
+                <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "700" }}>Housing Units ({houses.length})</h3>
+            </div>
+
+            {loading ? (
+                <p style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)" }}>Loading inventory...</p>
+            ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "25px" }}>
+                    {houses.map(house => (
+                        <HouseCard key={house.id} house={house} />
+                    ))}
+                    {houses.length === 0 && (
+                        <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px", backgroundColor: "#f9f9f9", borderRadius: "15px" }}>
+                            <i className="bi bi-house-door" style={{ fontSize: "48px", color: "#ddd", display: "block", marginBottom: "15px" }}></i>
+                            <div style={{ color: "var(--text-muted)" }}>No houses found in the inventory.</div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </DashboardLayout>
+    );
 }
 
 export default TreasurerHouses;

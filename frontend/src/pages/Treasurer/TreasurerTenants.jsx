@@ -1,188 +1,128 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getTenants, deleteTenant } from "../../services/api";
+import { formatDate } from "../../utils/formatters";
 
 function TreasurerTenants() {
   const navigate = useNavigate();
+  const [Tenants, setTenants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    cursor: "pointer",
-    fontSize: "14px",
+  useEffect(() => {
+    fetchTenants();
+  }, []);
+
+  const fetchTenants = async () => {
+    setLoading(true);
+    try {
+      const data = await getTenants();
+      setTenants(data);
+    } catch (error) {
+      console.error("Failed to fetch Tenants:", error);
+      // Fallback for demo
+      setTenants([
+        { id: 1, name: "Karthik", email: "karthik@gmail.com", phone: "077 123 4567", houseCode: "H001", nic: "S1234567", occupation: "Software Engineer", dob: "1990-01-01", tenancyPeriod: "2020-01-01 to 2025-01-01" },
+        { id: 2, name: "Jack Brown", email: "jack123@gmail.com", phone: "077 548 5503", houseCode: "H002", nic: "S1234568", occupation: "Teacher", dob: "1985-03-15", tenancyPeriod: "2020-01-01 to 2025-01-01" },
+        { id: 3, name: "Patrick Tompson", email: "pato@gmail.com", phone: "075 472 3652", houseCode: "H004", nic: "S1234569", occupation: "Doctor", dob: "1995-06-20", tenancyPeriod: "2020-01-01 to 2025-01-01" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`Are you sure you want to remove Tenant ${name}?`)) return;
+    setActionLoading(true);
+    try {
+      await deleteTenant(id);
+      setTenants(Tenants.filter(t => t.id !== id));
+      alert("Tenant removed successfully");
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("Delete failed: " + error.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="treasurer"
+      title="Tenant Directory"
+
+
+
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "42px",
-          fontWeight: 600,
-        }}
-      >
-        Tenants
-      </header>
-
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "240px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          {/* Sidebar header */}
-          <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              $
-            </div>
-            <div>
-              <div style={{ fontWeight: 600 }}>Financial manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Treasurer Portal
-              </div>
-            </div>
+      <Card>
+        {loading ? (
+          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading records...</p>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Name</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Contact Details</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>House</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>NIC</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Occupation</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Date of Birth</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Tenancy Period</th>
+                  <th style={{ padding: "12px", textAlign: "right" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Tenants.map((t, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>{t.name || t.username}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>
+                      <div style={{ fontWeight: "500" }}>{t.email}</div>
+                      <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{t.phone}</div>
+                    </td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{t.houseCode || t.houseAddress || 'N/A'}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{t.nic || 'N/A'}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{t.occupation || 'N/A'}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{t.date_of_birth ? formatDate(t.date_of_birth) : (t.dob || 'N/A')}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>
+                      {t.startDate ? `${formatDate(t.startDate)} - ${formatDate(t.endDate)}` : (t.tenancyPeriod || 'N/A')}
+                    </td>
+                    <td style={{ padding: "12px", textAlign: "right" }}>
+                      <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                        <Button variant="secondary" onClick={() => navigate(`/treasurer/Tenants/${t.id}`)}>
+                          View
+                        </Button>
+                        <button
+                          onClick={() => navigate(`/treasurer/Tenants/edit/${t.id}`)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                          title="Edit"
+                        >
+                          <i className="bi bi-pencil-square"></i>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(t.id, t.name || t.username)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
+                          title="Delete"
+                          disabled={actionLoading}
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {Tenants.length === 0 && (
+                  <tr><td colSpan="4" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>No Tenants registered.</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/overview")}>
-              <i className="bi bi-map"></i> Overview
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/houses")}>
-              <i className="bi bi-house"></i> Houses
-            </div>
-
-            <div style={{ ...menuItemStyle, color: "#1d4ed8", fontWeight: 600 }}>
-              <i className="bi bi-people"></i> Tenants
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/payments")}>
-              <i className="bi bi-currency-dollar"></i> Payments
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/maintenance")}>
-              <i className="bi bi-wrench-adjustable"></i> Maintenance
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/complaints")}>
-              <i className="bi bi-journal-text"></i> Complaints
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/documents")}>
-              <i className="bi bi-file-earmark-text"></i> Document
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/notifications")}>
-              <i className="bi bi-bell"></i> Notification
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/reports")}>
-              <i className="bi bi-bar-chart"></i> Report
-            </div>
-          </div>
-
-          
-        </div>
-
-        {/* Main content */}
-        <div style={{ flex: 1, padding: "40px" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ backgroundColor: "#e0e0e0" }}>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>House</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr style={{ backgroundColor: "#ddd" }}>
-                <td>Karthik</td>
-                <td>karthik@gmail.com</td>
-                <td>077 123 4567</td>
-                <td>H001</td>
-                <td>
-                  <button style={viewBtn}>View</button>
-                  <span style={icon}>✏️</span>
-                  <span style={{ ...icon, color: "red" }}>🗑️</span>
-                </td>
-              </tr>
-
-              <tr style={{ backgroundColor: "#ddd" }}>
-                <td>Jack Brown</td>
-                <td>jack123@gmail.com</td>
-                <td>077 548 5503</td>
-                <td>H002</td>
-                <td>
-                  <button style={viewBtn}>View</button>
-                  <span style={icon}>✏️</span>
-                  <span style={{ ...icon, color: "red" }}>🗑️</span>
-                </td>
-              </tr>
-
-              <tr style={{ backgroundColor: "#ddd" }}>
-                <td>Patrick Tompson</td>
-                <td>pato@gmail.com</td>
-                <td>075 472 3652</td>
-                <td>H004</td>
-                <td>
-                  <button style={viewBtn}>View</button>
-                  <span style={icon}>✏️</span>
-                  <span style={{ ...icon, color: "red" }}>🗑️</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+        )}
+      </Card>
+    </DashboardLayout>
   );
 }
-
-/* styles */
-const viewBtn = {
-  padding: "6px 14px",
-  borderRadius: "18px",
-  border: "none",
-  backgroundColor: "#ccc",
-  marginRight: "8px",
-  cursor: "pointer",
-};
-
-const icon = {
-  marginLeft: "8px",
-  cursor: "pointer",
-};
 
 export default TreasurerTenants;

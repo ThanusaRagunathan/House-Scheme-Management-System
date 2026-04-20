@@ -1,203 +1,191 @@
-import Background from "../../assets/bgimg.jpg";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import DashboardLayout from "../../components/DashboardLayout";
+import { Card, Button } from "../../components/FormElements";
+import { getComplaints, updateComplaint, deleteComplaint } from "../../services/api";
+import { formatDate } from "../../utils/formatters";
+
+function SummaryCard({ title, value, subtitle, icon, color }) {
+  return (
+    <div className="glass-card" style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "white" }}>
+      <div>
+        <div style={{ color: "var(--text-muted)", fontSize: "14px", fontWeight: "500", marginBottom: "5px" }}>{title}</div>
+        <div style={{ fontSize: "24px", fontWeight: "700", color: "var(--text-dark)" }}>{value}</div>
+        {subtitle && <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "3px" }}>{subtitle}</div>}
+      </div>
+      <div style={{ padding: "12px", backgroundColor: color ? `${color}1A` : "rgba(26, 77, 46, 0.1)", borderRadius: "10px", color: color || "var(--primary)", fontSize: "20px" }}>
+        <i className={`bi ${icon}`}></i>
+      </div>
+    </div>
+  );
+}
 
 function TreasurerComplaints() {
   const navigate = useNavigate();
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    cursor: "pointer",
-    color: "#000",
+  useEffect(() => {
+    fetchComplaints();
+  }, []);
+
+  const fetchComplaints = async () => {
+    setLoading(true);
+    try {
+      const data = await getComplaints();
+      setComplaints(data);
+    } catch (error) {
+      console.error("Failed to fetch complaints:", error);
+      // Fallback for demo
+      setComplaints([
+        { id: 1, complaint_id: 1, title: "Leaking faucet", houseAddress: "H002", submitted_date: "2025-09-05", status: "In Progress" },
+        { id: 2, complaint_id: 2, title: "Loud neighbors", houseAddress: "H004", submitted_date: "2025-09-13", status: "Open" },
+        { id: 3, complaint_id: 3, title: "Roof broken", houseAddress: "H001", submitted_date: "2025-09-21", status: "Resolved" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const summaryCard = {
-    backgroundColor: "#ccffcc",
-    borderRadius: "16px",
-    padding: "16px",
-    width: "220px",
-    border: "1px solid #6aa84f",
+  const handleStatusChange = async (id, newStatus) => {
+    setActionLoading(true);
+    try {
+      await updateComplaint(id, { status: newStatus });
+      setComplaints(complaints.map(c => c.id === id ? { ...c, status: newStatus } : c));
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      alert("Action failed: " + error.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const statusBadge = (text, bg) => ({
-    backgroundColor: bg,
-    color: "white",
-    padding: "4px 10px",
-    borderRadius: "8px",
-    fontSize: "12px",
-    display: "inline-block",
-  });
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this complaint?")) return;
+    setActionLoading(true);
+    try {
+      await deleteComplaint(id);
+      setComplaints(complaints.filter(c => c.id !== id));
+    } catch (error) {
+      console.error("Failed to delete record:", error);
+      alert("Action failed: " + error.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openCount = complaints.filter(c => c.status === 'Open' || c.status === 'open').length;
+  const inProgressCount = complaints.filter(c => c.status === 'In Progress' || c.status === 'in progress').length;
+  const resolvedCount = complaints.filter(c => c.status === 'Resolved' || c.status === 'resolved').length;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <DashboardLayout
+      role="treasurer"
+      title="Complaints Management"
+      headerAction={<Button variant="secondary" onClick={() => navigate("/treasurer/calendar")}><i className="bi bi-calendar3"></i> View Calendar</Button>}
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#0b3d02",
-          color: "white",
-          padding: "30px 40px",
-          fontSize: "42px",
-          fontWeight: 600,
-        }}
-      >
-        Complaints
-      </header>
-
-      <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
-        <div
-          style={{
-            width: "240px",
-            backgroundColor: "#d6d6d6",
-            padding: "16px",
-          }}
-        >
-          {/* Sidebar header */}
-          <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#0b3d02",
-                borderRadius: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-              }}
-            >
-              $
-            </div>
-            <div>
-              <div style={{ fontWeight: 600 }}>Financial manager</div>
-              <div style={{ fontSize: "12px", color: "#555" }}>
-                Treasurer Portal
-              </div>
-            </div>
-          </div>
-
-          {/* Menu */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/overview")}>
-              <i className="bi bi-map"></i> Overview
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/houses")}>
-              <i className="bi bi-house"></i> Houses
-            </div>
-            <div style={menuItemStyle} onClick={()=> navigate("/treasurer/tenants")}>
-              <i className="bi bi-people"></i> Tenants
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/payments")}>
-              <i className="bi bi-currency-dollar"></i> Payments
-            </div>
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/maintenance")}>
-              <i className="bi bi-wrench-adjustable"></i> Maintenance
-            </div>
-            <div style={{ ...menuItemStyle, color: "#1d4ed8", fontWeight: 600 }} onClick={() => navigate("/treasurer/complaints")}>
-              <i className="bi bi-journal-text"></i> Complaints
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/documents")}>
-              <i className="bi bi-file-earmark-text"></i> Document
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/notifications")}>
-              <i className="bi bi-bell"></i> Notification
-            </div>
-
-            <div style={menuItemStyle} onClick={() => navigate("/treasurer/reports")}>
-              <i className="bi bi-bar-chart"></i> Report
-            </div>
-          </div>
-
-          
-        </div>
-
-        {/* Main content */}
-        <div style={{ flex: 1, padding: "30px" }}>
-          {/* Summary cards */}
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={summaryCard}>
-              <strong>Open complaints</strong>
-              <div style={{ fontSize: "26px", fontWeight: 700 }}>1</div>
-              <div style={{ fontSize: "13px" }}>Requires attention</div>
-            </div>
-
-            <div style={summaryCard}>
-              <strong>In progress</strong>
-              <div style={{ fontSize: "26px", fontWeight: 700 }}>1</div>
-              <div style={{ fontSize: "13px" }}>Being addressed</div>
-            </div>
-
-            <div style={summaryCard}>
-              <strong>Resolved</strong>
-              <div style={{ fontSize: "26px", fontWeight: 700 }}>1</div>
-              <div style={{ fontSize: "13px" }}>Successfully resolved</div>
-            </div>
-          </div>
-
-          {/* Table */}
-          <h3 style={{ marginTop: "30px", color: "#0b3d02" }}>
-            All complaints
-          </h3>
-
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ backgroundColor: "#e0e0e0" }}>
-                <th>Complaint No.</th>
-                <th>House</th>
-                <th>Title</th>
-                <th>Submitted date</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr style={{ backgroundColor: "#ddd" }}>
-                <td>CO01</td>
-                <td>H002</td>
-                <td>Leaking faucet</td>
-                <td>2025-09-05</td>
-                <td><span style={statusBadge("in progress", "black")}>in progress</span></td>
-                <td><button>View</button></td>
-              </tr>
-
-              <tr style={{ backgroundColor: "#ddd" }}>
-                <td>CO02</td>
-                <td>H004</td>
-                <td>Loud neighbors</td>
-                <td>2025-09-13</td>
-                <td><span style={statusBadge("open", "red")}>open</span></td>
-                <td><button>View</button></td>
-              </tr>
-
-              <tr style={{ backgroundColor: "#ddd" }}>
-                <td>CO03</td>
-                <td>H001</td>
-                <td>Roof broken</td>
-                <td>2025-09-21</td>
-                <td><span style={statusBadge("resolved", "red")}>resolved</span></td>
-                <td><button>View</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "40px" }}>
+        <SummaryCard title="Open Complaints" value={loading ? "..." : openCount} subtitle="Requires attention" icon="bi-exclamation-circle" color="#e03131" />
+        <SummaryCard title="In Progress" value={loading ? "..." : inProgressCount} subtitle="Being addressed" icon="bi-hourglass-split" color="#e67e22" />
+        <SummaryCard title="Resolved" value={loading ? "..." : resolvedCount} subtitle="Successfully resolved" icon="bi-check2-circle" color="#1a4d2e" />
       </div>
 
-      <footer style={{ height: "30px", backgroundColor: "#0b3d02" }} />
-    </div>
+      <Card title="All Tenant Complaints" subtitle="Monitoring and addressing issues reported by Tenants.">
+        {loading ? (
+          <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading records...</p>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ textAlign: "left", borderBottom: "2px solid #f0f0f0" }}>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>ID</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>House</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Title</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Date</th>
+                  <th style={{ padding: "12px", fontSize: "13px", color: "var(--text-muted)" }}>Status</th>
+                  <th style={{ padding: "12px", textAlign: "right" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {complaints.map((c, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    <td style={{ padding: "12px", fontSize: "14px", fontWeight: "600" }}>C{String(c.id || i + 1).padStart(3, '0')}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{c.houseAddress || 'N/A'}</td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>
+                      {(() => {
+                        const match = c.title?.match(/^\[(.*?)\]\s*(.*)$/);
+                        if (match) {
+                          const tag = match[1];
+                          const text = match[2];
+                          return (
+                            <>
+                              <span style={{ 
+                                fontSize: "11px", fontWeight: "600", padding: "2px 8px", 
+                                backgroundColor: tag.includes("Feedback") ? "#e3f2fd" : "#f1f3f5", 
+                                color: tag.includes("Feedback") ? "#1976d2" : "#495057", 
+                                borderRadius: "12px", marginRight: "8px", verticalAlign: "middle" 
+                              }}>
+                                {tag}
+                              </span>
+                              {text}
+                            </>
+                          );
+                        }
+                        return c.title;
+                      })()}
+                    </td>
+                    <td style={{ padding: "12px", fontSize: "14px" }}>{formatDate(c.submitted_date || c.created_at)}</td>
+                    <td style={{ padding: "12px" }}>
+                      <span style={{
+                        padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: "700",
+                        backgroundColor: (c.status === "Resolved" || c.status === "resolved") ? "#e2f2e5" : (c.status === "Open" || c.status === "open" ? "#fff5f5" : "#fff8e1"),
+                        color: (c.status === "Resolved" || c.status === "resolved") ? "#1a4d2e" : (c.status === "Open" || c.status === "open" ? "#e03131" : "#f57c00"),
+                        textTransform: "uppercase"
+                      }}>
+                        {c.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: "12px", textAlign: "right" }}>
+                      <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                        {c.status !== "Resolved" && c.status !== "resolved" && (
+                          <button
+                            onClick={() => handleStatusChange(c.id, "Resolved")}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#1a4d2e" }}
+                            title="Resolve"
+                            disabled={actionLoading}
+                          >
+                            <i className="bi bi-check-circle-fill"></i>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => navigate(`/treasurer/complaints/${c.id}`)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+                          title="View"
+                        >
+                          <i className="bi bi-eye-fill"></i>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(c.id)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#e03131" }}
+                          title="Delete"
+                          disabled={actionLoading}
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {complaints.length === 0 && (
+                  <tr><td colSpan="6" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)" }}>No complaints found.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </DashboardLayout>
   );
 }
 

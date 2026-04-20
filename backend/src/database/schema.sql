@@ -7,31 +7,38 @@ CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role ENUM('Owner', 'Treasurer', 'Tenant') NOT NULL,
+    role VARCHAR(20) NOT NULL,
     email VARCHAR(100),
     phone VARCHAR(15),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    isFirstLogin BOOLEAN DEFAULT TRUE,
+    is_deleted TINYINT(1) DEFAULT 0
 );
 
 
 -- Houses Table
 CREATE TABLE houses (
     house_id INT AUTO_INCREMENT PRIMARY KEY,
+    reference_code VARCHAR(50) NOT NULL UNIQUE,
     address VARCHAR(255) NOT NULL,
     rooms INT NOT NULL,
     rent_amount DECIMAL(10,2) NOT NULL,
-    status ENUM('Occupied','Vacant') NOT NULL,
+    status VARCHAR(20) NOT NULL,
     owner_id INT NOT NULL,
+    is_deleted TINYINT(1) DEFAULT 0,
     FOREIGN KEY (owner_id) REFERENCES users(user_id)
         ON DELETE CASCADE
 );
 
 -- Tenants Table (Personal Information Only)
-CREATE TABLE tenants (
-    tenant_id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE Tenants (
+    Tenant_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL UNIQUE,
+    full_name VARCHAR(255) NOT NULL,
+    nic VARCHAR(15) NOT NULL,
     occupation VARCHAR(50),
     date_of_birth DATE,
+    is_deleted TINYINT(1) DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
         ON DELETE CASCADE
 );
@@ -39,11 +46,12 @@ CREATE TABLE tenants (
 -- Tenancies Table (Tenant–House Relationship)
 CREATE TABLE tenancies (
     tenancy_id INT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id INT NOT NULL,
+    Tenant_id INT NOT NULL,
     house_id INT NOT NULL,
     start_date DATE,
     end_date DATE,
-    FOREIGN KEY (tenant_id) REFERENCES tenants(tenant_id)
+    is_deleted TINYINT(1) DEFAULT 0,
+    FOREIGN KEY (Tenant_id) REFERENCES Tenants(Tenant_id)
         ON DELETE CASCADE,
     FOREIGN KEY (house_id) REFERENCES houses(house_id)
         ON DELETE CASCADE
@@ -54,11 +62,12 @@ CREATE TABLE payments (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
     tenancy_id INT NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
-    status ENUM('Paid','Pending') NOT NULL,
+    status VARCHAR(20) NOT NULL,
     paid_date DATE,
     due_date DATE,
     invoice_no VARCHAR(50) NOT NULL UNIQUE,
-    payment_method ENUM('Online','Offline') NOT NULL,
+    payment_method VARCHAR(50) NOT NULL,
+    is_deleted TINYINT(1) DEFAULT 0,
     FOREIGN KEY (tenancy_id) REFERENCES tenancies(tenancy_id)
         ON DELETE CASCADE
 );
@@ -69,10 +78,11 @@ CREATE TABLE complaints (
     tenancy_id INT NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
-    status ENUM('Open','In Progress','Resolved') NOT NULL,
+    status VARCHAR(20) NOT NULL,
     submitted_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     resolved_date TIMESTAMP NULL,
     response TEXT,
+    is_deleted TINYINT(1) DEFAULT 0,
     FOREIGN KEY (tenancy_id) REFERENCES tenancies(tenancy_id)
         ON DELETE CASCADE
 );
@@ -83,9 +93,10 @@ CREATE TABLE maintenance_tasks (
     house_id INT NOT NULL,
     description TEXT NOT NULL,
     cost DECIMAL(10,2),
-    task_status ENUM('Pending','In Progress','Completed') NOT NULL,
+    task_status VARCHAR(20) NOT NULL,
     scheduled_date DATE,
     completion_date DATE,
+    is_deleted TINYINT(1) DEFAULT 0,
     FOREIGN KEY (house_id) REFERENCES houses(house_id)
         ON DELETE CASCADE
 );
@@ -94,9 +105,10 @@ CREATE TABLE maintenance_tasks (
 CREATE TABLE documents (
     document_id INT AUTO_INCREMENT PRIMARY KEY,
     document_name VARCHAR(255),
-    document_type ENUM('Agreement','Invoice','Report') NOT NULL,
+    document_type VARCHAR(50) NOT NULL,
     upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     house_id INT NOT NULL,
+    is_deleted TINYINT(1) DEFAULT 0,
     FOREIGN KEY (house_id) REFERENCES houses(house_id)
         ON DELETE CASCADE
 );
@@ -108,7 +120,9 @@ CREATE TABLE notifications (
     title VARCHAR(255),
     description TEXT NOT NULL,
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('New','Read') NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    is_deleted TINYINT(1) DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
     FOREIGN KEY (user_id) REFERENCES users(user_id)
         ON DELETE CASCADE
 );
@@ -117,10 +131,24 @@ CREATE TABLE notifications (
 CREATE TABLE reports (
     report_id INT AUTO_INCREMENT PRIMARY KEY,
     report_name VARCHAR(255),
-    report_type ENUM('Financial','Maintenance','Occupancy') NOT NULL,
+    report_type VARCHAR(50) NOT NULL,
     content TEXT NOT NULL,
     generated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     generated_by INT NOT NULL,
+    is_deleted TINYINT(1) DEFAULT 0,
     FOREIGN KEY (generated_by) REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+-- Family Members Table
+CREATE TABLE family_members (
+    member_id INT AUTO_INCREMENT PRIMARY KEY,
+    Tenant_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    relation VARCHAR(100),
+    occupation VARCHAR(100),
+    nic VARCHAR(15),
+    date_of_birth DATE,
+    FOREIGN KEY (Tenant_id) REFERENCES Tenants(Tenant_id)
         ON DELETE CASCADE
 );
