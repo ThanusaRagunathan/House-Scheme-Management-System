@@ -49,15 +49,25 @@ export const createComplaint = async (req, res) => {
   try {
     let { tenancyId, title, description, status } = req.body;
 
+    console.log("[createComplaint] user:", { id: req.user.id, role: req.user.role });
+    console.log("[createComplaint] body fields received:", { tenancyId, title, description: description?.substring(0, 50), status });
+
     if (req.user.role === 'Tenant') {
       const tenant = await getTenantByUserId(req.user.id);
+      console.log("[createComplaint] tenant lookup result:", tenant);
       if (!tenant) {
         return res.status(404).json({ message: "Tenant record not found" });
       }
       tenancyId = tenant.tenancyId;
+      console.log("[createComplaint] tenancyId resolved from tenant:", tenancyId);
     }
 
     if (!tenancyId || !title || !description) {
+      console.log("[createComplaint] MISSING FIELDS CHECK:", {
+        tenancyId: tenancyId ?? "MISSING",
+        title: title ?? "MISSING",
+        description: description ?? "MISSING"
+      });
       return res.status(400).json({ message: "Missing required fields" });
     }
     
