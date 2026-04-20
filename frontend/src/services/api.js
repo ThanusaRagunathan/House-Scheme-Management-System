@@ -80,7 +80,7 @@ export const deleteMaintenance = (id) => apiCall(`/maintenance/${id}`, { method:
 
 // Complaint Services
 export const getComplaints = () => apiCall("/complaints");
-export const createComplaint = (data) => apiCall("/complaints", { method: "POST", body: JSON.stringify(data) });
+export const createComplaint = (data) => apiCall("/complaints", { method: "POST", body: data });
 export const updateComplaint = (id, data) => apiCall(`/complaints/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const deleteComplaint = (id) => apiCall(`/complaints/${id}`, { method: "DELETE" });
 
